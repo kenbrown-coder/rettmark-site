@@ -1,0 +1,12 @@
+# Local deploy bundle (regenerate anytime; large)
+rettmark-site-netlify.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.Python
+
+# Editor / OS
+.cursor/
+.DS_Store
+Thumbs.db

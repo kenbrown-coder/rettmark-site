@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout &amp; POS | Rettmark Firearms</title>
+  <meta name="description" content="How Rettmark Firearms checkout works: your order on our site exports to our point of sale for payment and fulfillment." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-shield-anim="off">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand-rm" href="index.html" aria-label="Rettmark Firearms home">
+      <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="firearms.html">Firearms</a>
+      <a href="cases.html">Cases</a>
+      <a href="bags.html">Bags</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
+  </header>
+
+  <div class="page-shell" id="main">
+    <div class="page">
+      <header class="page-intro">
+        <h1>Checkout</h1>
+        <p class="lede">
+          How the site hands off to the register — linked from the cart page and related copy, not from the main menu.
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2>Website → point of sale</h2>
+        <p>
+          Shoppers browse and add items in <strong>our cart</strong> on rettmarkfirearms.com. We are <strong>not</strong> embedding another company’s hosted storefront or checkout iframe.
+        </p>
+        <p>
+          When checkout is implemented, completing an order should <strong>export structured data to your POS</strong> (API, import file, or staff “pull web orders” flow — whatever your system supports). Payment capture and fulfillment then follow the same rules you already use in store.
+        </p>
+        <p>
+          The button below is a UI placeholder until your checkout step exists.
+        </p>
+        <div class="checkout-placeholder">
+          <button type="button" class="btn-secondary btn-secondary--wide" disabled>Pay &amp; place order — placeholder</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Build checklist (dev)</h2>
+        <p class="cart-flow-note" style="font-size: 0.88rem">
+          Cart state (client or server) · validate inventory · tax/shipping rules · PCI-safe payment path · POS order create/update · customer confirmation email · failure rollback.
+        </p>
+      </section>
+
+      <p style="margin-top: 24px; text-align: center">
+        <a class="inline-cta" href="cart.html">← Back to cart</a>
+        &nbsp;&nbsp;
+        <a class="inline-cta" href="contact.html">Contact</a>
+      </p>
+
+      <footer class="site-footer">
+        <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
+        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/site.js"></script>
+</body>
+</html>

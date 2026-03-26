@@ -1,0 +1,58 @@
+# Static site — forms POST to Google Apps Script (not Netlify Forms).
+# Redirects keep legacy double-extension thank-you URLs working if your script
+# still points at success.html.html / unsubscribe.html.html.
+
+# Serve this folder as the site root (must include css/, js/, assets/, *.html).
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/success.html.html"
+  to = "/success.html"
+  status = 301
+
+[[redirects]]
+  from = "/unsubscribe.html.html"
+  to = "/unsubscribe.html"
+  status = 301
+
+# Pretty URLs (make /page work even when deploying as static HTML)
+[[redirects]]
+  from = "/cases"
+  to = "/cases.html"
+  status = 200
+
+[[redirects]]
+  from = "/bags"
+  to = "/bags.html"
+  status = 200
+
+[[redirects]]
+  from = "/firearms"
+  to = "/firearms.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/cart"
+  to = "/cart.html"
+  status = 200
+
+[[redirects]]
+  from = "/checkout"
+  to = "/checkout.html"
+  status = 200
+
+[[redirects]]
+  from = "/success"
+  to = "/success.html"
+  status = 200
+
+[[redirects]]
+  from = "/unsubscribe"
+  to = "/unsubscribe.html"
+  status = 200

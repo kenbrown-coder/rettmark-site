@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart | Rettmark Firearms</title>
+  <meta name="description" content="Shopping cart — Rettmark Firearms." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-shield-anim="off">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand-rm" href="index.html" aria-label="Rettmark Firearms home">
+      <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="firearms.html">Firearms</a>
+      <a href="cases.html">Cases</a>
+      <a href="bags.html">Bags</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items" aria-current="page">Cart <span class="cart-count">0</span></a>
+  </header>
+
+  <div class="page-shell" id="main">
+    <div class="page">
+      <header class="page-intro">
+        <h1>Cart</h1>
+        <p class="lede">
+          Render line items, quantities, and totals inside <span class="code-tag">#cart-root</span>. Keep the header <strong>Cart</strong> count in sync from the same data.
+        </p>
+      </header>
+
+      <section class="panel" aria-labelledby="cart-heading">
+        <h2 id="cart-heading">Your order</h2>
+        <div id="cart-root" class="cart-root">
+          <p class="cart-empty">Your cart is empty.</p>
+        </div>
+        <p class="cart-flow-note">
+          This cart lives on rettmarkfirearms.com — not an embedded third-party storefront. When checkout is built, the order payload should match what your POS expects.
+        </p>
+        <div class="cart-actions">
+          <a class="submit" href="cases.html" style="text-decoration: none">Continue shopping</a>
+          <a class="contact-link" href="checkout.html" style="margin-top: 0">How checkout &amp; POS work →</a>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
+        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/site.js"></script>
+</body>
+</html>

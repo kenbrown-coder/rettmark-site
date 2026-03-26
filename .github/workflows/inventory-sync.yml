@@ -1,0 +1,38 @@
+name: Inventory Sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every hour at minute 15 (UTC)
+    - cron: "15 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Pull inventory CSV from spreadsheet export
+        env:
+          INVENTORY_CSV_URL: ${{ secrets.INVENTORY_CSV_URL }}
+        run: python scripts/sync_inventory_csv.py
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- inventory.csv; then
+            echo "No inventory changes."
+            exit 0
+          fi
+          git add inventory.csv
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "sync inventory from spreadsheet"
+          git push
+
