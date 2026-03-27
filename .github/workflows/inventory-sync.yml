@@ -24,7 +24,12 @@ jobs:
       - name: Pull inventory CSV from spreadsheet export
         env:
           INVENTORY_CSV_URL: ${{ secrets.INVENTORY_CSV_URL }}
-        run: python scripts/sync_inventory_csv.py
+        run: |
+          if [ -z "$INVENTORY_CSV_URL" ]; then
+            echo "INVENTORY_CSV_URL is not set. Skipping inventory sync."
+            exit 0
+          fi
+          python scripts/sync_inventory_csv.py
 
       - name: Commit and push if changed
         run: |
