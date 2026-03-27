@@ -568,6 +568,14 @@
       line-height: 1.5;
     }
 
+    .inventory-updated {
+      margin-top: 10px;
+      font-size: 0.66rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #7e7e7e;
+    }
+
     @media (max-width: 800px) {
       .section-grid { grid-template-columns: 1fr; }
       .hero { min-height: 380px; }

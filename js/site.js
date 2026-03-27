@@ -322,7 +322,15 @@
 
     // Prefer spreadsheet-friendly CSV; fall back to JSON.
     fetch("inventory.csv", { cache: "no-store" })
-      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (r) {
+        try {
+          var lm = r.headers && r.headers.get && r.headers.get("last-modified");
+          if (lm) {
+            setInventoryLastUpdated(lm);
+          }
+        } catch (e) {}
+        return r.ok ? r.text() : "";
+      })
       .then(function (csvText) {
         var inv = parseCsv(csvText);
         if (inv) {
@@ -338,6 +346,28 @@
           .then(function (inv) { if (inv) applyInventory(inv); });
       })
       .catch(function () {});
+  }
+
+  function setInventoryLastUpdated(lastModifiedHeader) {
+    var date = new Date(lastModifiedHeader);
+    if (!date || isNaN(date.getTime())) return;
+
+    var formatted = date.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+
+    var footerLegal = document.querySelector(".site-footer-legal");
+    var footer = footerLegal || document.querySelector(".site-footer");
+    if (!footer) return;
+
+    var existing = document.getElementById("inventory-last-updated");
+    if (existing) return;
+
+    var el = document.createElement("div");
+    el.id = "inventory-last-updated";
+    el.className = "inventory-updated";
+    el.textContent = "Inventory last updated: " + formatted;
+
+    if (footerLegal) footerLegal.appendChild(el);
+    else footer.appendChild(el);
   }
 
   loadInventory();
