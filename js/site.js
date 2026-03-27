@@ -397,6 +397,56 @@
 
   initCasesHelpers();
 
+  function initCasesSearchAndFilter() {
+    if (!document.body || !document.body.classList.contains("page-cases")) return;
+
+    var search = document.getElementById("cases-search");
+    var filter = document.getElementById("cases-filter");
+    if (!search && !filter) return;
+
+    function normalize(s) {
+      return String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function apply() {
+      var q = normalize(search && search.value);
+      var cat = (filter && filter.value) || "";
+
+      var sections = Array.prototype.slice.call(document.querySelectorAll(".cases-section"));
+      sections.forEach(function (sec) {
+        var details = sec.querySelector(".cases-accordion");
+        var id = details && details.getAttribute("id");
+        var inCategory = !cat || id === cat;
+
+        var anyVisible = false;
+        var cards = Array.prototype.slice.call(sec.querySelectorAll(".product-card"));
+        cards.forEach(function (card) {
+          var hay = normalize(
+            (card.getAttribute("data-title") || "") + " " +
+            (card.getAttribute("data-variant") || "") + " " +
+            (card.textContent || "")
+          );
+          var matches = !q || hay.indexOf(q) !== -1;
+          var show = inCategory && matches;
+          card.style.display = show ? "" : "none";
+          if (show) anyVisible = true;
+        });
+
+        sec.style.display = anyVisible ? "" : "none";
+        if (details) {
+          if (cat && id === cat) details.open = true;
+          if (q && anyVisible) details.open = true;
+        }
+      });
+    }
+
+    if (search) search.addEventListener("input", apply);
+    if (filter) filter.addEventListener("change", apply);
+    apply();
+  }
+
+  initCasesSearchAndFilter();
+
   var crest = document.querySelector(".crest-wrap");
   if (!crest || document.body.dataset.shieldAnim === "off") {
     if (crest) {

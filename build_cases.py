@@ -64,13 +64,16 @@ def card(
     else:
         img = f'<a class="ph-thumb" href="{u}" aria-label="View {t}" aria-hidden="true"></a>'
     sku_attr = f' data-sku="{esc(sku)}"' if sku else ""
-    return f"""          <article class="product-card"{sku_attr}>
+    return f"""          <article class="product-card"{sku_attr} data-title="{t}" data-variant="{v}">
             {img}
             <h3><a href="{u}">{t}</a></h3>
             <p class="sku">{v} · Condition&nbsp;1</p>
             <p class="spec">INT {i}</p>
             <p class="price">Ref. ${p}</p>
             <p class="stock-badge" data-stock-badge></p>
+            <div class="btn-block">
+              <a class="btn-secondary btn-secondary--link" href="{u}">View details</a>
+            </div>
           </article>"""
 
 
@@ -94,6 +97,8 @@ def main() -> None:
         )
         blocks.append(f'            <summary class="cases-accordion-summary"><span class="cases-category">{esc(heading)}</span></summary>')
         blocks.append('            <div class="cases-accordion-body">')
+        if sid == "cat-179":
+            blocks.append('              <p class="cases-featured-note">Most popular size for multi-pistol range kits. Multiple foam layouts are available—open a product to choose your color.</p>')
         blocks.append('              <div class="product-grid">')
         for p in sec["products"]:
             href = product_href(p["title"], p["variant"])
@@ -160,6 +165,24 @@ def main() -> None:
           Shop by size and configuration to find the right fit, then open a product page to view color options, current stock status, and pricing details.
         </p>
       </header>
+
+      <div class="cases-tools" role="search" aria-label="Search and filter cases">
+        <label class="cases-tools-label" for="cases-search">Search</label>
+        <input class="cases-tools-input" id="cases-search" type="search" placeholder="Search by case #, size, or layout" autocomplete="off" />
+        <label class="cases-tools-label" for="cases-filter">Category</label>
+        <select class="cases-tools-select" id="cases-filter" aria-label="Filter by category">
+          <option value="">All categories</option>
+          <option value="cat-179">16″ multi-pistol (#179)</option>
+          <option value="cat-compact">Compact & micro pistol</option>
+          <option value="cat-310">16″ revolver (#310)</option>
+          <option value="cat-801">18″ pistol, mag & high-capacity</option>
+          <option value="cat-227">20″ pistol (#227)</option>
+          <option value="cat-22-31">22″–31″ pistol & range</option>
+          <option value="cat-40-42">40″–42″ long / economy</option>
+          <option value="cat-45">45″ long, AR & trunks</option>
+          <option value="cat-55">55″ long & shotgun</option>
+        </select>
+      </div>
 
       <section class="panel cases-catalog" aria-label="Case catalog">
 {grid_html}

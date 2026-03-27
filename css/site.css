@@ -1094,6 +1094,51 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.cases-featured-note {
+  margin: 0 0 12px;
+  color: #a8a8a8;
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.cases-tools {
+  margin: 16px auto 0;
+  width: min(calc(100% - 32px), var(--max));
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 10px 12px;
+  align-items: center;
+  font-family: var(--font-ui);
+}
+
+.cases-tools-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b8b8b8;
+}
+
+.cases-tools-input,
+.cases-tools-select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.42);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+@media (max-width: 800px) {
+  .cases-tools {
+    grid-template-columns: 1fr;
+  }
+  .cases-tools-label {
+    margin-top: 4px;
+  }
+}
+
 .cases-catalog .product-grid {
   margin-bottom: 8px;
 }
@@ -1206,6 +1251,19 @@ body.page-cases .cases-jump a {
   cursor: not-allowed;
   pointer-events: none;
   opacity: 0.85;
+}
+
+.btn-secondary--link,
+a.btn-secondary {
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.btn-secondary--link:hover {
+  background: rgba(230, 0, 0, 0.14);
+  border-color: var(--accent-dim);
+  color: var(--text);
 }
 
 .btn-secondary--cart {
