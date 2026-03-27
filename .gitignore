@@ -1,5 +1,6 @@
 # Local deploy bundle (regenerate anytime; large)
 rettmark-site-netlify.zip
+inventory_sheet_seed.csv
 
 # Python
 __pycache__/

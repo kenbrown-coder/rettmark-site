@@ -83,9 +83,13 @@ def main() -> None:
     for sec in sections:
         sid = sec["id"]
         heading = sec["heading"]
+        blocks.append(f'        <section class="cases-section" aria-label="{esc(heading)}">')
         blocks.append(
-            f'        <h2 class="cases-category" id="{esc(sid)}">{esc(heading)}</h2>\n        <div class="product-grid">'
+            f'          <details class="cases-accordion" id="{esc(sid)}"{" open" if sid == "cat-compact" else ""}>'
         )
+        blocks.append(f'            <summary class="cases-accordion-summary"><span class="cases-category">{esc(heading)}</span></summary>')
+        blocks.append('            <div class="cases-accordion-body">')
+        blocks.append('              <div class="product-grid">')
         for p in sec["products"]:
             href = product_href(p["title"], p["variant"])
             image = p.get("image") or {}
@@ -107,7 +111,10 @@ def main() -> None:
                     sku=default_sku,
                 )
             )
-        blocks.append("        </div>")
+        blocks.append("              </div>")
+        blocks.append("            </div>")
+        blocks.append("          </details>")
+        blocks.append("        </section>")
 
     grid_html = "\n".join(blocks)
 
