@@ -208,7 +208,7 @@
     .page-shell {
       position: relative;
       z-index: 3;
-      padding-top: var(--header-h);
+      padding-top: var(--header-offset, var(--header-h));
     }
 
     .page {
@@ -601,22 +601,22 @@
 
 
       .hero {
-        min-height: 300px;
-        padding: 24px 0 12px;
+        min-height: 320px;
+        padding: 28px 0 16px;
       }
 
       .page--home .hero {
-        min-height: clamp(300px, 46vh, 480px);
-        padding: 28px 0 16px;
+        min-height: clamp(340px, 50vh, 520px);
+        padding: 34px 0 18px;
       }
 
       .hero-block {
         max-width: 100%;
-        transform: translateY(-48px);
+        transform: translateY(-18px);
       }
 
       .page--home .hero-block {
-        transform: translateY(-60px);
+        transform: translateY(-10px);
       }
 
       .eyebrow {
@@ -1054,6 +1054,34 @@
   color: var(--accent);
 }
 
+body.page-cases .cases-jump {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h)) + 8px);
+  z-index: 9;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+body.page-cases .cases-jump a {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  body.page-cases .cases-jump {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+}
+
 .placeholder-badge {
   display: inline-block;
   align-self: flex-start;
@@ -1240,6 +1268,33 @@ button.btn-secondary.btn-secondary--cart {
 
 .site-toast.is-visible {
   opacity: 1;
+  transform: translateY(0);
+}
+
+.back-to-top {
+  position: fixed;
+  right: 14px;
+  bottom: 16px;
+  z-index: 20;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.82);
+  color: #f0f0f0;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
   transform: translateY(0);
 }
 

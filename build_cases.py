@@ -79,14 +79,10 @@ def main() -> None:
     source_url = esc(str(raw.get("sourceCollectionUrl", "")))
     sections = raw["sections"]
 
-    jump_links = []
     blocks = []
     for sec in sections:
         sid = sec["id"]
         heading = sec["heading"]
-        if sec.get("jump"):
-            jl = esc(sec["jump"])
-            jump_links.append(f'        <a href="#{esc(sid)}">{jl}</a>')
         blocks.append(
             f'        <h2 class="cases-category" id="{esc(sid)}">{esc(heading)}</h2>\n        <div class="product-grid">'
         )
@@ -113,7 +109,6 @@ def main() -> None:
             )
         blocks.append("        </div>")
 
-    jump_html = "\n".join(jump_links)
     grid_html = "\n".join(blocks)
 
     page = f"""<!DOCTYPE html>
@@ -126,7 +121,7 @@ def main() -> None:
   <meta name="description" content="Condition 1 hard cases — pre-cut foam pistol, revolver, long gun, and trunk cases. Authorized dealer: Rettmark Firearms." />
   <link rel="stylesheet" href="css/site.css" />
 </head>
-<body data-shield-anim="off">
+<body class="page-cases" data-shield-anim="off">
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
 
@@ -149,18 +144,12 @@ def main() -> None:
       <header class="page-intro">
         <h1>Cases</h1>
         <p class="lede">
-          We are an <strong>authorized Condition&nbsp;1 dealer</strong>. This catalog follows their
-          <strong>pre-cut foam firearm case</strong> assortment — the same models and sizing families shown on Condition&nbsp;1’s
-          <a href="{source_url}" rel="noopener noreferrer">pre-cut foam cases</a> collection page. Thumbnails are placeholders until your photography is connected.
+          We are an <strong>authorized Condition&nbsp;1 dealer</strong> offering rugged hard cases for pistols, revolvers, rifles, and range gear.
+          Shop by size and configuration to find the right fit, then open a product page to view color options, current stock status, and pricing details.
         </p>
       </header>
 
-      <nav class="cases-jump" aria-label="Jump to category">
-{jump_html}
-      </nav>
-
       <section class="panel cases-catalog" aria-label="Case catalog">
-        <span class="placeholder-badge">Catalog draft</span>
 {grid_html}
         <p class="cases-disclaimer">
           Models and interior dimensions are transcribed from the manufacturer’s public product data for this line. Color options and minor variants may exist beyond what is listed — confirm with us or your distributor before promising a specific finish.

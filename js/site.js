@@ -1,4 +1,13 @@
 (function () {
+  function syncHeaderOffset() {
+    var header = document.querySelector(".site-header");
+    if (!header) return;
+    document.documentElement.style.setProperty("--header-offset", header.offsetHeight + "px");
+  }
+
+  syncHeaderOffset();
+  window.addEventListener("resize", syncHeaderOffset);
+
   var yearEl = document.getElementById("year");
   if (yearEl) {
     yearEl.textContent = new Date().getFullYear();
@@ -332,6 +341,31 @@
   }
 
   loadInventory();
+
+  function initCasesHelpers() {
+    if (!document.body || !document.body.classList.contains("page-cases")) return;
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "back-to-top";
+    btn.setAttribute("aria-label", "Back to top");
+    btn.textContent = "Top";
+    document.body.appendChild(btn);
+
+    function onScroll() {
+      if (window.scrollY > 640) btn.classList.add("is-visible");
+      else btn.classList.remove("is-visible");
+    }
+
+    btn.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  initCasesHelpers();
 
   var crest = document.querySelector(".crest-wrap");
   if (!crest || document.body.dataset.shieldAnim === "off") {

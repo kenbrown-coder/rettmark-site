@@ -164,7 +164,6 @@ def build_page(p: dict, page_href: str) -> str:
       </header>
 
       <section class="panel product-page-panel" aria-label="Product details">
-        <span class="placeholder-badge">Product page</span>
         <div class="product-page-grid">
           <div class="product-page-gallery">
             {gallery_html}
@@ -192,7 +191,7 @@ def build_page(p: dict, page_href: str) -> str:
                   Configuration: <strong>{esc(variant)}</strong>
                 </li>
                 <li>
-                  Photos and media are placeholders until your photography is connected.
+                  Product imagery and finish options shown are provided by the manufacturer.
                 </li>
               </ul>
             </div>
