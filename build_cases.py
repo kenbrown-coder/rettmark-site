@@ -78,6 +78,11 @@ def main() -> None:
     raw = json.loads(DATA.read_text(encoding="utf-8"))
     source_url = esc(str(raw.get("sourceCollectionUrl", "")))
     sections = raw["sections"]
+    # Put the best-seller category first.
+    sections = sorted(
+        sections,
+        key=lambda s: (0 if s.get("id") == "cat-179" else 1),
+    )
 
     blocks = []
     for sec in sections:
@@ -85,7 +90,7 @@ def main() -> None:
         heading = sec["heading"]
         blocks.append(f'        <section class="cases-section" aria-label="{esc(heading)}">')
         blocks.append(
-            f'          <details class="cases-accordion" id="{esc(sid)}"{" open" if sid == "cat-compact" else ""}>'
+            f'          <details class="cases-accordion" id="{esc(sid)}"{" open" if sid == "cat-179" else ""}>'
         )
         blocks.append(f'            <summary class="cases-accordion-summary"><span class="cases-category">{esc(heading)}</span></summary>')
         blocks.append('            <div class="cases-accordion-body">')
