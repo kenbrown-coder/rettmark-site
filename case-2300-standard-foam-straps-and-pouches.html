@@ -50,12 +50,17 @@
               <p class="spec">Interior: 41.40&quot; × 14&quot; × 4.26&quot;</p>
               <p class="stock-badge" data-stock-status data-sku="H2300BKF12670I4325843259P194"></p>
               
-              <div class="variant-block" aria-label="Color options">
-                <p class="spec" style="margin: 0">Color: <strong id="variant-color">Black</strong></p>
-                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H2300BKF12670I4325843259P194</span></p>
-                <div class="variant-grid" role="list" aria-label="Choose a color">
-                  <button class="variant-chip is-active" type="button" role="listitem" data-variant-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-black.jpg" data-variant-alt="Open black 42&quot; Economy AR Case with foam padding, straps, and storage pouches inside." data-variant-sku="H2300BKF12670I4325843259P194" data-variant-label="Black" aria-pressed="true"><span class="variant-dot" aria-hidden="true"></span>Black</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-flat-dark-earth.jpg" data-variant-alt="Open 42&quot; brown AR case with foam padding and black straps for secure storage of equipment or accessories." data-variant-sku="H2300FDF12670I4325843259P194" data-variant-label="Flat Dark Earth" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>Flat Dark Earth</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-gm-gray.jpg" data-variant-alt="Open 42&quot; black economy AR case with foam padding and storage compartments for firearm transportation." data-variant-sku="H2300GMF12670I4325843259P194" data-variant-label="GM Gray" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>GM Gray</button>
+              <div class="variant-block case-variant-block" aria-label="Color options">
+                <div class="hhdg-option-row">
+                  <label class="hhdg-option-label" for="case-color-select">Color</label>
+                  <select id="case-color-select" class="hhdg-option-select" autocomplete="off" aria-label="Color">
+                    <option value="H2300BKF12670I4325843259P194" data-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-black.jpg" data-alt="Open black 42&amp;quot; Economy AR Case with foam padding, straps, and storage pouches inside." data-label="Black" selected>Black</option>
+                    <option value="H2300FDF12670I4325843259P194" data-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-flat-dark-earth.jpg" data-alt="Open 42&amp;quot; brown AR case with foam padding and black straps for secure storage of equipment or accessories." data-label="Flat Dark Earth">Flat Dark Earth</option>
+                    <option value="H2300GMF12670I4325843259P194" data-img="assets/condition1/42-economy-case-2300-standard-foam-straps-and-pouches-gm-gray.jpg" data-alt="Open 42&amp;quot; black economy AR case with foam padding and storage compartments for firearm transportation." data-label="GM Gray">GM Gray</option>
+                  </select>
                 </div>
+                <p class="spec" style="margin-top:10px;margin-bottom:0">Your selection: <strong id="variant-color">Black</strong></p>
+                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H2300BKF12670I4325843259P194</span></p>
               </div>
               <div class="btn-block">
                 <button class="btn-secondary btn-secondary--cart" type="button" data-stock-cta data-add-to-cart data-mode="selected-variant" data-name="42&quot; Economy AR Case #2300" data-variant="Standard foam / straps &amp; pouches" data-price="149.99" data-url="case-2300-standard-foam-straps-and-pouches.html">Add to cart</button>
@@ -88,44 +93,5 @@
   </div>
 
   <script src="js/site.js"></script>
-  
-
-  <script>
-    (function () {
-      var hero = document.getElementById("product-hero-img");
-      var skuEl = document.getElementById("variant-sku");
-      var colorEl = document.getElementById("variant-color");
-      if (!hero || !skuEl || !colorEl) return;
-
-      var chips = document.querySelectorAll(".variant-chip[data-variant-img]");
-      if (!chips || !chips.length) return;
-
-      function setActive(btn) {
-        chips.forEach(function (b) {
-          b.classList.remove("is-active");
-          b.setAttribute("aria-pressed", "false");
-        });
-        btn.classList.add("is-active");
-        btn.setAttribute("aria-pressed", "true");
-      }
-
-      function apply(btn) {
-        var img = btn.getAttribute("data-variant-img");
-        var alt = btn.getAttribute("data-variant-alt") || hero.alt;
-        var sku = btn.getAttribute("data-variant-sku") || "";
-        var label = btn.getAttribute("data-variant-label") || "";
-
-        if (img) hero.src = img;
-        hero.alt = alt;
-        if (sku) skuEl.textContent = sku;
-        if (label) colorEl.textContent = label;
-        setActive(btn);
-      }
-
-      chips.forEach(function (btn) {
-        btn.addEventListener("click", function () { apply(btn); });
-      });
-    })();
-  </script>
 </body>
 </html>

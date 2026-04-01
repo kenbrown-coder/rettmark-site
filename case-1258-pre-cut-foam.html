@@ -50,12 +50,17 @@
               <p class="spec">Interior: 28.4&quot; × 17.32&quot; × 10.61&quot;</p>
               <p class="stock-badge" data-stock-status data-sku="H1258BKF12760-3AC1"></p>
               
-              <div class="variant-block" aria-label="Color options">
-                <p class="spec" style="margin: 0">Color: <strong id="variant-color">Black</strong></p>
-                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H1258BKF12760-3AC1</span></p>
-                <div class="variant-grid" role="list" aria-label="Choose a color">
-                  <button class="variant-chip is-active" type="button" role="listitem" data-variant-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-black.jpg" data-variant-alt="Alt text: &quot;Black 31-inch hard pistol case, model #1258, featuring a customizable foam insert for 18 pistols, durable latches, and a rugged handle, displayed open to show the interior layout.&quot;" data-variant-sku="H1258BKF12760-3AC1" data-variant-label="Black" aria-pressed="true"><span class="variant-dot" aria-hidden="true"></span>Black</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-g-metal-gray.jpg" data-variant-alt="Alt Text: &quot;Durable 31-inch gray pistol case model #1258, open to display foam cutouts for 18 pistols, featuring sturdy latches and roller wheels for portability.&quot;" data-variant-sku="H1258GMF12760-3AC1" data-variant-label="G Metal Gray" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>G Metal Gray</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-red.jpg" data-variant-alt="Alt text: Red 31-inch pistol case open to display interior with custom foam cutouts for 18 pistols, featuring sturdy handles and built-in wheels for transport." data-variant-sku="H1258RDF12760-3AC1" data-variant-label="Red" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>Red</button>
+              <div class="variant-block case-variant-block" aria-label="Color options">
+                <div class="hhdg-option-row">
+                  <label class="hhdg-option-label" for="case-color-select">Color</label>
+                  <select id="case-color-select" class="hhdg-option-select" autocomplete="off" aria-label="Color">
+                    <option value="H1258BKF12760-3AC1" data-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-black.jpg" data-alt="Alt text: &amp;quot;Black 31-inch hard pistol case, model #1258, featuring a customizable foam insert for 18 pistols, durable latches, and a rugged handle, displayed open to show the interior layout.&amp;quot;" data-label="Black" selected>Black</option>
+                    <option value="H1258GMF12760-3AC1" data-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-g-metal-gray.jpg" data-alt="Alt Text: &amp;quot;Durable 31-inch gray pistol case model #1258, open to display foam cutouts for 18 pistols, featuring sturdy latches and roller wheels for portability.&amp;quot;" data-label="G Metal Gray">G Metal Gray</option>
+                    <option value="H1258RDF12760-3AC1" data-img="assets/condition1/31-large-case-1258-with-18-slot-18-mag-pre-cut-foam-pre-cut-foam-18-slot-and-18-mag-red.jpg" data-alt="Alt text: Red 31-inch pistol case open to display interior with custom foam cutouts for 18 pistols, featuring sturdy handles and built-in wheels for transport." data-label="Red">Red</option>
+                  </select>
                 </div>
+                <p class="spec" style="margin-top:10px;margin-bottom:0">Your selection: <strong id="variant-color">Black</strong></p>
+                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H1258BKF12760-3AC1</span></p>
               </div>
               <div class="btn-block">
                 <button class="btn-secondary btn-secondary--cart" type="button" data-stock-cta data-add-to-cart data-mode="selected-variant" data-name="31&quot; 18 Pistol Case #1258" data-variant="Pre-cut foam" data-price="449.99" data-url="case-1258-pre-cut-foam.html">Add to cart</button>
@@ -88,44 +93,5 @@
   </div>
 
   <script src="js/site.js"></script>
-  
-
-  <script>
-    (function () {
-      var hero = document.getElementById("product-hero-img");
-      var skuEl = document.getElementById("variant-sku");
-      var colorEl = document.getElementById("variant-color");
-      if (!hero || !skuEl || !colorEl) return;
-
-      var chips = document.querySelectorAll(".variant-chip[data-variant-img]");
-      if (!chips || !chips.length) return;
-
-      function setActive(btn) {
-        chips.forEach(function (b) {
-          b.classList.remove("is-active");
-          b.setAttribute("aria-pressed", "false");
-        });
-        btn.classList.add("is-active");
-        btn.setAttribute("aria-pressed", "true");
-      }
-
-      function apply(btn) {
-        var img = btn.getAttribute("data-variant-img");
-        var alt = btn.getAttribute("data-variant-alt") || hero.alt;
-        var sku = btn.getAttribute("data-variant-sku") || "";
-        var label = btn.getAttribute("data-variant-label") || "";
-
-        if (img) hero.src = img;
-        hero.alt = alt;
-        if (sku) skuEl.textContent = sku;
-        if (label) colorEl.textContent = label;
-        setActive(btn);
-      }
-
-      chips.forEach(function (btn) {
-        btn.addEventListener("click", function () { apply(btn); });
-      });
-    })();
-  </script>
 </body>
 </html>

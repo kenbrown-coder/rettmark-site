@@ -363,6 +363,50 @@
       return { items: items };
     }
 
+    /** Case product pages: color <select id="case-color-select"> (same UX as HHDG glasses dropdowns). */
+    function initCaseColorSelectors() {
+      var sel = document.getElementById("case-color-select");
+      if (!sel) return;
+      var hero = document.getElementById("product-hero-img");
+      var skuEl = document.getElementById("variant-sku");
+      var colorEl = document.getElementById("variant-color");
+      if (!hero || !skuEl || !colorEl) return;
+
+      function applyFromSelect() {
+        var opt = sel.options[sel.selectedIndex];
+        if (!opt) return;
+        var sku = (opt.value || "").trim();
+        var img = opt.getAttribute("data-img") || "";
+        var alt = opt.getAttribute("data-alt") || hero.alt;
+        var label = (opt.getAttribute("data-label") || opt.textContent || "").trim();
+        if (img) hero.src = img;
+        hero.alt = alt;
+        skuEl.textContent = sku;
+        colorEl.textContent = label;
+
+        var invNow = inventorySnapshot;
+        if (invNow && sku) {
+          var qty = getQty(invNow, sku);
+          var status = qty > 0 ? "in_stock" : "backorder";
+          var badge = document.querySelector("[data-stock-status]");
+          if (badge) {
+            badge.setAttribute("data-sku", sku);
+            renderBadgeWithQty(badge, status, qty);
+          }
+          var cta = document.querySelector("[data-stock-cta]");
+          renderCta(cta, status);
+        } else if (sku) {
+          var badgeOnly = document.querySelector("[data-stock-status]");
+          if (badgeOnly) badgeOnly.setAttribute("data-sku", sku);
+        }
+      }
+
+      sel.addEventListener("change", applyFromSelect);
+      applyFromSelect();
+    }
+
+    initCaseColorSelectors();
+
     // Prefer spreadsheet-friendly CSV; fall back to JSON.
     fetch("inventory.csv", { cache: "no-store" })
       .then(function (r) {

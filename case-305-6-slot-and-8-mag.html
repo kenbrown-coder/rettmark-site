@@ -50,12 +50,18 @@
               <p class="spec">Interior: 21.65&quot; × 14.17&quot; × 8.03&quot;</p>
               <p class="stock-badge" data-stock-status data-sku="H2305BKF13682-5AC1"></p>
               
-              <div class="variant-block" aria-label="Color options">
-                <p class="spec" style="margin: 0">Color: <strong id="variant-color">Black</strong></p>
-                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H2305BKF13682-5AC1</span></p>
-                <div class="variant-grid" role="list" aria-label="Choose a color">
-                  <button class="variant-chip is-active" type="button" role="listitem" data-variant-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-black.png" data-variant-alt="Durable 24-inch hard case designed to securely store and transport up to six pistols with customizable foam inserts." data-variant-sku="H2305BKF13682-5AC1" data-variant-label="Black" aria-pressed="true"><span class="variant-dot" aria-hidden="true"></span>Black</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-maroon.png" data-variant-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with customizable foam inserts." data-variant-sku="H2305MRNF13682-5AC1" data-variant-label="Maroon" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>Maroon</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-navy.png" data-variant-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with foam padding." data-variant-sku="H2305NVYF13682-5AC1" data-variant-label="Navy" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>Navy</button><button class="variant-chip" type="button" role="listitem" data-variant-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-slate.png" data-variant-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with customizable foam inserts." data-variant-sku="H2305SLTF13682-5AC1" data-variant-label="Slate" aria-pressed="false"><span class="variant-dot" aria-hidden="true"></span>Slate</button>
+              <div class="variant-block case-variant-block" aria-label="Color options">
+                <div class="hhdg-option-row">
+                  <label class="hhdg-option-label" for="case-color-select">Color</label>
+                  <select id="case-color-select" class="hhdg-option-select" autocomplete="off" aria-label="Color">
+                    <option value="H2305BKF13682-5AC1" data-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-black.png" data-alt="Durable 24-inch hard case designed to securely store and transport up to six pistols with customizable foam inserts." data-label="Black" selected>Black</option>
+                    <option value="H2305MRNF13682-5AC1" data-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-maroon.png" data-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with customizable foam inserts." data-label="Maroon">Maroon</option>
+                    <option value="H2305NVYF13682-5AC1" data-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-navy.png" data-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with foam padding." data-label="Navy">Navy</option>
+                    <option value="H2305SLTF13682-5AC1" data-img="assets/condition1/24-305-6-pistol-case-pre-cut-6-slot-and-8-mag-slate.png" data-alt="Durable 24-inch hard case designed for securely storing and transporting up to six pistols with customizable foam inserts." data-label="Slate">Slate</option>
+                  </select>
                 </div>
+                <p class="spec" style="margin-top:10px;margin-bottom:0">Your selection: <strong id="variant-color">Black</strong></p>
+                <p class="sku" style="margin: 0">SKU <span id="variant-sku">H2305BKF13682-5AC1</span></p>
               </div>
               <div class="btn-block">
                 <button class="btn-secondary btn-secondary--cart" type="button" data-stock-cta data-add-to-cart data-mode="selected-variant" data-name="24&quot; 6 Pistol Case #305" data-variant="6 slot &amp; 8 mag" data-price="359.99" data-url="case-305-6-slot-and-8-mag.html">Add to cart</button>
@@ -88,44 +94,5 @@
   </div>
 
   <script src="js/site.js"></script>
-  
-
-  <script>
-    (function () {
-      var hero = document.getElementById("product-hero-img");
-      var skuEl = document.getElementById("variant-sku");
-      var colorEl = document.getElementById("variant-color");
-      if (!hero || !skuEl || !colorEl) return;
-
-      var chips = document.querySelectorAll(".variant-chip[data-variant-img]");
-      if (!chips || !chips.length) return;
-
-      function setActive(btn) {
-        chips.forEach(function (b) {
-          b.classList.remove("is-active");
-          b.setAttribute("aria-pressed", "false");
-        });
-        btn.classList.add("is-active");
-        btn.setAttribute("aria-pressed", "true");
-      }
-
-      function apply(btn) {
-        var img = btn.getAttribute("data-variant-img");
-        var alt = btn.getAttribute("data-variant-alt") || hero.alt;
-        var sku = btn.getAttribute("data-variant-sku") || "";
-        var label = btn.getAttribute("data-variant-label") || "";
-
-        if (img) hero.src = img;
-        hero.alt = alt;
-        if (sku) skuEl.textContent = sku;
-        if (label) colorEl.textContent = label;
-        setActive(btn);
-      }
-
-      chips.forEach(function (btn) {
-        btn.addEventListener("click", function () { apply(btn); });
-      });
-    })();
-  </script>
 </body>
 </html>
