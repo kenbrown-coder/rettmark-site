@@ -1,0 +1,8 @@
+{
+  "name": "rettmark-site",
+  "private": true,
+  "description": "Static site + Netlify Functions (Authorize.Net checkout)",
+  "scripts": {
+    "build": "node scripts/inject-turnstile-config.cjs && node scripts/inject-anet-config.cjs"
+  }
+}

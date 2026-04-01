@@ -1,0 +1,23 @@
+Rettmark home hero shield — saved kit (snapshot for reuse)
+==========================================================
+
+What this is
+  Masked gradient backing behind the transparent shield PNG so the fill
+  follows the crest silhouette (no square “mat”). Same technique as live
+  css/site.css under body.is-home.
+
+Files
+  shield-hero.css       — styles (link from pages; paths are relative to this folder)
+  shield-hero-fragment.html — DOM to drop inside <main class="hero"> (with hero copy above/below as you like)
+  shield-animation-home.js  — optional: final keyframe values for isHome (full spin is in js/site.js)
+
+PNG (not duplicated)
+  ../rettmark_shield_only_transparent_cropped.png
+
+How to reuse elsewhere
+  1. Keep the PNG path in --crest-mask in shield-hero.css in sync with the <img src>.
+  2. Link shield-hero.css after your base layout CSS, or merge rules into site.css.
+  3. Body needs class is-home (or change selectors in the copied CSS).
+  4. Base .crest-wrap / .crest-img rules and shield animation live in site.css + site.js for the full site.
+
+Canonical source in this repo: css/site.js (search body.is-home, crest-backing), js/site.js (isHome keyframes).

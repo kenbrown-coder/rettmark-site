@@ -4,8 +4,8 @@
   <base href="/" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checkout &amp; POS | Rettmark Firearms</title>
-  <meta name="description" content="How Rettmark Firearms checkout works: your order on our site exports to our point of sale for payment and fulfillment." />
+  <title>Checkout | Rettmark Firearms</title>
+  <meta name="description" content="Secure checkout — Rettmark Firearms. Card data is tokenized by Authorize.Net; your site never stores card numbers." />
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body data-shield-anim="off">
@@ -31,31 +31,85 @@
       <header class="page-intro">
         <h1>Checkout</h1>
         <p class="lede">
-          Final checkout is currently being finalized.
+          Pay securely with your card. Numbers are tokenized by <strong>Authorize.Net</strong> before they reach our server.
         </p>
       </header>
 
-      <section class="panel">
-        <h2>Website → point of sale</h2>
-        <p>
-          Shoppers browse and add items in <strong>our cart</strong> on rettmarkfirearms.com.
-        </p>
-        <p>
-          While checkout is finalized, our team can assist directly with order completion and payment coordination.
-        </p>
-        <p>
-          You can continue shopping now or contact us for immediate order support.
-        </p>
-        <div class="checkout-placeholder">
-          <button type="button" class="btn-secondary btn-secondary--wide" disabled>Checkout coming soon</button>
-        </div>
+      <section class="panel checkout-panel">
+        <h2>Your order</h2>
+        <div id="checkout-cart-summary" class="checkout-summary"></div>
       </section>
 
-      <section class="panel">
-        <h2>Order processing overview</h2>
-        <p class="cart-flow-note" style="font-size: 0.88rem">
-          Orders are reviewed for inventory, shipping, payment, and fulfillment before final confirmation.
-        </p>
+      <section class="panel checkout-panel">
+        <h2>Billing</h2>
+        <form id="checkout-payment-form" class="checkout-form" novalidate>
+          <input type="hidden" id="checkout-amount" name="amount" value="" />
+
+          <div class="checkout-form__grid">
+            <label class="checkout-field">
+              <span>Email</span>
+              <input class="input" type="email" id="bill-email" name="email" autocomplete="email" required />
+            </label>
+            <label class="checkout-field">
+              <span>First name</span>
+              <input class="input" type="text" id="bill-first" name="firstName" autocomplete="given-name" required />
+            </label>
+            <label class="checkout-field">
+              <span>Last name</span>
+              <input class="input" type="text" id="bill-last" name="lastName" autocomplete="family-name" required />
+            </label>
+            <label class="checkout-field checkout-field--wide">
+              <span>Street address</span>
+              <input class="input" type="text" id="bill-address" name="address" autocomplete="street-address" required />
+            </label>
+            <label class="checkout-field">
+              <span>City</span>
+              <input class="input" type="text" id="bill-city" name="city" autocomplete="address-level2" required />
+            </label>
+            <label class="checkout-field">
+              <span>State / Province</span>
+              <input class="input" type="text" id="bill-state" name="state" autocomplete="address-level1" required />
+            </label>
+            <label class="checkout-field">
+              <span>ZIP / Postal</span>
+              <input class="input" type="text" id="bill-zip" name="zip" autocomplete="postal-code" required />
+            </label>
+            <label class="checkout-field">
+              <span>Country</span>
+              <input class="input" type="text" id="bill-country" name="country" value="US" autocomplete="country" />
+            </label>
+            <label class="checkout-field">
+              <span>PO / reference (optional)</span>
+              <input class="input" type="text" id="order-ref" name="invoice" maxlength="20" autocomplete="off" />
+            </label>
+          </div>
+
+          <h3 class="checkout-form__card-heading">Card</h3>
+          <div class="checkout-form__grid">
+            <label class="checkout-field checkout-field--wide">
+              <span>Card number</span>
+              <input class="input" type="text" id="card-number" inputmode="numeric" autocomplete="cc-number" required />
+            </label>
+            <label class="checkout-field">
+              <span>Exp. month</span>
+              <input class="input" type="text" id="card-exp-month" inputmode="numeric" placeholder="MM" maxlength="2" autocomplete="cc-exp-month" required />
+            </label>
+            <label class="checkout-field">
+              <span>Exp. year</span>
+              <input class="input" type="text" id="card-exp-year" inputmode="numeric" placeholder="YYYY" maxlength="4" autocomplete="cc-exp-year" required />
+            </label>
+            <label class="checkout-field">
+              <span>Security code</span>
+              <input class="input" type="text" id="card-cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required />
+            </label>
+          </div>
+
+          <p id="checkout-error" class="notify-form__error" hidden role="alert"></p>
+
+          <div class="checkout-form__actions">
+            <button type="submit" class="submit" id="checkout-pay-btn" disabled>Pay now</button>
+          </div>
+        </form>
       </section>
 
       <p style="margin-top: 24px; text-align: center">
@@ -71,6 +125,8 @@
     </div>
   </div>
 
+  <script src="js/anet-config.js"></script>
   <script src="js/site.js"></script>
+  <script src="js/checkout-pay.js"></script>
 </body>
 </html>

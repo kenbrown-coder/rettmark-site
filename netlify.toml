@@ -4,11 +4,19 @@
 #
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
+#
+# Authorize.Net checkout:
+#   Build (public Accept.js values): ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID, ANET_SANDBOX
+#   Functions (secret): ANET_TRANSACTION_KEY — same login ID as above
+#   See scripts/inject-anet-config.cjs and netlify/functions/anet-transaction.js
+
+[functions]
+  directory = "netlify/functions"
 
 # Serve this folder as the site root (must include css/, js/, assets/, *.html).
 [build]
   publish = "."
-  command = "node scripts/inject-turnstile-config.cjs"
+  command = "npm run build"
 
 [[redirects]]
   from = "/success.html.html"
@@ -57,6 +65,11 @@
   status = 200
 
 [[redirects]]
+  from = "/order-success"
+  to = "/order-success.html"
+  status = 200
+
+[[redirects]]
   from = "/success"
   to = "/success.html"
   status = 200
@@ -75,4 +88,4 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; form-action 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com https://js.authorize.net https://jstest.authorize.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://api.authorize.net https://apitest.authorize.net https://js.authorize.net https://jstest.authorize.net; form-action 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests"

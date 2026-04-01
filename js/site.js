@@ -66,12 +66,25 @@
     }, 1600);
   }
 
+  function updateCartCheckoutLinkVisibility(cart) {
+    var checkoutLink = document.getElementById("cart-checkout-link");
+    if (!checkoutLink) return;
+    if (!cart.length) {
+      checkoutLink.style.display = "none";
+      checkoutLink.setAttribute("aria-disabled", "true");
+    } else {
+      checkoutLink.style.display = "";
+      checkoutLink.removeAttribute("aria-disabled");
+    }
+  }
+
   function renderCartPage() {
     var root = document.getElementById("cart-root");
     if (!root) return;
     var cart = readCart();
     if (!cart.length) {
       root.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
+      updateCartCheckoutLinkVisibility(cart);
       return;
     }
 
@@ -107,6 +120,8 @@
       '<div class="cart-list">' + list + '</div>' +
       '<div class="cart-summary"><span>Estimated total</span><strong>' + formatUsd(total) + "</strong></div>" +
       '<div class="cart-tools"><button class="cart-remove" type="button" data-cart-clear="1">Clear cart</button></div>';
+
+    updateCartCheckoutLinkVisibility(cart);
   }
 
   function selectedVariantDetails() {
@@ -590,6 +605,7 @@
 
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var isMobile = window.matchMedia("(max-width: 640px)").matches;
+  var isHome = document.body.classList.contains("is-home");
 
   if (prefersReduced) {
     crest.classList.add("resting");
@@ -639,13 +655,19 @@
         },
         {
           offset: 1,
-          opacity: 0.28,
+          opacity: isHome ? 1 : 0.28,
           transform: isMobile
-            ? "translateY(-64px) scale(1) rotateY(0deg)"
+            ? isHome
+              ? "scale(1) rotateY(0deg)"
+              : "translateY(-64px) scale(1) rotateY(0deg)"
             : "scale(1) rotateY(0deg)",
-          filter: isMobile
-            ? "brightness(1.4) contrast(1.1)"
-            : "brightness(1.15) contrast(1.06)"
+          filter: isHome
+            ? isMobile
+              ? "drop-shadow(0 20px 36px rgba(0,0,0,0.48)) drop-shadow(0 0 10px rgba(230,0,0,0.1))"
+              : "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
+            : isMobile
+              ? "brightness(1.4) contrast(1.1)"
+              : "brightness(1.15) contrast(1.06)"
         }
       ],
       {

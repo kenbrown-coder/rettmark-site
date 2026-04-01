@@ -4,8 +4,8 @@
   <base href="/" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cart | Rettmark Firearms</title>
-  <meta name="description" content="Shopping cart — Rettmark Firearms." />
+  <title>Order placed | Rettmark Firearms</title>
+  <meta name="description" content="Thank you for your order at Rettmark Firearms." />
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body data-shield-anim="off">
@@ -23,30 +23,25 @@
       <a href="shooting-glasses.html">Shooting Glasses</a>
       <a href="contact.html">Contact</a>
     </nav>
-    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items" aria-current="page">Cart <span class="cart-count">0</span></a>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
   </header>
 
   <div class="page-shell" id="main">
     <div class="page">
       <header class="page-intro">
-        <h1>Cart</h1>
+        <h1>Thank you</h1>
         <p class="lede">
-          Review your items below, then continue to secure checkout when you are ready to pay.
+          Your payment was submitted successfully. We will follow up by email if any order details need confirmation.
         </p>
       </header>
 
-      <section class="panel" aria-labelledby="cart-heading">
-        <h2 id="cart-heading">Your order</h2>
-        <div id="cart-root" class="cart-root">
-          <p class="cart-empty">Your cart is empty.</p>
-        </div>
-        <p class="cart-flow-note">
-          Card payments use <strong>Authorize.Net</strong> (Accept.js). Your full card number is not stored on this site. Set Netlify environment variables for live keys before taking real payments.
+      <section class="panel">
+        <p id="order-success-detail" class="cart-flow-note"></p>
+        <p style="margin-top: 16px; text-align: center">
+          <a class="inline-cta" href="index.html">Continue to home</a>
+          &nbsp;&nbsp;
+          <a class="inline-cta" href="contact.html">Contact</a>
         </p>
-        <div class="cart-actions">
-          <a class="submit" href="checkout.html" style="text-decoration: none" id="cart-checkout-link">Proceed to checkout</a>
-          <a class="submit" href="cases.html" style="text-decoration: none; background: rgba(255,255,255,0.06)">Continue shopping</a>
-        </div>
       </section>
 
       <footer class="site-footer">
@@ -57,5 +52,20 @@
   </div>
 
   <script src="js/site.js"></script>
+  <script>
+    (function () {
+      try {
+        var raw = sessionStorage.getItem("rettmark_last_order");
+        if (!raw) return;
+        sessionStorage.removeItem("rettmark_last_order");
+        var o = JSON.parse(raw);
+        var el = document.getElementById("order-success-detail");
+        if (el && o.transactionId) {
+          el.textContent =
+            "Transaction ID: " + o.transactionId + (o.authCode ? " · Auth code: " + o.authCode : "");
+        }
+      } catch (e) {}
+    })();
+  </script>
 </body>
 </html>

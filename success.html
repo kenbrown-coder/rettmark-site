@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submission Received | Rettmark Firearms</title>
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&display=swap");
     :root{
       --bg:#050505;
       --text:#f2eee6;
@@ -14,6 +15,8 @@
       --line-strong:rgba(180,138,59,.5);
       --button-bg:rgba(255,255,255,.02);
       --button-hover:rgba(255,255,255,.06);
+      --font-home-title:"Libre Baskerville",Georgia,"Times New Roman",serif;
+      --title-stroke:#e0301c;
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Georgia,"Times New Roman",serif}
@@ -58,11 +61,23 @@
     }
     h1{
       margin:0 0 18px;
+      font-family:var(--font-home-title);
+      font-weight:700;
       font-size:clamp(2.35rem, 5.2vw, 4.2rem);
-      line-height:.95;
-      letter-spacing:.06em;
+      line-height:1.05;
+      letter-spacing:.02em;
       text-transform:uppercase;
-      color:var(--text);
+      color:transparent;
+      background-image:linear-gradient(135deg,#5c6574 0%,#2e333e 11%,#4a5260 24%,#9cabb8 36%,#252a32 47%,#5a6372 58%,#181c22 72%,#3d4654 86%,#6a7586 100%);
+      background-size:100% 100%;
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-stroke:1.35px var(--title-stroke);
+      paint-order:stroke fill;
+      filter:
+        drop-shadow(0 0 5px rgba(255,95,55,.35))
+        drop-shadow(0 0 12px rgba(200,40,25,.28))
+        drop-shadow(0 2px 16px rgba(0,0,0,.52));
     }
     p{
       margin:0 auto;

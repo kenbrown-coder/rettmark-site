@@ -1,0 +1,148 @@
+/**
+ * Home hero shield + alpha-masked backing (snapshot).
+ * Link from HTML: <link rel="stylesheet" href="assets/shield-hero-kit/shield-hero.css" />
+ * Requires body.is-home (or rename selectors). Pair with shield-hero-fragment.html.
+ * Mask URL is relative to this file → parent assets/ folder.
+ */
+
+body.is-home {
+  --crest-mask: url("../rettmark_shield_only_transparent_cropped.png");
+}
+
+/* Home: shield in normal flow, centered */
+body.is-home .shield-stage {
+  position: relative;
+  inset: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: max(8px, env(safe-area-inset-left, 0px))
+    max(8px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+  z-index: 0;
+  flex-shrink: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+body.is-home .crest-wrap {
+  display: grid;
+  grid-template: 1fr / 1fr;
+  place-items: stretch;
+  width: min(94vw, min(68vh, 820px), 100%);
+  aspect-ratio: 2032 / 1882;
+  max-width: none;
+  height: auto;
+}
+
+body.is-home .crest-backing {
+  grid-area: 1 / 1;
+  z-index: 0;
+  align-self: stretch;
+  justify-self: stretch;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+  -webkit-mask-image: var(--crest-mask);
+  mask-image: var(--crest-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-mode: alpha;
+  mask-mode: alpha;
+  background:
+    radial-gradient(ellipse 52% 58% at 50% 40%, rgba(130, 138, 152, 0.45) 0%, transparent 68%),
+    radial-gradient(ellipse 88% 92% at 50% 58%, #353a44 0%, #14161c 100%),
+    linear-gradient(158deg, #22262e 0%, #3d4452 48%, #1a1d24 100%);
+}
+
+body.is-home .crest-img {
+  grid-area: 1 / 1;
+  z-index: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+body.is-home .crest-wrap.resting {
+  opacity: 1;
+  filter:
+    drop-shadow(0 24px 44px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 12px rgba(230, 0, 0, 0.12));
+  transform: scale(1) rotateY(0deg);
+}
+
+.page--home .hero {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: clamp(20px, 4vh, 44px);
+  min-height: clamp(520px, 78vh, 920px);
+  padding: 40px 0 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.page--home .hero-block {
+  transform: none;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 800px) {
+  .page--home .hero {
+    min-height: clamp(480px, 72vh, 820px);
+    padding: 32px 0 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  body.is-home .crest-wrap {
+    width: min(96vw, min(56vh, 560px), 100%);
+  }
+
+  body.is-home .crest-wrap.resting {
+    opacity: 1;
+    filter:
+      drop-shadow(0 20px 36px rgba(0, 0, 0, 0.48))
+      drop-shadow(0 0 10px rgba(230, 0, 0, 0.1));
+    transform: scale(1) rotateY(0deg);
+  }
+
+  .page--home .hero {
+    min-height: clamp(440px, 70vh, 760px);
+    padding: 28px 0 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.is-home .crest-wrap {
+    opacity: 1;
+    filter:
+      drop-shadow(0 24px 44px rgba(0, 0, 0, 0.5))
+      drop-shadow(0 0 12px rgba(230, 0, 0, 0.12));
+    transform: scale(1) rotateY(0deg);
+  }
+
+  @media (max-width: 640px) {
+    body.is-home .crest-wrap {
+      opacity: 1;
+      filter:
+        drop-shadow(0 20px 36px rgba(0, 0, 0, 0.48))
+        drop-shadow(0 0 10px rgba(230, 0, 0, 0.1));
+      transform: scale(1) rotateY(0deg);
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  body.is-home .crest-backing {
+    display: none;
+  }
+}
