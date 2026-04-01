@@ -5,10 +5,9 @@
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
 #
-# Authorize.Net checkout:
-#   Build (public Accept.js values): ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID, ANET_SANDBOX
-#   Functions (secret): ANET_TRANSACTION_KEY — same login ID as above
-#   See scripts/inject-anet-config.cjs and netlify/functions/anet-transaction.js
+# Authorize.Net checkout (env vars only — not baked into js/* for Netlify secret scan):
+#   ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID, ANET_SANDBOX → GET /.netlify/functions/anet-public-config
+#   ANET_TRANSACTION_KEY (secret) → POST /.netlify/functions/anet-transaction
 
 [functions]
   directory = "netlify/functions"

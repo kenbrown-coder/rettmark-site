@@ -1,9 +1,5 @@
 /**
- * Authorize.Net Accept.js public settings. Default empty for local clones.
- * Production: Netlify runs scripts/inject-anet-config.cjs from ANET_* env vars.
+ * Accept.js placeholders only — real values come from /.netlify/functions/anet-public-config
+ * on deploy. Do not commit API Login ID or client key here.
  */
-window.RETTMARK_ANET = {
-  clientKey: "",
-  apiLoginId: "",
-  sandbox: true
-};
+window.RETTMARK_ANET = {"clientKey":"","apiLoginId":"","sandbox":true};

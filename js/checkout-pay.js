@@ -50,8 +50,30 @@
     document.head.appendChild(s);
   }
 
+  function mergeAnetConfig(remote, local) {
+    local = local || {};
+    remote = remote || {};
+    return {
+      clientKey: remote.clientKey || local.clientKey || "",
+      apiLoginId: remote.apiLoginId || local.apiLoginId || "",
+      sandbox:
+        typeof remote.sandbox === "boolean"
+          ? remote.sandbox
+          : local.sandbox !== false
+    };
+  }
+
+  function fetchPublicAnetConfig() {
+    return fetch("/.netlify/functions/anet-public-config")
+      .then(function (r) {
+        return r.ok ? r.json() : {};
+      })
+      .catch(function () {
+        return {};
+      });
+  }
+
   function init() {
-    var cfg = window.RETTMARK_ANET || {};
     var summaryEl = $("checkout-cart-summary");
     var payBtn = $("checkout-pay-btn");
     var form = $("checkout-payment-form");
@@ -96,29 +118,32 @@
 
     $("checkout-amount") && ($("checkout-amount").value = total.toFixed(2));
 
-    if (!cfg.clientKey || !cfg.apiLoginId) {
-      showErr(
-        "Checkout is not configured yet. Set ANET_PUBLIC_CLIENT_KEY and ANET_API_LOGIN_ID in Netlify, redeploy, and add server secrets ANET_TRANSACTION_KEY."
-      );
-      if (payBtn) payBtn.disabled = true;
-      return;
-    }
+    fetchPublicAnetConfig().then(function (remote) {
+      var cfg = mergeAnetConfig(remote, window.RETTMARK_ANET || {});
 
-    var acceptSrc = cfg.sandbox
-      ? "https://jstest.authorize.net/v1/Accept.js"
-      : "https://js.authorize.net/v1/Accept.js";
-
-    loadScript(acceptSrc, function () {
-      if (typeof Accept === "undefined") {
-        showErr("Accept.js failed to initialize.");
+      if (!cfg.clientKey || !cfg.apiLoginId) {
+        showErr(
+          "Checkout is not configured yet. Set ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID, and ANET_TRANSACTION_KEY in Netlify, then redeploy."
+        );
+        if (payBtn) payBtn.disabled = true;
         return;
       }
-      if (payBtn) payBtn.disabled = false;
-    });
 
-    if (!form) return;
+      var acceptSrc = cfg.sandbox
+        ? "https://jstest.authorize.net/v1/Accept.js"
+        : "https://js.authorize.net/v1/Accept.js";
 
-    form.addEventListener("submit", function (e) {
+      loadScript(acceptSrc, function () {
+        if (typeof Accept === "undefined") {
+          showErr("Accept.js failed to initialize.");
+          return;
+        }
+        if (payBtn) payBtn.disabled = false;
+      });
+
+      if (!form) return;
+
+      form.addEventListener("submit", function (e) {
       e.preventDefault();
       showErr("");
 
@@ -146,98 +171,99 @@
         cardCode: ($("card-cvv") && $("card-cvv").value) || ""
       };
 
-      var authData = {
-        clientKey: cfg.clientKey,
-        apiLoginID: cfg.apiLoginId
-      };
-
-      var secureData = {
-        authData: authData,
-        cardData: cardData
-      };
-
-      if (payBtn) {
-        payBtn.disabled = true;
-        payBtn.textContent = "Processing…";
-      }
-
-      Accept.dispatchData(secureData, function (response) {
-        if (response.messages.resultCode === "Error") {
-          var msgs = response.messages.message || [];
-          var t = msgs.map(function (m) { return m.text; }).join(" ");
-          showErr(t || "Card validation failed.");
-          if (payBtn) {
-            payBtn.disabled = false;
-            payBtn.textContent = "Pay now";
-          }
-          return;
-        }
-
-        var opaque = response.opaqueData;
-        if (!opaque) {
-          showErr("No payment token returned.");
-          if (payBtn) {
-            payBtn.disabled = false;
-            payBtn.textContent = "Pay now";
-          }
-          return;
-        }
-
-        var freshCart = readCart();
-        var amt = cartTotal(freshCart);
-        var payload = {
-          opaqueData: {
-            dataDescriptor: opaque.dataDescriptor,
-            dataValue: opaque.dataValue
-          },
-          amount: amt.toFixed(2),
-          cart: freshCart,
-          customerEmail: email,
-          billTo: billTo,
-          invoiceNumber: ($("order-ref") && $("order-ref").value) || undefined
+        var authData = {
+          clientKey: cfg.clientKey,
+          apiLoginID: cfg.apiLoginId
         };
 
-        fetch("/.netlify/functions/anet-transaction", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        })
-          .then(function (r) {
-            return r.json().then(function (data) {
-              return { ok: r.ok, status: r.status, data: data };
+        var secureData = {
+          authData: authData,
+          cardData: cardData
+        };
+
+        if (payBtn) {
+          payBtn.disabled = true;
+          payBtn.textContent = "Processing…";
+        }
+
+        Accept.dispatchData(secureData, function (response) {
+          if (response.messages.resultCode === "Error") {
+            var msgs = response.messages.message || [];
+            var t = msgs.map(function (m) { return m.text; }).join(" ");
+            showErr(t || "Card validation failed.");
+            if (payBtn) {
+              payBtn.disabled = false;
+              payBtn.textContent = "Pay now";
+            }
+            return;
+          }
+
+          var opaque = response.opaqueData;
+          if (!opaque) {
+            showErr("No payment token returned.");
+            if (payBtn) {
+              payBtn.disabled = false;
+              payBtn.textContent = "Pay now";
+            }
+            return;
+          }
+
+          var freshCart = readCart();
+          var amt = cartTotal(freshCart);
+          var payload = {
+            opaqueData: {
+              dataDescriptor: opaque.dataDescriptor,
+              dataValue: opaque.dataValue
+            },
+            amount: amt.toFixed(2),
+            cart: freshCart,
+            customerEmail: email,
+            billTo: billTo,
+            invoiceNumber: ($("order-ref") && $("order-ref").value) || undefined
+          };
+
+          fetch("/.netlify/functions/anet-transaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) {
+              return r.json().then(function (data) {
+                return { ok: r.ok, status: r.status, data: data };
+              });
+            })
+            .then(function (result) {
+              if (result.ok && result.data && result.data.ok) {
+                writeCart([]);
+                try {
+                  sessionStorage.setItem(
+                    "rettmark_last_order",
+                    JSON.stringify({
+                      transactionId: result.data.transactionId,
+                      authCode: result.data.authCode
+                    })
+                  );
+                } catch (ignore) {}
+                window.location.href = "order-success.html";
+                return;
+              }
+              var err =
+                (result.data && result.data.error) ||
+                "Payment could not be completed.";
+              showErr(err);
+              if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.textContent = "Pay now";
+              }
+            })
+            .catch(function () {
+              showErr("Network error. Try again or contact us.");
+              if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.textContent = "Pay now";
+              }
             });
-          })
-          .then(function (result) {
-            if (result.ok && result.data && result.data.ok) {
-              writeCart([]);
-              try {
-                sessionStorage.setItem(
-                  "rettmark_last_order",
-                  JSON.stringify({
-                    transactionId: result.data.transactionId,
-                    authCode: result.data.authCode
-                  })
-                );
-              } catch (ignore) {}
-              window.location.href = "order-success.html";
-              return;
-            }
-            var err =
-              (result.data && result.data.error) ||
-              "Payment could not be completed.";
-            showErr(err);
-            if (payBtn) {
-              payBtn.disabled = false;
-              payBtn.textContent = "Pay now";
-            }
-          })
-          .catch(function () {
-            showErr("Network error. Try again or contact us.");
-            if (payBtn) {
-              payBtn.disabled = false;
-              payBtn.textContent = "Pay now";
-            }
-          });
+        });
       });
     });
   }
