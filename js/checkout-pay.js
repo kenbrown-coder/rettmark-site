@@ -99,6 +99,14 @@
     return document.getElementById(id);
   }
 
+  function netlifyFunctionUrl(name) {
+    var origin = "";
+    try {
+      origin = String((window.location && window.location.origin) || "");
+    } catch (e) {}
+    return origin + "/.netlify/functions/" + name;
+  }
+
   function showErr(msg) {
     var el = $("checkout-error");
     if (!el) return;
@@ -126,9 +134,12 @@
   function mergeAnetConfig(remote, local) {
     local = local || {};
     remote = remote || {};
+    function trimStr(v) {
+      return String(v || "").trim();
+    }
     return {
-      clientKey: remote.clientKey || local.clientKey || "",
-      apiLoginId: remote.apiLoginId || local.apiLoginId || "",
+      clientKey: trimStr(remote.clientKey || local.clientKey),
+      apiLoginId: trimStr(remote.apiLoginId || local.apiLoginId),
       sandbox:
         typeof remote.sandbox === "boolean"
           ? remote.sandbox
@@ -136,8 +147,31 @@
     };
   }
 
+  /** Accept.js E_WC_21 and similar: wrong/mismatched Public Client Key + API Login or sandbox/live mismatch. */
+  function formatAnetClientError(text) {
+    var t = String(text || "").trim();
+    if (!t) return "Card validation failed.";
+    var lower = t.toLowerCase();
+    if (
+      lower.indexOf("authentication") !== -1 ||
+      lower.indexOf("invalid authentication") !== -1 ||
+      lower.indexOf("e_wc_21") !== -1 ||
+      lower.indexOf("e_wc_19") !== -1
+    ) {
+      return (
+        t +
+        " Check Netlify: ANET_PUBLIC_CLIENT_KEY must be the Public Client Key (Account → Security → Manage Public Client Key), " +
+        "not the Transaction Key. Use the same API Login ID as ANET_TRANSACTION_KEY. Set ANET_SANDBOX=true for sandbox, false for production. " +
+        "Open " +
+        netlifyFunctionUrl("anet-verify-keys") +
+        " in your browser to see whether your public key matches Authorize.Net (and whether sandbox mode matches your credentials)."
+      );
+    }
+    return t;
+  }
+
   function fetchPublicAnetConfig() {
-    return fetch("/.netlify/functions/anet-public-config")
+    return fetch(netlifyFunctionUrl("anet-public-config"))
       .then(function (r) {
         return r.ok ? r.json() : {};
       })
@@ -383,9 +417,15 @@
             }
 
             if (response.messages.resultCode === "Error") {
-              var msgs = response.messages.message || [];
-              var t = msgs.map(function (m) { return m.text; }).join(" ");
-              showErr(t || "Card validation failed.");
+              var rawMsgs = response.messages.message;
+              var msgArr = Array.isArray(rawMsgs) ? rawMsgs : rawMsgs ? [rawMsgs] : [];
+              var t = msgArr
+                .map(function (m) {
+                  return m && m.text ? m.text : "";
+                })
+                .filter(Boolean)
+                .join(" ");
+              showErr(formatAnetClientError(t));
               checkoutSubmitting = false;
               resetPayButton(payBtn);
               return;
@@ -435,7 +475,7 @@
             };
             if (ac) fetchOpts.signal = ac.signal;
 
-            fetch("/.netlify/functions/anet-transaction", fetchOpts)
+            fetch(netlifyFunctionUrl("anet-transaction"), fetchOpts)
               .then(function (r) {
                 return r.text().then(function (text) {
                   var data = {};

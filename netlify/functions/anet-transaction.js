@@ -3,7 +3,7 @@
  *
  * Env (Netlify → Site configuration → Environment variables):
  *   ANET_API_LOGIN_ID
- *   ANET_TRANSACTION_KEY
+ *   ANET_TRANSACTION_KEY  — API Transaction Key (not Public Client Key, not Signature Key).
  *   ANET_SANDBOX          — "true" = apitest host; "false" = production api host (use false for live
  *                           account + merchant “Test Mode”; that toggle is separate from this flag)
  *
@@ -59,8 +59,12 @@ exports.handler = async function (event) {
     return json(405, { error: "Method not allowed" });
   }
 
-  var login = process.env.ANET_API_LOGIN_ID || process.env.AUTHORIZE_NET_API_LOGIN;
-  var key = process.env.ANET_TRANSACTION_KEY || process.env.AUTHORIZE_NET_TRANSACTION_KEY;
+  var login = String(
+    process.env.ANET_API_LOGIN_ID || process.env.AUTHORIZE_NET_API_LOGIN || ""
+  ).trim();
+  var key = String(
+    process.env.ANET_TRANSACTION_KEY || process.env.AUTHORIZE_NET_TRANSACTION_KEY || ""
+  ).trim();
 
   if (!login || !key) {
     return json(503, {
