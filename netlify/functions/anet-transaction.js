@@ -11,6 +11,7 @@
  *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
  *     billTo: { firstName, lastName, address, city, state, zip, country },
  *     shipTo?: same shape when shipping differs from billing }
+ *   (customerEmail is sent as transactionRequest.userFields, not customer — XSD disallows customer for many accounts.)
  */
 
 function corsHeaders() {
@@ -115,6 +116,8 @@ exports.handler = async function (event) {
 
   var amountStr = (amountCents / 100).toFixed(2);
 
+  var email = String(body.customerEmail || "").trim().slice(0, 255);
+
   var txRequest = {
     transactionType: "authCaptureTransaction",
     amount: amountStr,
@@ -133,14 +136,18 @@ exports.handler = async function (event) {
       zip: zip,
       country: String(bill.country || "US").trim().slice(0, 60)
     },
-    customer: String(body.customerEmail || "").trim()
-      ? { email: String(body.customerEmail || "").trim().slice(0, 255) }
-      : undefined,
     order: {
       invoiceNumber: String(body.invoiceNumber || "").trim().slice(0, 20) || undefined,
       description: "Rettmark web — see cart payload in gateway reports"
     }
   };
+
+  /* transactionRequest.customer is rejected by current AnetApi XSD for many merchants; use userFields. */
+  if (email) {
+    txRequest.userFields = {
+      userField: [{ name: "customerEmail", value: email }]
+    };
+  }
 
   var ship = body.shipTo;
   if (ship && typeof ship === "object") {
