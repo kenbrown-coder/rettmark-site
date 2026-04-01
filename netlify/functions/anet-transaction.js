@@ -11,7 +11,7 @@
  *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
  *     billTo: { firstName, lastName, address, city, state, zip, country },
  *     shipTo?: same shape when shipping differs from billing }
- *   (customerEmail is sent as transactionRequest.userFields, not customer — XSD disallows customer for many accounts.)
+ *   (customerEmail and invoice metadata go in transactionRequest.userFields — some XSDs disallow customer and order nodes.)
  */
 
 function corsHeaders() {
@@ -135,18 +135,23 @@ exports.handler = async function (event) {
       state: state,
       zip: zip,
       country: String(bill.country || "US").trim().slice(0, 60)
-    },
-    order: {
-      invoiceNumber: String(body.invoiceNumber || "").trim().slice(0, 20) || undefined,
-      description: "Rettmark web — see cart payload in gateway reports"
     }
   };
 
-  /* transactionRequest.customer is rejected by current AnetApi XSD for many merchants; use userFields. */
+  var userFieldArr = [];
   if (email) {
-    txRequest.userFields = {
-      userField: [{ name: "customerEmail", value: email }]
-    };
+    userFieldArr.push({ name: "customerEmail", value: email });
+  }
+  var inv = String(body.invoiceNumber || "").trim().slice(0, 20);
+  if (inv) {
+    userFieldArr.push({ name: "invoiceNumber", value: inv });
+  }
+  userFieldArr.push({
+    name: "orderSource",
+    value: "Rettmark web"
+  });
+  if (userFieldArr.length) {
+    txRequest.userFields = { userField: userFieldArr };
   }
 
   var ship = body.shipTo;
