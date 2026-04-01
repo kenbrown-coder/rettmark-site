@@ -41,8 +41,10 @@
           <p>Product news, restocks, and announcements.</p>
           <form class="notify-form" method="POST" action="https://script.google.com/macros/s/AKfycbwh8Kya6vpPonz_I2l9nSrKqS9wjRg4UABRiXA_hmigceUkxDeLM0YnHB3MGEw1gGNomw/exec">
             <input type="text" name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
             <input class="input" type="email" name="email" placeholder="Enter your email address" aria-label="Email address" autocomplete="email" required />
             <button class="submit" type="submit">Submit</button>
+            <div class="notify-form__turnstile" data-turnstile-mount aria-label="Security verification"></div>
           </form>
         </article>
 
@@ -60,6 +62,7 @@
     </div>
   </div>
 
+  <script src="js/turnstile-config.js"></script>
   <script src="js/site.js"></script>
 </body>
 </html>

@@ -494,6 +494,92 @@
 
   initHhdgOrderNotice();
 
+  function initNotifyFormTurnstile() {
+    var siteKey =
+      typeof window.RETTMARK_TURNSTILE_SITE_KEY === "string"
+        ? window.RETTMARK_TURNSTILE_SITE_KEY.trim()
+        : "";
+    var forms = document.querySelectorAll("form.notify-form");
+    if (!forms.length) return;
+
+    function showFormError(form, msg) {
+      var el = form.querySelector(".notify-form__error");
+      if (!el) return;
+      el.textContent = msg;
+      el.removeAttribute("hidden");
+    }
+
+    function clearFormError(form) {
+      var el = form.querySelector(".notify-form__error");
+      if (!el) return;
+      el.textContent = "";
+      el.setAttribute("hidden", "");
+    }
+
+    forms.forEach(function (form) {
+      form.addEventListener("submit", function (ev) {
+        if (!siteKey) return;
+        var tokenEl = form.querySelector('textarea[name="cf-turnstile-response"], input[name="cf-turnstile-response"]');
+        var token = tokenEl && tokenEl.value;
+        if (!token) {
+          ev.preventDefault();
+          showFormError(form, "Please complete the security check before submitting.");
+        }
+      });
+    });
+
+    if (!siteKey) return;
+
+    function loadTurnstileScript(onload) {
+      if (window.turnstile) {
+        onload();
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      s.async = true;
+      s.defer = true;
+      s.onload = function () {
+        onload();
+      };
+      s.onerror = function () {
+        forms.forEach(function (form) {
+          var btn = form.querySelector(".submit");
+          if (btn) btn.disabled = true;
+          showFormError(form, "Security check could not load. Please try again later.");
+        });
+      };
+      document.head.appendChild(s);
+    }
+
+    loadTurnstileScript(function () {
+      if (!window.turnstile) return;
+      forms.forEach(function (form) {
+        var mount = form.querySelector("[data-turnstile-mount]");
+        var btn = form.querySelector(".submit");
+        if (!mount || !btn) return;
+        btn.disabled = true;
+        window.turnstile.render(mount, {
+          sitekey: siteKey,
+          theme: "dark",
+          callback: function () {
+            clearFormError(form);
+            btn.disabled = false;
+          },
+          "expired-callback": function () {
+            btn.disabled = true;
+          },
+          "error-callback": function () {
+            btn.disabled = true;
+            showFormError(form, "Security check failed. Please refresh the page.");
+          }
+        });
+      });
+    });
+  }
+
+  initNotifyFormTurnstile();
+
   var crest = document.querySelector(".crest-wrap");
   if (!crest || document.body.dataset.shieldAnim === "off") {
     if (crest) {

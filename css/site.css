@@ -469,9 +469,30 @@
       grid-template-columns: 1fr auto;
       gap: 12px;
       margin-top: 18px;
+      align-items: center;
     }
 
     .notify-form input[name="bot-field"] { display: none; }
+
+    .notify-form__error {
+      grid-column: 1 / -1;
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--accent);
+    }
+
+    .notify-form__error[hidden] {
+      display: none !important;
+    }
+
+    .notify-form__turnstile {
+      grid-column: 1 / -1;
+      justify-self: start;
+      max-width: 100%;
+      min-height: 65px;
+    }
 
     .input {
       width: 100%;
