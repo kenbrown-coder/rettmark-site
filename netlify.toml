@@ -6,8 +6,10 @@
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
 #
 # Authorize.Net checkout (env vars only — not baked into js/* for Netlify secret scan):
-#   ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID, ANET_SANDBOX → GET /.netlify/functions/anet-public-config
+#   ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID → GET /.netlify/functions/anet-public-config
 #   ANET_TRANSACTION_KEY (secret) → POST /.netlify/functions/anet-transaction
+#   ANET_SANDBOX — true = developer sandbox API hosts (apitest/jstest). false = production hosts
+#     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
 
 [functions]
   directory = "netlify/functions"

@@ -4,17 +4,20 @@
  * Env (Netlify → Site configuration → Environment variables):
  *   ANET_API_LOGIN_ID
  *   ANET_TRANSACTION_KEY
- *   ANET_SANDBOX          — "true" | "false" (default true)
+ *   ANET_SANDBOX          — "true" = apitest host; "false" = production api host (use false for live
+ *                           account + merchant “Test Mode”; that toggle is separate from this flag)
  *
  * POST JSON body:
  *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
  *     billTo: { firstName, lastName, address, city, state, zip, country } }
  */
 
-var ANET_JSON =
-  process.env.ANET_SANDBOX === "false" || process.env.ANET_SANDBOX === "0"
-    ? "https://api.authorize.net/xml/v1/request.api"
-    : "https://apitest.authorize.net/xml/v1/request.api";
+var ANET_SANDBOX_RAW = String(process.env.ANET_SANDBOX || "").trim().toLowerCase();
+var ANET_USE_PRODUCTION_API =
+  ANET_SANDBOX_RAW === "false" || ANET_SANDBOX_RAW === "0";
+var ANET_JSON = ANET_USE_PRODUCTION_API
+  ? "https://api.authorize.net/xml/v1/request.api"
+  : "https://apitest.authorize.net/xml/v1/request.api";
 
 function corsHeaders() {
   return {
