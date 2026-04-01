@@ -142,6 +142,10 @@
               <span>Security code</span>
               <input class="input" type="text" id="card-cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required />
             </label>
+            <label class="checkout-field">
+              <span>Billing ZIP (card)</span>
+              <input class="input" type="text" id="card-billing-zip" name="cardBillingZip" inputmode="numeric" autocomplete="billing postal-code" maxlength="20" required title="Postal code for this card; usually matches billing ZIP above." />
+            </label>
           </div>
 
           <p id="checkout-error" class="notify-form__error" hidden role="alert"></p>

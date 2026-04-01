@@ -236,6 +236,18 @@
         syncShippingBlock();
       }
 
+      var billZipEl = $("bill-zip");
+      var cardBillZipEl = $("card-billing-zip");
+      if (billZipEl && cardBillZipEl) {
+        function mirrorBillZipToCardZip() {
+          if (!String(cardBillZipEl.value || "").trim()) {
+            cardBillZipEl.value = billZipEl.value || "";
+          }
+        }
+        billZipEl.addEventListener("change", mirrorBillZipToCardZip);
+        billZipEl.addEventListener("blur", mirrorBillZipToCardZip);
+      }
+
       var checkoutSubmitting = false;
 
       form.addEventListener("submit", function (e) {
@@ -260,6 +272,16 @@
         zip: ($("bill-zip") && $("bill-zip").value) || "",
         country: ($("bill-country") && $("bill-country").value) || "US"
       };
+
+      if (
+        !String(billTo.address).trim() ||
+        !String(billTo.city).trim() ||
+        !String(billTo.state).trim() ||
+        !String(billTo.zip).trim()
+      ) {
+        showErr("Please complete your billing address (street, city, state, and ZIP).");
+        return;
+      }
 
       var email = ($("bill-email") && $("bill-email").value) || "";
 
@@ -290,11 +312,22 @@
         }
       }
 
+      var cardZipRaw =
+        ($("card-billing-zip") && $("card-billing-zip").value) ||
+        ($("bill-zip") && $("bill-zip").value) ||
+        "";
+      var cardZip = String(cardZipRaw).trim();
+      if (!cardZip) {
+        showErr("Please enter the billing ZIP for this card.");
+        return;
+      }
+
       var cardData = {
         cardNumber: ($("card-number") && $("card-number").value.replace(/\s/g, "")) || "",
         month: ($("card-exp-month") && $("card-exp-month").value) || "",
         year: ($("card-exp-year") && $("card-exp-year").value) || "",
-        cardCode: ($("card-cvv") && $("card-cvv").value) || ""
+        cardCode: ($("card-cvv") && $("card-cvv").value) || "",
+        zip: cardZip.slice(0, 20)
       };
 
         var authData = {

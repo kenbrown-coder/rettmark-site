@@ -178,6 +178,11 @@
     renderCartPage();
 
     document.addEventListener("click", function (e) {
+      /* Color / variant chips: handled by per-page scripts + inventory listener — never treat as add-to-cart. */
+      if (e.target && e.target.closest && e.target.closest(".variant-chip")) {
+        return;
+      }
+
       var addBtn = e.target && e.target.closest && e.target.closest("[data-add-to-cart]");
       if (addBtn) {
         addToCartFromButton(addBtn);
@@ -219,6 +224,9 @@
   initCart();
 
   function loadInventory() {
+    var inventorySnapshot = null;
+    var variantDocClickAttached = false;
+
     function toInt(n) {
       var x = parseInt(n, 10);
       return isNaN(x) ? 0 : x;
@@ -270,6 +278,8 @@
     }
 
     function applyInventory(inv) {
+      inventorySnapshot = inv;
+
       // Catalog cards
       var cards = document.querySelectorAll("[data-stock-badge]");
       cards.forEach(function (el) {
@@ -302,23 +312,27 @@
         renderCta(el, status);
       });
 
-      // When a variant chip is clicked, update stock display to that SKU.
-      document.addEventListener("click", function (e) {
-        var btn = e.target && e.target.closest && e.target.closest(".variant-chip");
-        if (!btn) return;
-        var sku = (btn.getAttribute("data-variant-sku") || "").trim();
-        if (!sku) return;
-        var qty = getQty(inv, sku);
-        var status = qty > 0 ? "in_stock" : "backorder";
+      if (!variantDocClickAttached) {
+        variantDocClickAttached = true;
+        document.addEventListener("click", function (e) {
+          var invNow = inventorySnapshot;
+          if (!invNow) return;
+          var btn = e.target && e.target.closest && e.target.closest(".variant-chip");
+          if (!btn) return;
+          var sku = (btn.getAttribute("data-variant-sku") || "").trim();
+          if (!sku) return;
+          var qty = getQty(invNow, sku);
+          var status = qty > 0 ? "in_stock" : "backorder";
 
-        var badge = document.querySelector("[data-stock-status]");
-        if (badge) {
-          badge.setAttribute("data-sku", sku);
-          renderBadgeWithQty(badge, status, qty);
-        }
-        var cta = document.querySelector("[data-stock-cta]");
-        renderCta(cta, status);
-      });
+          var badge = document.querySelector("[data-stock-status]");
+          if (badge) {
+            badge.setAttribute("data-sku", sku);
+            renderBadgeWithQty(badge, status, qty);
+          }
+          var cta = document.querySelector("[data-stock-cta]");
+          renderCta(cta, status);
+        });
+      }
     }
 
     function parseCsv(text) {

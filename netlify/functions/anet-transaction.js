@@ -95,6 +95,16 @@ exports.handler = async function (event) {
     return json(400, { error: "Billing first and last name are required" });
   }
 
+  var addr = String(bill.address || "").trim().slice(0, 60);
+  var city = String(bill.city || "").trim().slice(0, 40);
+  var state = String(bill.state || "").trim().slice(0, 40);
+  var zip = String(bill.zip || "").trim().slice(0, 20);
+  if (!addr || !city || !state || !zip) {
+    return json(400, {
+      error: "Complete billing address (street, city, state, and ZIP) is required for the gateway."
+    });
+  }
+
   var amountStr = rounded.toFixed(2);
 
   var txRequest = {
@@ -109,10 +119,10 @@ exports.handler = async function (event) {
     billTo: {
       firstName: first,
       lastName: last,
-      address: String(bill.address || "").trim().slice(0, 60),
-      city: String(bill.city || "").trim().slice(0, 40),
-      state: String(bill.state || "").trim().slice(0, 40),
-      zip: String(bill.zip || "").trim().slice(0, 20),
+      address: addr,
+      city: city,
+      state: state,
+      zip: zip,
       country: String(bill.country || "US").trim().slice(0, 60)
     },
     customer: String(body.customerEmail || "").trim()

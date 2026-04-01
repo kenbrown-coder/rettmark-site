@@ -1226,10 +1226,20 @@
   align-items: start;
 }
 
+.product-page-gallery {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
 .product-page-right {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .hhdg-prose-wrap .hhdg-prose {
@@ -1303,6 +1313,8 @@
 }
 
 .variant-chip {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -1316,6 +1328,9 @@
   font-size: 0.78rem;
   letter-spacing: 0.02em;
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(230, 0, 0, 0.15);
 }
 
 .variant-chip:hover {
