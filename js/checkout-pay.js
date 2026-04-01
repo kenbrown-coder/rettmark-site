@@ -236,18 +236,6 @@
         syncShippingBlock();
       }
 
-      var billZipEl = $("bill-zip");
-      var cardBillZipEl = $("card-billing-zip");
-      if (billZipEl && cardBillZipEl) {
-        function mirrorBillZipToCardZip() {
-          if (!String(cardBillZipEl.value || "").trim()) {
-            cardBillZipEl.value = billZipEl.value || "";
-          }
-        }
-        billZipEl.addEventListener("change", mirrorBillZipToCardZip);
-        billZipEl.addEventListener("blur", mirrorBillZipToCardZip);
-      }
-
       var checkoutSubmitting = false;
 
       form.addEventListener("submit", function (e) {
@@ -312,10 +300,7 @@
         }
       }
 
-      var cardZipRaw =
-        ($("card-billing-zip") && $("card-billing-zip").value) ||
-        ($("bill-zip") && $("bill-zip").value) ||
-        "";
+      var cardZipRaw = ($("card-billing-zip") && $("card-billing-zip").value) || "";
       var cardZip = String(cardZipRaw).trim();
       if (!cardZip) {
         showErr("Please enter the billing ZIP for this card.");

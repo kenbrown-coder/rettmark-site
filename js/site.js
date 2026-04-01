@@ -289,10 +289,19 @@
         renderBadgeWithQty(el, status, qty);
       });
 
-      // Product pages
+      // Product pages — prefer live selection (#variant-sku / #bag-sku) so stock matches if inventory
+      // loads after the shopper already picked a color (badge data-sku may still be the default).
+      function currentProductPageSku() {
+        var vs = document.getElementById("variant-sku");
+        var bs = document.getElementById("bag-sku");
+        var t = (vs && vs.textContent) || (bs && bs.textContent) || "";
+        return String(t || "").trim();
+      }
+
       var statusEls = document.querySelectorAll("[data-stock-status]");
       statusEls.forEach(function (el) {
-        var sku = el.getAttribute("data-sku") || "";
+        var sku = currentProductPageSku() || el.getAttribute("data-sku") || "";
+        if (sku) el.setAttribute("data-sku", sku);
         var qty = getQty(inv, sku);
         var status = qty > 0 ? "in_stock" : "backorder";
         renderBadgeWithQty(el, status, qty);
