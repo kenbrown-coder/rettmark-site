@@ -10,7 +10,8 @@
 #   ANET_TRANSACTION_KEY (secret) → POST /.netlify/functions/anet-transaction
 #   ANET_SANDBOX — true = developer sandbox API hosts (apitest/jstest). false = production hosts
 #     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
-#   If Accept.js says invalid authentication: GET /.netlify/functions/anet-verify-keys (compares public key to gateway).
+#   If Accept.js says invalid authentication, open in browser (production):
+#   https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys
 
 [functions]
   directory = "netlify/functions"

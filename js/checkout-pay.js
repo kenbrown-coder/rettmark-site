@@ -162,9 +162,10 @@
         t +
         " Check Netlify: ANET_PUBLIC_CLIENT_KEY must be the Public Client Key (Account → Security → Manage Public Client Key), " +
         "not the Transaction Key. Use the same API Login ID as ANET_TRANSACTION_KEY. Set ANET_SANDBOX=true for sandbox, false for production. " +
-        "Open " +
+        "Diagnostic (open in browser): https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys " +
+        "(on deploy previews, use that preview’s origin instead, e.g. " +
         netlifyFunctionUrl("anet-verify-keys") +
-        " in your browser to see whether your public key matches Authorize.Net (and whether sandbox mode matches your credentials)."
+        ")."
       );
     }
     return t;
