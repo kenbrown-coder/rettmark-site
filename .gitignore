@@ -8,6 +8,7 @@ __pycache__/
 .Python
 
 # Editor / OS
+.vscode/preview-url.txt
 .cursor/
 .DS_Store
 Thumbs.db

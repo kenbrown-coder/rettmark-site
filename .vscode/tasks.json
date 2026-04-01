@@ -1,0 +1,116 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rettmark: preview server (Simple Browser)",
+      "type": "shell",
+      "command": "${workspaceFolder}\\preview.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1",
+          "RETTMARK_OPEN_BROWSER": "0",
+          "RETTMARK_PREVIEW_AUTOMATE": "1",
+          "RETTMARK_PREVIEW_PORT": "8080",
+          "RETTMARK_PREVIEW_PAUSE_ON_ERROR": "0"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "rettmark-preview",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "RETTMARK_PREVIEW_READY"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Rettmark: wait for preview HTTP",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\wait-for-preview.ps1\"",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "RETTMARK_PREVIEW_PORT": "8080"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "echo": false
+      }
+    },
+    {
+      "label": "Rettmark: open Simple Browser",
+      "type": "shell",
+      "command": "echo ${input:rettmarkSimpleBrowser}",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "echo": false,
+        "focus": true,
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Start Rettmark preview",
+      "detail": "Local server on port 8080, then Simple Browser",
+      "dependsOn": [
+        "Rettmark: preview server (Simple Browser)",
+        "Rettmark: wait for preview HTTP",
+        "Rettmark: open Simple Browser"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "showReuseMessage": false
+      },
+      "runOptions": {
+        "runOn": "folderOpen",
+        "instanceLimit": 1
+      }
+    },
+    {
+      "label": "Rettmark: Preview (system browser)",
+      "type": "shell",
+      "command": "${workspaceFolder}\\preview.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1",
+          "RETTMARK_OPEN_BROWSER": "1",
+          "RETTMARK_PREVIEW_PAUSE_ON_ERROR": "0"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "showReuseMessage": false
+      },
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "rettmarkSimpleBrowser",
+      "type": "command",
+      "command": "simpleBrowser.show",
+      "args": ["http://127.0.0.1:8080/"]
+    }
+  ]
+}
