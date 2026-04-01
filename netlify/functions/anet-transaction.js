@@ -13,13 +13,6 @@
  *     shipTo?: same shape when shipping differs from billing }
  */
 
-var ANET_SANDBOX_RAW = String(process.env.ANET_SANDBOX || "").trim().toLowerCase();
-var ANET_USE_PRODUCTION_API =
-  ANET_SANDBOX_RAW === "false" || ANET_SANDBOX_RAW === "0";
-var ANET_JSON = ANET_USE_PRODUCTION_API
-  ? "https://api.authorize.net/xml/v1/request.api"
-  : "https://apitest.authorize.net/xml/v1/request.api";
-
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -36,13 +29,25 @@ function json(status, obj) {
   };
 }
 
-function sumCartTotal(cart) {
+function sumCartCents(cart) {
   if (!Array.isArray(cart)) return 0;
   return cart.reduce(function (sum, item) {
     var q = parseInt(item.qty, 10) || 0;
-    var p = Number(item.price) || 0;
-    return sum + q * p;
+    var cents = Math.round((Number(item.price) || 0) * 100);
+    return sum + q * cents;
   }, 0);
+}
+
+function anetApiUrl() {
+  var sandboxRaw = String(
+    process.env.ANET_SANDBOX != null ? process.env.ANET_SANDBOX : "true"
+  )
+    .trim()
+    .toLowerCase();
+  var useSandbox = sandboxRaw !== "false" && sandboxRaw !== "0";
+  return useSandbox
+    ? "https://apitest.authorize.net/xml/v1/request.api"
+    : "https://api.authorize.net/xml/v1/request.api";
 }
 
 exports.handler = async function (event) {
@@ -81,10 +86,9 @@ exports.handler = async function (event) {
   }
 
   var cart = body.cart;
-  var computed = sumCartTotal(cart);
-  var rounded = Math.round(amountNum * 100) / 100;
-  var roundedComputed = Math.round(computed * 100) / 100;
-  if (Math.abs(rounded - roundedComputed) > 0.02) {
+  var amountCents = Math.round(amountNum * 100);
+  var computedCents = sumCartCents(cart);
+  if (amountCents !== computedCents) {
     return json(400, { error: "Amount does not match cart total" });
   }
 
@@ -105,7 +109,7 @@ exports.handler = async function (event) {
     });
   }
 
-  var amountStr = rounded.toFixed(2);
+  var amountStr = (amountCents / 100).toFixed(2);
 
   var txRequest = {
     transactionType: "authCaptureTransaction",
@@ -177,7 +181,7 @@ exports.handler = async function (event) {
     if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
       gatewayOpts.signal = AbortSignal.timeout(35000);
     }
-    var res = await fetch(ANET_JSON, gatewayOpts);
+    var res = await fetch(anetApiUrl(), gatewayOpts);
 
     var data;
     try {
@@ -186,9 +190,15 @@ exports.handler = async function (event) {
       return json(502, { error: "Payment gateway returned an invalid response." });
     }
     var tx = data && data.transactionResponse;
-    var resultCode = data && data.messages && data.messages.resultCode;
+    var resultCode =
+      data && data.messages && String(data.messages.resultCode || "").toLowerCase();
 
-    if (resultCode === "Ok" && tx && tx.responseCode === "1") {
+    var txApproved =
+      tx &&
+      (String(tx.responseCode) === "1" ||
+        tx.responseCode === 1);
+
+    if (resultCode === "ok" && txApproved) {
       return json(200, {
         ok: true,
         transactionId: tx.transId,

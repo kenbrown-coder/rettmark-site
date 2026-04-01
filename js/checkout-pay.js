@@ -83,12 +83,16 @@
     return "$" + num.toFixed(2);
   }
 
-  function cartTotal(cart) {
+  function cartTotalCents(cart) {
     return cart.reduce(function (sum, item) {
       var q = parseInt(item.qty, 10) || 0;
-      var p = Number(item.price) || 0;
-      return sum + q * p;
+      var cents = Math.round((Number(item.price) || 0) * 100);
+      return sum + q * cents;
     }, 0);
+  }
+
+  function cartTotal(cart) {
+    return cartTotalCents(cart) / 100;
   }
 
   function $(id) {
@@ -307,10 +311,24 @@
         return;
       }
 
+      var expMonthRaw = ($("card-exp-month") && $("card-exp-month").value) || "";
+      var expYearRaw = ($("card-exp-year") && $("card-exp-year").value) || "";
+      var monthNum = parseInt(String(expMonthRaw).trim(), 10);
+      var yearStr = String(expYearRaw).trim();
+      if (!isFinite(monthNum) || monthNum < 1 || monthNum > 12) {
+        showErr("Please enter the card expiration month as 01–12.");
+        return;
+      }
+      if (!yearStr || !/^\d{2}$/.test(yearStr) && !/^\d{4}$/.test(yearStr)) {
+        showErr("Please enter the expiration year as YY (e.g. 28) or YYYY (e.g. 2028).");
+        return;
+      }
+
+      /* Accept.js requires a 2-digit month string; year may be YY or YYYY per Authorize.Net docs. */
       var cardData = {
         cardNumber: ($("card-number") && $("card-number").value.replace(/\s/g, "")) || "",
-        month: ($("card-exp-month") && $("card-exp-month").value) || "",
-        year: ($("card-exp-year") && $("card-exp-year").value) || "",
+        month: pad2(monthNum),
+        year: yearStr,
         cardCode: ($("card-cvv") && $("card-cvv").value) || "",
         zip: cardZip.slice(0, 20)
       };
