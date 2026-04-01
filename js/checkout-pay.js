@@ -149,9 +149,15 @@
 
       if (!form) return;
 
+      var checkoutSubmitting = false;
+
       form.addEventListener("submit", function (e) {
       e.preventDefault();
       showErr("");
+
+      if (checkoutSubmitting) {
+        return;
+      }
 
       if (typeof Accept === "undefined") {
         showErr("Payment form is still loading. Please wait a moment and try again.");
@@ -187,15 +193,41 @@
           cardData: cardData
         };
 
+        checkoutSubmitting = true;
+
         if (payBtn) {
           payBtn.disabled = true;
           payBtn.textContent = "Processing…";
         }
 
+        var acceptSettled = false;
+        var acceptWatchdogMs = 60000;
+        var acceptWatchdogId = setTimeout(function () {
+          if (acceptSettled) return;
+          acceptSettled = true;
+          checkoutSubmitting = false;
+          showErr(
+            "Card security step timed out. Check your connection, disable VPN or strict blockers, or try another browser."
+          );
+          resetPayButton(payBtn);
+        }, acceptWatchdogMs);
+
+        function endAcceptPhase() {
+          if (acceptWatchdogId) {
+            clearTimeout(acceptWatchdogId);
+            acceptWatchdogId = null;
+          }
+        }
+
         Accept.dispatchData(secureData, function (response) {
+          if (acceptSettled) return;
+          acceptSettled = true;
+          endAcceptPhase();
+
           try {
             if (!response || !response.messages) {
               showErr("Unexpected response from payment security script. Try again.");
+              checkoutSubmitting = false;
               resetPayButton(payBtn);
               return;
             }
@@ -204,6 +236,7 @@
               var msgs = response.messages.message || [];
               var t = msgs.map(function (m) { return m.text; }).join(" ");
               showErr(t || "Card validation failed.");
+              checkoutSubmitting = false;
               resetPayButton(payBtn);
               return;
             }
@@ -211,6 +244,7 @@
             var opaque = response.opaqueData;
             if (!opaque) {
               showErr("No payment token returned.");
+              checkoutSubmitting = false;
               resetPayButton(payBtn);
               return;
             }
@@ -229,18 +263,22 @@
               invoiceNumber: ($("order-ref") && $("order-ref").value) || undefined
             };
 
-            var ac = new AbortController();
+            var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
             var payTimeoutMs = 90000;
-            var timeoutId = setTimeout(function () {
-              ac.abort();
-            }, payTimeoutMs);
+            var timeoutId = ac
+              ? setTimeout(function () {
+                  ac.abort();
+                }, payTimeoutMs)
+              : null;
 
-            fetch("/.netlify/functions/anet-transaction", {
+            var fetchOpts = {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-              signal: ac.signal
-            })
+              body: JSON.stringify(payload)
+            };
+            if (ac) fetchOpts.signal = ac.signal;
+
+            fetch("/.netlify/functions/anet-transaction", fetchOpts)
               .then(function (r) {
                 return r.text().then(function (text) {
                   var data = {};
@@ -264,13 +302,14 @@
                       })
                     );
                   } catch (ignore) {}
-                  window.location.href = "order-success.html";
+                  window.location.href = "/order-success";
                   return;
                 }
                 var err =
                   (result.data && result.data.error) ||
                   "Payment could not be completed.";
                 showErr(err);
+                checkoutSubmitting = false;
                 resetPayButton(payBtn);
               })
               .catch(function (err) {
@@ -281,13 +320,15 @@
                 } else {
                   showErr("Network error. Try again or contact us.");
                 }
+                checkoutSubmitting = false;
                 resetPayButton(payBtn);
               })
               .finally(function () {
-                clearTimeout(timeoutId);
+                if (timeoutId) clearTimeout(timeoutId);
               });
           } catch (e) {
             showErr("Something went wrong processing payment. Try again.");
+            checkoutSubmitting = false;
             resetPayButton(payBtn);
           }
         });

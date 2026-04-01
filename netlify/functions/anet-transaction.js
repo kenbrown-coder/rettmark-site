@@ -133,15 +133,24 @@ exports.handler = async function (event) {
   };
 
   try {
-    var res = await fetch(ANET_JSON, {
+    var gatewayOpts = {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
-    });
+    };
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      gatewayOpts.signal = AbortSignal.timeout(35000);
+    }
+    var res = await fetch(ANET_JSON, gatewayOpts);
 
-    var data = await res.json();
+    var data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      return json(502, { error: "Payment gateway returned an invalid response." });
+    }
     var tx = data && data.transactionResponse;
     var resultCode = data && data.messages && data.messages.resultCode;
 
