@@ -54,8 +54,12 @@ exports.handler = async function (event) {
     return json(405, { error: "Method not allowed" });
   }
 
-  var login = process.env.ANET_API_LOGIN_ID || process.env.AUTHORIZE_NET_API_LOGIN;
-  var key = process.env.ANET_TRANSACTION_KEY || process.env.AUTHORIZE_NET_TRANSACTION_KEY;
+  var login = String(
+    process.env.ANET_API_LOGIN_ID || process.env.AUTHORIZE_NET_API_LOGIN || ""
+  ).trim();
+  var key = String(
+    process.env.ANET_TRANSACTION_KEY || process.env.AUTHORIZE_NET_TRANSACTION_KEY || ""
+  ).trim();
 
   if (!login || !key) {
     return json(503, {
