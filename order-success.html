@@ -61,8 +61,15 @@
         var o = JSON.parse(raw);
         var el = document.getElementById("order-success-detail");
         if (el && o.transactionId) {
-          el.textContent =
-            "Transaction ID: " + o.transactionId + (o.authCode ? " · Auth code: " + o.authCode : "");
+          var parts = [];
+          if (o.invoiceNumber) {
+            parts.push("Order # " + o.invoiceNumber);
+          }
+          parts.push("Transaction ID: " + o.transactionId);
+          if (o.authCode) {
+            parts.push("Auth code: " + o.authCode);
+          }
+          el.textContent = parts.join(" · ");
         }
       } catch (e) {}
     })();

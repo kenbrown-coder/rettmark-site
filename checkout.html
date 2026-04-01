@@ -79,9 +79,49 @@
               <input class="input" type="text" id="bill-country" name="country" value="US" autocomplete="country" />
             </label>
             <label class="checkout-field">
-              <span>PO / reference (optional)</span>
-              <input class="input" type="text" id="order-ref" name="invoice" maxlength="20" autocomplete="off" />
+              <span>Order number</span>
+              <input class="input" type="text" id="order-ref" name="invoice" maxlength="20" readonly autocomplete="off" aria-readonly="true" title="Generated for this order; appears on your receipt and in our payment reports." />
             </label>
+            <label class="checkout-field checkout-field--checkbox checkout-field--wide">
+              <span class="checkout-field__checkbox-wrap">
+                <input type="checkbox" id="ship-diff" name="differentShipping" autocomplete="off" />
+                <span class="checkout-field__checkbox-label">Ship to a different address</span>
+              </span>
+            </label>
+          </div>
+
+          <div id="checkout-shipping-block" class="checkout-shipping-block" hidden>
+            <h3 class="checkout-form__card-heading">Shipping address</h3>
+            <div class="checkout-form__grid">
+              <label class="checkout-field">
+                <span>First name</span>
+                <input class="input" type="text" id="ship-first" name="shipFirstName" autocomplete="shipping given-name" />
+              </label>
+              <label class="checkout-field">
+                <span>Last name</span>
+                <input class="input" type="text" id="ship-last" name="shipLastName" autocomplete="shipping family-name" />
+              </label>
+              <label class="checkout-field checkout-field--wide">
+                <span>Street address</span>
+                <input class="input" type="text" id="ship-address" name="shipAddress" autocomplete="shipping street-address" />
+              </label>
+              <label class="checkout-field">
+                <span>City</span>
+                <input class="input" type="text" id="ship-city" name="shipCity" autocomplete="shipping address-level2" />
+              </label>
+              <label class="checkout-field">
+                <span>State / Province</span>
+                <input class="input" type="text" id="ship-state" name="shipState" autocomplete="shipping address-level1" />
+              </label>
+              <label class="checkout-field">
+                <span>ZIP / Postal</span>
+                <input class="input" type="text" id="ship-zip" name="shipZip" autocomplete="shipping postal-code" />
+              </label>
+              <label class="checkout-field">
+                <span>Country</span>
+                <input class="input" type="text" id="ship-country" name="shipCountry" value="US" autocomplete="shipping country" />
+              </label>
+            </div>
           </div>
 
           <h3 class="checkout-form__card-heading">Card</h3>

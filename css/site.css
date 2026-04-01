@@ -869,8 +869,19 @@
   font-size: 0.82rem;
 }
 
+.checkout-summary-invoice {
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.checkout-summary-invoice strong {
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
 .checkout-summary-total {
-  margin: 20px 0 0;
+  margin: 12px 0 0;
   text-align: right;
   font-size: 1.12rem;
 }
@@ -896,6 +907,43 @@
 
 .checkout-field--wide {
   grid-column: 1 / -1;
+}
+
+.checkout-field--checkbox {
+  margin-top: 4px;
+}
+
+.checkout-field__checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-direction: row;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkout-field--checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--accent, #c9a227);
+  cursor: pointer;
+}
+
+.checkout-field__checkbox-label {
+  line-height: 1.35;
+}
+
+.checkout-shipping-block {
+  margin-top: 8px;
+}
+
+.checkout-shipping-block[hidden] {
+  display: none !important;
 }
 
 .checkout-form__card-heading {

@@ -1,5 +1,68 @@
 (function () {
   var CART_KEY = "rettmark_cart_v1";
+  var INVOICE_SESSION_KEY = "rettmark_checkout_invoice_v1";
+
+  function pad2(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function cartSignature(cart) {
+    var t = cartTotal(cart);
+    var parts = cart.map(function (item) {
+      return (
+        String(item.sku || item.name || "") +
+        ":" +
+        String(parseInt(item.qty, 10) || 0) +
+        ":" +
+        String(Number(item.price) || 0)
+      );
+    });
+    return parts.sort().join("|") + "@" + t.toFixed(2);
+  }
+
+  function generateInvoiceNumber() {
+    var d = new Date();
+    var y = String(d.getFullYear()).slice(-2);
+    var m = pad2(d.getMonth() + 1);
+    var day = pad2(d.getDate());
+    var rand = "";
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      var a = new Uint8Array(3);
+      crypto.getRandomValues(a);
+      for (var i = 0; i < a.length; i++) {
+        rand += ("0" + a[i].toString(16)).slice(-2);
+      }
+    } else {
+      rand = ("000000" + Math.floor(Math.random() * 16777216).toString(16)).slice(-6);
+    }
+    var inv = "RM" + y + m + day + rand;
+    return inv.length > 20 ? inv.slice(0, 20) : inv;
+  }
+
+  /** Reuse invoice for this cart in-session; new cart contents get a new number (Authorize.Net max 20 chars). */
+  function getOrCreateCheckoutInvoice(cart) {
+    var sig = cartSignature(cart);
+    try {
+      var raw = sessionStorage.getItem(INVOICE_SESSION_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          parsed.sig === sig &&
+          parsed.inv &&
+          /^[A-Za-z0-9-]+$/.test(parsed.inv) &&
+          parsed.inv.length <= 20
+        ) {
+          return parsed.inv;
+        }
+      }
+    } catch (e) {}
+    var inv = generateInvoiceNumber();
+    try {
+      sessionStorage.setItem(INVOICE_SESSION_KEY, JSON.stringify({ inv: inv, sig: sig }));
+    } catch (e2) {}
+    return inv;
+  }
 
   function readCart() {
     try {
@@ -95,6 +158,12 @@
       return;
     }
 
+    var checkoutInvoice = getOrCreateCheckoutInvoice(cart);
+    var orderRefInput = $("order-ref");
+    if (orderRefInput) {
+      orderRefInput.value = checkoutInvoice;
+    }
+
     var total = cartTotal(cart);
     if (summaryEl) {
       var lines = cart
@@ -117,7 +186,9 @@
       summaryEl.innerHTML =
         '<ul class="checkout-summary-list">' +
         lines +
-        '</ul><p class="checkout-summary-total">Total <strong data-checkout-total>' +
+        '</ul><p class="checkout-summary-invoice">Order # <strong>' +
+        checkoutInvoice +
+        '</strong></p><p class="checkout-summary-total">Total <strong data-checkout-total>' +
         formatUsd(total) +
         "</strong></p>";
     }
@@ -149,6 +220,22 @@
 
       if (!form) return;
 
+      var shipDiffEl = $("ship-diff");
+      var shipBlockEl = $("checkout-shipping-block");
+      if (shipDiffEl && shipBlockEl) {
+        function syncShippingBlock() {
+          var show = shipDiffEl.checked;
+          shipBlockEl.hidden = !show;
+          shipBlockEl.setAttribute("aria-hidden", show ? "false" : "true");
+          if (show) {
+            var sf = $("ship-first");
+            if (sf) sf.focus();
+          }
+        }
+        shipDiffEl.addEventListener("change", syncShippingBlock);
+        syncShippingBlock();
+      }
+
       var checkoutSubmitting = false;
 
       form.addEventListener("submit", function (e) {
@@ -175,6 +262,33 @@
       };
 
       var email = ($("bill-email") && $("bill-email").value) || "";
+
+      var useDifferentShipping = $("ship-diff") && $("ship-diff").checked;
+      var shipToPayload = null;
+      if (useDifferentShipping) {
+        shipToPayload = {
+          firstName: ($("ship-first") && $("ship-first").value) || "",
+          lastName: ($("ship-last") && $("ship-last").value) || "",
+          address: ($("ship-address") && $("ship-address").value) || "",
+          city: ($("ship-city") && $("ship-city").value) || "",
+          state: ($("ship-state") && $("ship-state").value) || "",
+          zip: ($("ship-zip") && $("ship-zip").value) || "",
+          country: ($("ship-country") && $("ship-country").value) || "US"
+        };
+        if (
+          !String(shipToPayload.firstName).trim() ||
+          !String(shipToPayload.lastName).trim() ||
+          !String(shipToPayload.address).trim() ||
+          !String(shipToPayload.city).trim() ||
+          !String(shipToPayload.state).trim() ||
+          !String(shipToPayload.zip).trim()
+        ) {
+          showErr(
+            "Please complete the shipping address, or uncheck 'Ship to a different address.'"
+          );
+          return;
+        }
+      }
 
       var cardData = {
         cardNumber: ($("card-number") && $("card-number").value.replace(/\s/g, "")) || "",
@@ -251,6 +365,10 @@
 
             var freshCart = readCart();
             var amt = cartTotal(freshCart);
+            var invoiceForCharge = getOrCreateCheckoutInvoice(freshCart);
+            var refInput = $("order-ref");
+            if (refInput) refInput.value = invoiceForCharge;
+
             var payload = {
               opaqueData: {
                 dataDescriptor: opaque.dataDescriptor,
@@ -260,8 +378,11 @@
               cart: freshCart,
               customerEmail: email,
               billTo: billTo,
-              invoiceNumber: ($("order-ref") && $("order-ref").value) || undefined
+              invoiceNumber: invoiceForCharge
             };
+            if (shipToPayload) {
+              payload.shipTo = shipToPayload;
+            }
 
             var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
             var payTimeoutMs = 90000;
@@ -294,11 +415,13 @@
                 if (result.ok && result.data && result.data.ok) {
                   writeCart([]);
                   try {
+                    sessionStorage.removeItem(INVOICE_SESSION_KEY);
                     sessionStorage.setItem(
                       "rettmark_last_order",
                       JSON.stringify({
                         transactionId: result.data.transactionId,
-                        authCode: result.data.authCode
+                        authCode: result.data.authCode,
+                        invoiceNumber: invoiceForCharge
                       })
                     );
                   } catch (ignore) {}

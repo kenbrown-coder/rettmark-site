@@ -9,7 +9,8 @@
  *
  * POST JSON body:
  *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
- *     billTo: { firstName, lastName, address, city, state, zip, country } }
+ *     billTo: { firstName, lastName, address, city, state, zip, country },
+ *     shipTo?: same shape when shipping differs from billing }
  */
 
 var ANET_SANDBOX_RAW = String(process.env.ANET_SANDBOX || "").trim().toLowerCase();
@@ -96,6 +97,54 @@ exports.handler = async function (event) {
 
   var amountStr = rounded.toFixed(2);
 
+  var txRequest = {
+    transactionType: "authCaptureTransaction",
+    amount: amountStr,
+    payment: {
+      opaqueData: {
+        dataDescriptor: opaque.dataDescriptor,
+        dataValue: opaque.dataValue
+      }
+    },
+    billTo: {
+      firstName: first,
+      lastName: last,
+      address: String(bill.address || "").trim().slice(0, 60),
+      city: String(bill.city || "").trim().slice(0, 40),
+      state: String(bill.state || "").trim().slice(0, 40),
+      zip: String(bill.zip || "").trim().slice(0, 20),
+      country: String(bill.country || "US").trim().slice(0, 60)
+    },
+    customer: String(body.customerEmail || "").trim()
+      ? { email: String(body.customerEmail || "").trim().slice(0, 255) }
+      : undefined,
+    order: {
+      invoiceNumber: String(body.invoiceNumber || "").trim().slice(0, 20) || undefined,
+      description: "Rettmark web — see cart payload in gateway reports"
+    }
+  };
+
+  var ship = body.shipTo;
+  if (ship && typeof ship === "object") {
+    var sf = String(ship.firstName || "").trim().slice(0, 50);
+    var sl = String(ship.lastName || "").trim().slice(0, 50);
+    var sAddr = String(ship.address || "").trim().slice(0, 60);
+    var sCity = String(ship.city || "").trim().slice(0, 40);
+    var sState = String(ship.state || "").trim().slice(0, 40);
+    var sZip = String(ship.zip || "").trim().slice(0, 20);
+    if (sf && sl && sAddr && sCity && sState && sZip) {
+      txRequest.shipTo = {
+        firstName: sf,
+        lastName: sl,
+        address: sAddr,
+        city: sCity,
+        state: sState,
+        zip: sZip,
+        country: String(ship.country || "US").trim().slice(0, 60)
+      };
+    }
+  }
+
   var payload = {
     createTransactionRequest: {
       merchantAuthentication: {
@@ -103,32 +152,7 @@ exports.handler = async function (event) {
         transactionKey: key
       },
       refId: "rettmark-" + Date.now(),
-      transactionRequest: {
-        transactionType: "authCaptureTransaction",
-        amount: amountStr,
-        payment: {
-          opaqueData: {
-            dataDescriptor: opaque.dataDescriptor,
-            dataValue: opaque.dataValue
-          }
-        },
-        billTo: {
-          firstName: first,
-          lastName: last,
-          address: String(bill.address || "").trim().slice(0, 60),
-          city: String(bill.city || "").trim().slice(0, 40),
-          state: String(bill.state || "").trim().slice(0, 40),
-          zip: String(bill.zip || "").trim().slice(0, 20),
-          country: String(bill.country || "US").trim().slice(0, 60)
-        },
-        customer: String(body.customerEmail || "").trim()
-          ? { email: String(body.customerEmail || "").trim().slice(0, 255) }
-          : undefined,
-        order: {
-          invoiceNumber: String(body.invoiceNumber || "").trim().slice(0, 20) || undefined,
-          description: "Rettmark web — see cart payload in gateway reports"
-        }
-      }
+      transactionRequest: txRequest
     }
   };
 
