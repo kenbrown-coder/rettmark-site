@@ -50,7 +50,7 @@ def main() -> None:
         "notes": {
             "schema": {"qty": "integer >= 0"},
             "meaning": {
-                "qty": "On-hand quantity. If qty > 0: In stock. If qty == 0: Backorder (customer pays now; we order to fulfill).",
+                "qty": "On-hand quantity. If qty > 0: In stock. If qty == 0: Preorder (customer pays now; we order to fulfill).",
             },
         },
     }

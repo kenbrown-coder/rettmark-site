@@ -1,0 +1,930 @@
+{
+  "source": "https://huntershdgold.com/store/HHDG-Frames-c74140615",
+  "scrapedFor": "Rettmark Firearms dealer catalog",
+  "categoryPage": {
+    "title": "HHDG Frames",
+    "description": ""
+  },
+  "products": [
+    {
+      "id": "430228060",
+      "title": "HHDG B-Raze",
+      "href": "https://huntershdgold.com/store/HHDG-B-Raze-p430228060",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/5499282919.png",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/430228060.png",
+      "localPage": "hhdg-b-raze.html",
+      "galleryLocal": [
+        "assets/hhdg/430228060_g1.png",
+        "assets/hhdg/430228060_g3.png",
+        "assets/hhdg/430228060_g5.png",
+        "assets/hhdg/430228060_g8.png",
+        "assets/hhdg/430228060_g9.png",
+        "assets/hhdg/430228060_g10.png",
+        "assets/hhdg/430228060_g11.png",
+        "assets/hhdg/430228060_g12.png",
+        "assets/hhdg/430228060_g13.png",
+        "assets/hhdg/430228060_g14.png",
+        "assets/hhdg/430228060_g15.png",
+        "assets/hhdg/430228060_g16.png",
+        "assets/hhdg/430228060_g17.png",
+        "assets/hhdg/430228060_g18.png",
+        "assets/hhdg/430228060_g19.png",
+        "assets/hhdg/430228060_g20.png",
+        "assets/hhdg/430228060_g21.png"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Black",
+            "Tan",
+            "Green"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Black": "assets/hhdg/430228060_frame_0_black.png",
+        "Tan": "assets/hhdg/430228060_frame_1_tan.png",
+        "Green": "assets/hhdg/430228060_frame_2_green.png"
+      },
+      "manufacturerSku": "HDGBRaze Black",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "430222074",
+      "title": "HHDG Slingshot",
+      "href": "https://huntershdgold.com/store/HHDG-Slingshot-p430222074",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/5499282923.png",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/430222074.png",
+      "localPage": "hhdg-slingshot.html",
+      "galleryLocal": [
+        "assets/hhdg/430222074_g0.png",
+        "assets/hhdg/430222074_g1.png",
+        "assets/hhdg/430222074_g2.png",
+        "assets/hhdg/430222074_g3.png",
+        "assets/hhdg/430222074_g4.png",
+        "assets/hhdg/430222074_g5.png",
+        "assets/hhdg/430222074_g6.png",
+        "assets/hhdg/430222074_g7.png",
+        "assets/hhdg/430222074_g8.png",
+        "assets/hhdg/430222074_g9.png",
+        "assets/hhdg/430222074_g10.png",
+        "assets/hhdg/430222074_g11.png",
+        "assets/hhdg/430222074_g12.png",
+        "assets/hhdg/430222074_g13.png",
+        "assets/hhdg/430222074_g14.png",
+        "assets/hhdg/430222074_g15.png",
+        "assets/hhdg/430222074_g16.png",
+        "assets/hhdg/430222074_g17.png",
+        "assets/hhdg/430222074_g18.png",
+        "assets/hhdg/430222074_g19.png",
+        "assets/hhdg/430222074_g20.png",
+        "assets/hhdg/430222074_g21.png",
+        "assets/hhdg/430222074_g22.png",
+        "assets/hhdg/430222074_g23.png",
+        "assets/hhdg/430222074_g24.png",
+        "assets/hhdg/430222074_g25.png",
+        "assets/hhdg/430222074_g26.png",
+        "assets/hhdg/430222074_g27.png",
+        "assets/hhdg/430222074_g28.png",
+        "assets/hhdg/430222074_g29.png",
+        "assets/hhdg/430222074_g30.png",
+        "assets/hhdg/430222074_g31.png",
+        "assets/hhdg/430222074_g32.png",
+        "assets/hhdg/430222074_g33.png",
+        "assets/hhdg/430222074_g34.png"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Grey",
+            "Black OUT OF STOCK TILL Mid 2026",
+            "Blue",
+            "Red"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Grey": "assets/hhdg/430222074_g0.png",
+        "Black OUT OF STOCK TILL Mid 2026": "assets/hhdg/430222074_g1.png",
+        "Blue": "assets/hhdg/430222074_frame_2_blue.png",
+        "Red": "assets/hhdg/430222074_frame_3_red.png"
+      },
+      "manufacturerSku": "HDGSlingshot",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "298571404",
+      "title": "HHDG Signature Series",
+      "href": "https://huntershdgold.com/store/HHDG-Signature-Series-p298571404",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/5501222975.jpg",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/298571404.jpg",
+      "localPage": "hhdg-signature-series.html",
+      "galleryLocal": [
+        "assets/hhdg/298571404_g0.jpg",
+        "assets/hhdg/298571404_g1.png",
+        "assets/hhdg/298571404_g2.png",
+        "assets/hhdg/298571404_g3.png",
+        "assets/hhdg/298571404_g4.png"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "HHDG Signature Series Black"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "HHDG Signature Series Black": "assets/hhdg/298571404_g4.png"
+      },
+      "manufacturerSku": "HDGSignature",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "430242062",
+      "title": "HHDG Marksman",
+      "href": "https://huntershdgold.com/store/HHDG-Marksman-p430242062",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/5500240283.png",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/430242062.png",
+      "localPage": "hhdg-marksman.html",
+      "galleryLocal": [
+        "assets/hhdg/430242062_g0.png",
+        "assets/hhdg/430242062_g1.png",
+        "assets/hhdg/430242062_g2.png",
+        "assets/hhdg/430242062_g3.png",
+        "assets/hhdg/430242062_g4.png",
+        "assets/hhdg/430242062_g5.png",
+        "assets/hhdg/430242062_g6.png",
+        "assets/hhdg/430242062_g7.png",
+        "assets/hhdg/430242062_g8.png",
+        "assets/hhdg/430242062_g9.png",
+        "assets/hhdg/430242062_g10.png",
+        "assets/hhdg/430242062_g11.png",
+        "assets/hhdg/430242062_g12.png",
+        "assets/hhdg/430242062_g13.png",
+        "assets/hhdg/430242062_g14.png",
+        "assets/hhdg/430242062_g15.png",
+        "assets/hhdg/430242062_g16.png",
+        "assets/hhdg/430242062_g17.png",
+        "assets/hhdg/430242062_g18.png",
+        "assets/hhdg/430242062_g19.png",
+        "assets/hhdg/430242062_g20.png",
+        "assets/hhdg/430242062_g21.png",
+        "assets/hhdg/430242062_g22.png",
+        "assets/hhdg/430242062_g23.png",
+        "assets/hhdg/430242062_g24.png",
+        "assets/hhdg/430242062_g25.png",
+        "assets/hhdg/430242062_g26.png",
+        "assets/hhdg/430242062_g27.png",
+        "assets/hhdg/430242062_g28.png",
+        "assets/hhdg/430242062_g29.png",
+        "assets/hhdg/430242062_g30.png",
+        "assets/hhdg/430242062_g31.png"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Blue",
+            "Red",
+            "Black"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Blue": "assets/hhdg/430242062_frame_0_blue.png",
+        "Red": "assets/hhdg/430242062_frame_1_red.png",
+        "Black": "assets/hhdg/430242062_frame_2_black.png"
+      },
+      "manufacturerSku": "HDGMarksman",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "282473361",
+      "title": "HHDG Archer",
+      "href": "https://huntershdgold.com/store/HHDG-Archer-p282473361",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/1926137874.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/282473361.jpg",
+      "localPage": "hhdg-archer.html",
+      "galleryLocal": [
+        "assets/hhdg/282473361_g0.jpg",
+        "assets/hhdg/282473361_g2.jpg",
+        "assets/hhdg/282473361_g4.jpg",
+        "assets/hhdg/282473361_g6.jpg",
+        "assets/hhdg/282473361_g7.jpg",
+        "assets/hhdg/282473361_g9.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Ebony",
+            "Ebony / Woodland Camo",
+            "Chesnut / Woodland Camo"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Ebony": "assets/hhdg/282473361_g6.jpg",
+        "Ebony / Woodland Camo": "assets/hhdg/282473361_g4.jpg",
+        "Chesnut / Woodland Camo": "assets/hhdg/282473361_frame_2_chesnut-woodland-camo.jpg"
+      },
+      "manufacturerSku": "HDG461c06",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "282429888",
+      "title": "HHDG Aviator",
+      "href": "https://huntershdgold.com/store/HHDG-Aviator-p282429888",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2431798454.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/282429888.jpg",
+      "localPage": "hhdg-aviator.html",
+      "galleryLocal": [
+        "assets/hhdg/282429888_g0.jpg",
+        "assets/hhdg/282429888_g2.jpg",
+        "assets/hhdg/282429888_g5.jpg",
+        "assets/hhdg/282429888_g7.jpg",
+        "assets/hhdg/282429888_g9.jpg",
+        "assets/hhdg/282429888_g11.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Gold (2mm Smaller lens)",
+            "Pewter",
+            "Bronze"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Gold (2mm Smaller lens)": "assets/hhdg/282429888_g11.jpg",
+        "Pewter": "assets/hhdg/282429888_g9.jpg",
+        "Bronze": "assets/hhdg/282429888_g7.jpg"
+      },
+      "manufacturerSku": "Aviator",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "282518112",
+      "title": "HHDG Gauge",
+      "href": "https://huntershdgold.com/store/HHDG-Gauge-p282518112",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2017314550.jpg",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/282518112.jpg",
+      "localPage": "hhdg-gauge.html",
+      "galleryLocal": [
+        "assets/hhdg/282518112_g0.jpg",
+        "assets/hhdg/282518112_g3.jpg",
+        "assets/hhdg/282518112_g5.jpg",
+        "assets/hhdg/282518112_g7.jpg",
+        "assets/hhdg/282518112_g8.jpg",
+        "assets/hhdg/282518112_g10.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Black Crystal",
+            "Orange Harvest",
+            "Lavender",
+            "Peach"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Black Crystal": "assets/hhdg/282518112_g3.jpg",
+        "Orange Harvest": "assets/hhdg/282518112_g7.jpg",
+        "Lavender": "assets/hhdg/282518112_g10.jpg",
+        "Peach": "assets/hhdg/282518112_g0.jpg"
+      },
+      "manufacturerSku": "HDGGauge",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "714720237",
+      "title": "HHDG Vector by Walker’s®",
+      "href": "https://huntershdgold.com/store/HHDG-Vector-by-Walker%E2%80%99s%C2%AE-p714720237",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/4702320067.jpg",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/714720237.jpg",
+      "localPage": "hhdg-vector-by-walker-s.html",
+      "galleryLocal": [
+        "assets/hhdg/714720237_g0.jpg",
+        "assets/hhdg/714720237_g1.jpg",
+        "assets/hhdg/714720237_g2.jpg",
+        "assets/hhdg/714720237_g3.jpg",
+        "assets/hhdg/714720237_g4.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Vector IKON Matte Black"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Vector IKON Matte Black": "assets/hhdg/714720237_g1.jpg"
+      },
+      "manufacturerSku": "HDGWalkBlk",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "282085768",
+      "title": "HHDG Magnum",
+      "href": "https://huntershdgold.com/store/HHDG-Magnum-p282085768",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2009195123.jpg",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/282085768.jpg",
+      "localPage": "hhdg-magnum.html",
+      "galleryLocal": [
+        "assets/hhdg/282085768_g0.jpg",
+        "assets/hhdg/282085768_g3.jpg",
+        "assets/hhdg/282085768_g5.jpg",
+        "assets/hhdg/282085768_g8.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Ghost Black w/ Dark Grey Temples",
+            "Ghost Black w/ Yellow Temples"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Ghost Black w/ Dark Grey Temples": "assets/hhdg/282085768_g5.jpg",
+        "Ghost Black w/ Yellow Temples": "assets/hhdg/282085768_g8.jpg"
+      },
+      "manufacturerSku": "HDGMagnum",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "282518114",
+      "title": "HHDG Velocity",
+      "href": "https://huntershdgold.com/store/HHDG-Velocity-p282518114",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/1926246511.jpg",
+      "price": "$375.00",
+      "subtitle": "",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/282518114.jpg",
+      "localPage": "hhdg-velocity.html",
+      "galleryLocal": [
+        "assets/hhdg/282518114_g0.jpg",
+        "assets/hhdg/282518114_g2.jpg",
+        "assets/hhdg/282518114_g4.jpg",
+        "assets/hhdg/282518114_g6.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Grey and Black Clear Side Shields",
+            "Grey and Black Smoke Side Shields"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Grey and Black Clear Side Shields": "assets/hhdg/282518114_g6.jpg",
+        "Grey and Black Smoke Side Shields": "assets/hhdg/282518114_g2.jpg"
+      },
+      "manufacturerSku": "HDGVelocity",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "515777253",
+      "title": "HHDG Modern Bespin",
+      "href": "https://huntershdgold.com/store/HHDG-Modern-Bespin-p515777253",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/3368184800.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shield",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/515777253.jpg",
+      "localPage": "hhdg-modern-bespin.html",
+      "galleryLocal": [
+        "assets/hhdg/515777253_g0.jpg",
+        "assets/hhdg/515777253_g1.jpg",
+        "assets/hhdg/515777253_g2.jpg",
+        "assets/hhdg/515777253_g3.jpg",
+        "assets/hhdg/515777253_g4.jpg",
+        "assets/hhdg/515777253_g5.jpg",
+        "assets/hhdg/515777253_g6.jpg",
+        "assets/hhdg/515777253_g7.jpg",
+        "assets/hhdg/515777253_g8.jpg",
+        "assets/hhdg/515777253_g9.jpg",
+        "assets/hhdg/515777253_g10.jpg",
+        "assets/hhdg/515777253_g11.jpg",
+        "assets/hhdg/515777253_g12.jpg",
+        "assets/hhdg/515777253_g13.jpg",
+        "assets/hhdg/515777253_g14.jpg",
+        "assets/hhdg/515777253_g15.jpg",
+        "assets/hhdg/515777253_g16.jpg",
+        "assets/hhdg/515777253_g17.jpg",
+        "assets/hhdg/515777253_g18.jpg",
+        "assets/hhdg/515777253_g19.jpg",
+        "assets/hhdg/515777253_g20.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Black/Blue",
+            "Tortoise/Brown"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Black/Blue": "assets/hhdg/515777253_frame_0_black-blue.jpg",
+        "Tortoise/Brown": "assets/hhdg/515777253_g19.jpg"
+      },
+      "manufacturerSku": "Modern Bespin Black",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "515775298",
+      "title": "HHDG Modern Dago",
+      "href": "https://huntershdgold.com/store/HHDG-Modern-Dago-p515775298",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/3393640231.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/515775298.jpg",
+      "localPage": "hhdg-modern-dago.html",
+      "galleryLocal": [
+        "assets/hhdg/515775298_g0.jpg",
+        "assets/hhdg/515775298_g1.jpg",
+        "assets/hhdg/515775298_g2.jpg",
+        "assets/hhdg/515775298_g3.jpg",
+        "assets/hhdg/515775298_g4.jpg",
+        "assets/hhdg/515775298_g5.jpg",
+        "assets/hhdg/515775298_g6.jpg",
+        "assets/hhdg/515775298_g7.jpg",
+        "assets/hhdg/515775298_g8.jpg",
+        "assets/hhdg/515775298_g9.jpg",
+        "assets/hhdg/515775298_g10.jpg",
+        "assets/hhdg/515775298_g11.jpg",
+        "assets/hhdg/515775298_g12.jpg",
+        "assets/hhdg/515775298_g13.jpg",
+        "assets/hhdg/515775298_g14.jpg",
+        "assets/hhdg/515775298_g15.jpg",
+        "assets/hhdg/515775298_g16.jpg",
+        "assets/hhdg/515775298_g17.jpg",
+        "assets/hhdg/515775298_g18.jpg",
+        "assets/hhdg/515775298_g19.jpg",
+        "assets/hhdg/515775298_g20.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Black Crystal",
+            "Tortoise"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Black Crystal": "assets/hhdg/515775298_frame_0_black-crystal.jpg",
+        "Tortoise": "assets/hhdg/515775298_g19.jpg"
+      },
+      "manufacturerSku": "Modern Dago Black Crystal",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "515773752",
+      "title": "HHDG Modern Geo",
+      "href": "https://huntershdgold.com/store/HHDG-Modern-Geo-p515773752",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/3368119720.jpg",
+      "price": "$375.00",
+      "subtitle": "Side Shields DO NOT COME OFF",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/515773752.jpg",
+      "localPage": "hhdg-modern-geo.html",
+      "galleryLocal": [
+        "assets/hhdg/515773752_g0.jpg",
+        "assets/hhdg/515773752_g1.jpg",
+        "assets/hhdg/515773752_g2.jpg",
+        "assets/hhdg/515773752_g3.jpg",
+        "assets/hhdg/515773752_g4.jpg",
+        "assets/hhdg/515773752_g5.jpg",
+        "assets/hhdg/515773752_g6.jpg",
+        "assets/hhdg/515773752_g7.jpg",
+        "assets/hhdg/515773752_g8.jpg",
+        "assets/hhdg/515773752_g9.jpg",
+        "assets/hhdg/515773752_g10.jpg",
+        "assets/hhdg/515773752_g11.jpg",
+        "assets/hhdg/515773752_g12.jpg",
+        "assets/hhdg/515773752_g13.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Matte Tortoise",
+            "Gloss Black"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Matte Tortoise": "assets/hhdg/515773752_g5.jpg",
+        "Gloss Black": "assets/hhdg/515773752_g12.jpg"
+      },
+      "manufacturerSku": "Modern Geo Tortoise",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "515768004",
+      "title": "HHDG Modern Jakku",
+      "href": "https://huntershdgold.com/store/HHDG-Modern-Jakku-p515768004",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/3368117964.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/515768004.jpg",
+      "localPage": "hhdg-modern-jakku.html",
+      "galleryLocal": [
+        "assets/hhdg/515768004_g0.jpg",
+        "assets/hhdg/515768004_g1.jpg",
+        "assets/hhdg/515768004_g2.jpg",
+        "assets/hhdg/515768004_g3.jpg",
+        "assets/hhdg/515768004_g4.jpg",
+        "assets/hhdg/515768004_g5.jpg",
+        "assets/hhdg/515768004_g6.jpg",
+        "assets/hhdg/515768004_g7.jpg",
+        "assets/hhdg/515768004_g8.jpg",
+        "assets/hhdg/515768004_g9.jpg",
+        "assets/hhdg/515768004_g10.jpg",
+        "assets/hhdg/515768004_g11.jpg",
+        "assets/hhdg/515768004_g12.jpg",
+        "assets/hhdg/515768004_g13.jpg",
+        "assets/hhdg/515768004_g14.jpg",
+        "assets/hhdg/515768004_g15.jpg",
+        "assets/hhdg/515768004_g16.jpg",
+        "assets/hhdg/515768004_g17.jpg",
+        "assets/hhdg/515768004_g18.jpg",
+        "assets/hhdg/515768004_g19.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Brown Horn",
+            "Blue Marble"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Brown Horn": "assets/hhdg/515768004_g8.jpg",
+        "Blue Marble": "assets/hhdg/515768004_g17.jpg"
+      },
+      "manufacturerSku": "Modern Jakku Horn",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "515778252",
+      "title": "HHDG Modern Naboo",
+      "href": "https://huntershdgold.com/store/HHDG-Modern-Naboo-p515778252",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/3368166395.jpg",
+      "price": "$375.00",
+      "subtitle": "Removable Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/515778252.jpg",
+      "localPage": "hhdg-modern-naboo.html",
+      "galleryLocal": [
+        "assets/hhdg/515778252_g0.jpg",
+        "assets/hhdg/515778252_g1.jpg",
+        "assets/hhdg/515778252_g2.jpg",
+        "assets/hhdg/515778252_g3.jpg",
+        "assets/hhdg/515778252_g4.jpg",
+        "assets/hhdg/515778252_g5.jpg",
+        "assets/hhdg/515778252_g6.jpg",
+        "assets/hhdg/515778252_g7.jpg",
+        "assets/hhdg/515778252_g8.jpg",
+        "assets/hhdg/515778252_g9.jpg",
+        "assets/hhdg/515778252_g10.jpg",
+        "assets/hhdg/515778252_g11.jpg",
+        "assets/hhdg/515778252_g12.jpg",
+        "assets/hhdg/515778252_g13.jpg",
+        "assets/hhdg/515778252_g14.jpg",
+        "assets/hhdg/515778252_g15.jpg",
+        "assets/hhdg/515778252_g16.jpg",
+        "assets/hhdg/515778252_g17.jpg",
+        "assets/hhdg/515778252_g18.jpg",
+        "assets/hhdg/515778252_g19.jpg",
+        "assets/hhdg/515778252_g20.jpg",
+        "assets/hhdg/515778252_g21.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color",
+          "choices": [
+            "Green Tortoise",
+            "Black Front - Red Temples"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Green Tortoise": "assets/hhdg/515778252_frame_0_green-tortoise.jpg",
+        "Black Front - Red Temples": "assets/hhdg/515778252_g0.jpg"
+      },
+      "manufacturerSku": "Modern Naboo Green",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "298538461",
+      "title": "HHDG Aircrew \"Cable Temples\"",
+      "href": "https://huntershdgold.com/store/HHDG-Aircrew-Cable-Temples-p298538461",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2017729832.jpg",
+      "price": "$375.00",
+      "subtitle": "NO Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/298538461.jpg",
+      "localPage": "hhdg-aircrew-cable-temples.html",
+      "galleryLocal": [
+        "assets/hhdg/298538461_g0.jpg",
+        "assets/hhdg/298538461_g2.jpg",
+        "assets/hhdg/298538461_g4.jpg",
+        "assets/hhdg/298538461_g6.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color / Size",
+          "choices": [
+            "Goldtone (Large)",
+            "Goldtone (Small)",
+            "Black (Large)",
+            "Black (Small)"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Goldtone (Large)": "assets/hhdg/298538461_g0.jpg",
+        "Goldtone (Small)": "assets/hhdg/298538461_g6.jpg",
+        "Black (Large)": "assets/hhdg/298538461_g2.jpg",
+        "Black (Small)": "assets/hhdg/298538461_g4.jpg"
+      },
+      "manufacturerSku": "HDGAIRC",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "298577365",
+      "title": "HHDG Aircrew \"Skull Temples\"",
+      "href": "https://huntershdgold.com/store/HHDG-Aircrew-Skull-Temples-p298577365",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2017795097.jpg",
+      "price": "$375.00",
+      "subtitle": "NO Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/298577365.jpg",
+      "localPage": "hhdg-aircrew-skull-temples.html",
+      "galleryLocal": [
+        "assets/hhdg/298577365_g0.jpg",
+        "assets/hhdg/298577365_g2.jpg",
+        "assets/hhdg/298577365_g4.jpg",
+        "assets/hhdg/298577365_g6.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color / Size",
+          "choices": [
+            "Goldtone (Large)",
+            "Goldtone (Small)",
+            "Black (Large)",
+            "Black (Small)"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Goldtone (Large)": "assets/hhdg/298577365_g4.jpg",
+        "Goldtone (Small)": "assets/hhdg/298577365_g6.jpg",
+        "Black (Large)": "assets/hhdg/298577365_g2.jpg",
+        "Black (Small)": "assets/hhdg/298577365_g0.jpg"
+      },
+      "manufacturerSku": "HDGAIRS",
+      "manufacturerListPrice": "$375.00"
+    },
+    {
+      "id": "298653459",
+      "title": "HHDG Aircrew (Bayonet Temples)",
+      "href": "https://huntershdgold.com/store/HHDG-Aircrew-Bayonet-Temples-p298653459",
+      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/2017729854.jpg",
+      "price": "$375.00",
+      "subtitle": "NO Side Shields",
+      "retailPriceDisplay": "$299.99",
+      "retailPriceNum": "299.99",
+      "imageLocal": "assets/hhdg/298653459.jpg",
+      "localPage": "hhdg-aircrew-bayonet-temples.html",
+      "galleryLocal": [
+        "assets/hhdg/298653459_g0.jpg",
+        "assets/hhdg/298653459_g2.jpg",
+        "assets/hhdg/298653459_g4.jpg",
+        "assets/hhdg/298653459_g6.jpg"
+      ],
+      "optionGroups": [
+        {
+          "title": "Color / Size",
+          "choices": [
+            "Goldtone (Large)",
+            "Goldtone (Small)",
+            "Black (Large)",
+            "Black (Small)"
+          ]
+        },
+        {
+          "title": "Lens",
+          "choices": [
+            "Hunters HD Gold™",
+            "Hunters HD Ruby™",
+            "AktiveBlu™"
+          ]
+        }
+      ],
+      "frameChoiceImages": {
+        "Goldtone (Large)": "assets/hhdg/298653459_g0.jpg",
+        "Goldtone (Small)": "assets/hhdg/298653459_g2.jpg",
+        "Black (Large)": "assets/hhdg/298653459_g4.jpg",
+        "Black (Small)": "assets/hhdg/298653459_g6.jpg"
+      },
+      "manufacturerSku": "HDGAIRB",
+      "manufacturerListPrice": "$375.00"
+    }
+  ]
+}

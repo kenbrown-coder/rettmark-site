@@ -24,7 +24,12 @@
 
 [[redirects]]
   from = "/bags"
-  to = "/bags.html"
+  to = "/cases.html"
+  status = 301
+
+[[redirects]]
+  from = "/shooting-glasses"
+  to = "/shooting-glasses.html"
   status = 200
 
 [[redirects]]

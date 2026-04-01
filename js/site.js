@@ -130,7 +130,12 @@
     var details = selectedVariantDetails();
     var sku = (mode === "selected-variant" ? details.sku : btn.getAttribute("data-sku")) || "";
     sku = sku.trim();
-    if (!sku) return;
+    if (!sku) {
+      if (mode === "selected-variant") {
+        showToast("Choose all options before adding to cart");
+      }
+      return;
+    }
 
     var item = {
       sku: sku,
@@ -216,19 +221,19 @@
     }
 
     function getStatus(inv, sku) {
-      // Policy: if qty == 0, we accept backorders (charge now, order to fulfill).
+      // Policy: if qty == 0, we accept preorders (charge now, order to fulfill).
       return getQty(inv, sku) > 0 ? "in_stock" : "backorder";
     }
 
     function renderBadge(el, status) {
       if (!el) return;
-      el.classList.remove("is-in-stock", "is-out", "is-backorder");
+      el.classList.remove("is-in-stock", "is-out", "is-preorder");
       if (status === "in_stock") {
         el.textContent = "In stock";
         el.classList.add("is-in-stock");
       } else if (status === "backorder") {
-        el.textContent = "Backorder";
-        el.classList.add("is-backorder");
+        el.textContent = "Preorder";
+        el.classList.add("is-preorder");
       } else {
         el.textContent = "Out of stock";
         el.classList.add("is-out");
@@ -245,7 +250,7 @@
     function renderCta(cta, status) {
       if (!cta) return;
       if (status === "in_stock") cta.textContent = "Add to cart";
-      else if (status === "backorder") cta.textContent = "Backorder";
+      else if (status === "backorder") cta.textContent = "Preorder";
       else cta.textContent = "Out of stock";
     }
 
@@ -446,6 +451,14 @@
   }
 
   initCasesSearchAndFilter();
+
+  function initSupplyNotice() {
+    var dlg = document.getElementById("supply-notice");
+    if (!dlg || typeof dlg.showModal !== "function") return;
+    dlg.showModal();
+  }
+
+  initSupplyNotice();
 
   var crest = document.querySelector(".crest-wrap");
   if (!crest || document.body.dataset.shieldAnim === "off") {

@@ -145,8 +145,8 @@ def build_page(p: dict, page_href: str) -> str:
     <nav class="site-nav" aria-label="Primary">
       <a href="index.html">Home</a>
       <a href="firearms.html">Firearms</a>
-      <a href="cases.html">Cases</a>
-      <a href="bags.html">Bags</a>
+      <a href="cases.html">Cases &amp; Bags</a>
+      <a href="shooting-glasses.html">Shooting Glasses</a>
       <a href="contact.html">Contact</a>
     </nav>
     <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
@@ -155,7 +155,7 @@ def build_page(p: dict, page_href: str) -> str:
   <div class="page-shell" id="main">
     <div class="page">
       <header class="page-intro">
-        <a class="contact-link" href="cases.html" style="margin-top: 0">← Back to Cases</a>
+        <a class="contact-link" href="cases.html" style="margin-top: 0">← Back to Cases &amp; Bags</a>
         <h1>{esc(title)}</h1>
         <p class="lede">
           {esc(variant)} · <strong>authorized Condition&nbsp;1 dealer</strong>.
@@ -172,7 +172,7 @@ def build_page(p: dict, page_href: str) -> str:
           <div class="product-page-right">
             <article class="product-card">
               <p class="sku">{esc(variant)} · Condition&nbsp;1</p>
-              <p class="price">Ref. ${esc(price)}</p>
+              <p class="price">Price ${esc(price)}</p>
               <p class="spec">Interior: {esc(interior)}</p>
               <p class="stock-badge" data-stock-status data-sku="{esc(default_sku)}"></p>
               {color_block}
