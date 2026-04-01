@@ -11,7 +11,13 @@
  *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
  *     billTo: { firstName, lastName, address, city, state, zip, country },
  *     shipTo?: same shape when shipping differs from billing }
- *   (customerEmail and invoice metadata go in transactionRequest.userFields — some XSDs disallow customer and order nodes.)
+ *   (customerEmail and invoice metadata go in transactionRequest.userFields — some processor XSDs
+ *    reject transactionRequest.customer and transactionRequest.order; userFields is documented and allowed.)
+ *
+ * Request shape follows Authorize.Net createTransaction + opaqueData (Accept.js):
+ *   merchantAuthentication.name, merchantAuthentication.transactionKey, refId,
+ *   transactionRequest: transactionType, amount, payment.opaqueData { dataDescriptor, dataValue },
+ *   then billTo, optional shipTo, optional userFields (max 20 fields per docs).
  */
 
 function corsHeaders() {
@@ -118,6 +124,7 @@ exports.handler = async function (event) {
 
   var email = String(body.customerEmail || "").trim().slice(0, 255);
 
+  /* Key order matches typical AnetApi transactionRequest XML sequence (payment → billTo → shipTo → userFields). */
   var txRequest = {
     transactionType: "authCaptureTransaction",
     amount: amountStr,
@@ -138,22 +145,6 @@ exports.handler = async function (event) {
     }
   };
 
-  var userFieldArr = [];
-  if (email) {
-    userFieldArr.push({ name: "customerEmail", value: email });
-  }
-  var inv = String(body.invoiceNumber || "").trim().slice(0, 20);
-  if (inv) {
-    userFieldArr.push({ name: "invoiceNumber", value: inv });
-  }
-  userFieldArr.push({
-    name: "orderSource",
-    value: "Rettmark web"
-  });
-  if (userFieldArr.length) {
-    txRequest.userFields = { userField: userFieldArr };
-  }
-
   var ship = body.shipTo;
   if (ship && typeof ship === "object") {
     var sf = String(ship.firstName || "").trim().slice(0, 50);
@@ -173,6 +164,25 @@ exports.handler = async function (event) {
         country: String(ship.country || "US").trim().slice(0, 60)
       };
     }
+  }
+
+  var userFieldArr = [];
+  if (email) {
+    userFieldArr.push({ name: "customerEmail", value: email });
+  }
+  var inv = String(body.invoiceNumber || "").trim().slice(0, 20);
+  if (inv) {
+    userFieldArr.push({ name: "invoiceNumber", value: inv });
+  }
+  userFieldArr.push({
+    name: "orderSource",
+    value: "Rettmark web"
+  });
+  if (userFieldArr.length > 20) {
+    userFieldArr = userFieldArr.slice(0, 20);
+  }
+  if (userFieldArr.length) {
+    txRequest.userFields = { userField: userFieldArr };
   }
 
   var payload = {
@@ -226,8 +236,15 @@ exports.handler = async function (event) {
     var errText = "Transaction declined";
     if (tx && tx.errors && tx.errors.length) {
       errText = tx.errors.map(function (e) { return e.errorText; }).join("; ");
-    } else if (data && data.messages && data.messages.message && data.messages.message.length) {
-      errText = data.messages.message.map(function (m) { return m.text; }).join("; ");
+    } else if (data && data.messages && data.messages.message) {
+      var topMsgs = data.messages.message;
+      var topArr = Array.isArray(topMsgs) ? topMsgs : [topMsgs];
+      errText = topArr
+        .map(function (m) {
+          return m && m.text ? m.text : "";
+        })
+        .filter(Boolean)
+        .join("; ");
     }
 
     return json(402, { ok: false, error: errText });
