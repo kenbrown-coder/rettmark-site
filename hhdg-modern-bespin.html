@@ -92,58 +92,6 @@
               <button class="btn-secondary btn-secondary--cart" type="button" data-add-to-cart data-mode="selected-variant" data-hhdg-options-add disabled data-name="HHDG Modern Bespin" data-variant="HHDG frame" data-price="299.99" data-url="hhdg-modern-bespin.html">Add to cart</button>
             </div>
             <script type="application/json" id="hhdg-opt-json">{"base": "HHDG-515777253", "labels": ["Frame color", "Lens color"], "sep": " // "}</script>
-            <script>
-(function () {
-  var confEl = document.getElementById("hhdg-opt-json");
-  var skuEl = document.getElementById("variant-sku");
-  var colorEl = document.getElementById("variant-color");
-  var btn = document.querySelector("[data-hhdg-options-add]");
-  var selects = document.querySelectorAll("[data-hhdg-option-select]");
-  if (!confEl || !skuEl || !colorEl || !btn || !selects.length) return;
-  var conf;
-  try { conf = JSON.parse(confEl.textContent); } catch (e) { return; }
-  var sep = conf.sep || " // ";
-  var base = conf.base || "";
-  var labels = conf.labels || [];
-  var frameSel = document.querySelector("[data-hhdg-frame-select]");
-
-  function updateHeroFromFrame() {
-    var hero = document.getElementById("product-hero-img");
-    if (!frameSel || !hero) return;
-    var opt = frameSel.options[frameSel.selectedIndex];
-    if (!opt || !opt.value) return;
-    var u = opt.getAttribute("data-img");
-    if (u) hero.src = u;
-  }
-
-  function sync() {
-    var parts = [];
-    var meta = [];
-    var ok = true;
-    for (var i = 0; i < selects.length; i++) {
-      var sel = selects[i];
-      var v = (sel.value || "").trim();
-      if (!v) ok = false;
-      parts.push(v);
-      var lab = labels[i] || ("Option " + (i + 1));
-      meta.push(lab + ": " + v);
-    }
-    updateHeroFromFrame();
-    if (!ok) {
-      skuEl.textContent = "";
-      colorEl.textContent = "Choose all options above";
-      btn.disabled = true;
-      return;
-    }
-    skuEl.textContent = base + sep + parts.join(sep);
-    colorEl.textContent = meta.join(" · ");
-    btn.disabled = false;
-  }
-
-  selects.forEach(function (sel) { sel.addEventListener("change", sync); });
-  sync();
-})();
-            </script>
             </article>
 
             <div class="product-more-info hhdg-prose-wrap">
@@ -196,23 +144,6 @@
   </div>
 
   <script src="js/site.js"></script>
-  <script>
-  (function () {
-    var hero = document.getElementById("product-hero-img");
-    if (!hero) return;
-    document.querySelectorAll(".product-gallery-sub-img").forEach(function (img) {
-      img.addEventListener("click", function () {
-        var s = img.getAttribute("src");
-        if (s) hero.src = s;
-      });
-      img.addEventListener("keydown", function (e) {
-        if (e.key !== "Enter" && e.key !== " ") return;
-        e.preventDefault();
-        var s = img.getAttribute("src");
-        if (s) hero.src = s;
-      });
-    });
-  })();
-  </script>
+  <script src="js/hhdg-product-page.js"></script>
 </body>
 </html>

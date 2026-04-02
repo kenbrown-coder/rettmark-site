@@ -184,7 +184,13 @@
     }
 
     var cart = readCart();
-    var existing = cart.find(function (x) { return x.sku === item.sku; });
+    var existing = null;
+    for (var ci = 0; ci < cart.length; ci++) {
+      if (cart[ci].sku === item.sku) {
+        existing = cart[ci];
+        break;
+      }
+    }
     if (existing) existing.qty = (parseInt(existing.qty, 10) || 0) + 1;
     else cart.push(item);
     writeCart(cart);
