@@ -6,9 +6,14 @@
  *   ANET_TRANSACTION_KEY  — API Transaction Key (not Public Client Key, not Signature Key).
  *   ANET_SANDBOX          — "true" = apitest host; "false" = production api host
  *
- * Optional invoice emails (Resend):
- *   RESEND_API_KEY
- *   RESEND_FROM          — verified sender, e.g. orders@yourdomain.com
+ * Invoice emails (Resend) — both require a verified domain in Resend:
+ *   RESEND_API_KEY       — API key (re_…); without this, no email is sent.
+ *   RESEND_FROM          — required for sending; e.g. "Rettmark Firearms <orders@yourdomain.com>"
+ *                          (domain must be verified at resend.com/domains).
+ * Optional:
+ *   RESEND_SALES_EMAIL   — BCC destination; default sales@rettmarkfirearms.com
+ *   RESEND_REPLY_TO      — reply_to header; default same as sales email
+ *   RESEND_DEBUG=1       — on approved payments, JSON includes emailDelivery (remove after debugging)
  *
  * POST JSON body:
  *   { opaqueData, amount, cart, customerEmail, billTo, shipTo?, invoiceNumber?,
@@ -166,45 +171,110 @@ function anetApiUrl() {
     : "https://api.authorize.net/xml/v1/request.api";
 }
 
+function htmlToPlainText(html) {
+  return String(html || "")
+    .replace(/<\/(p|div|tr|h[1-6])>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * One Resend request: customer in To, sales in BCC (hidden from customer).
+ * If there is no customer email, only sales receives the message.
+ * Returns a small status object for logs / optional RESEND_DEBUG response.
+ */
 async function sendInvoiceEmails(body, amountStr) {
   var key = String(process.env.RESEND_API_KEY || "").trim();
-  if (!key) return;
+  if (!key) {
+    console.warn(
+      "[rettmark] Invoice email skipped: set RESEND_API_KEY in Netlify environment variables."
+    );
+    return { ok: false, skipped: true, reason: "missing_RESEND_API_KEY" };
+  }
 
-  var from = String(process.env.RESEND_FROM || "orders@rettmarkfirearms.com").trim();
+  var from = String(process.env.RESEND_FROM || "").trim();
+  if (!from) {
+    console.error(
+      "[rettmark] Invoice email skipped: set RESEND_FROM to a sender on a domain verified in Resend " +
+        "(e.g. \"Rettmark Firearms <orders@yourdomain.com>\")."
+    );
+    return { ok: false, skipped: true, reason: "missing_RESEND_FROM" };
+  }
+
   var html = buildInvoiceEmailHtml(body, amountStr);
+  var text = htmlToPlainText(html);
   var inv = String(body.invoiceNumber || "").trim();
   var subject = inv ? "Rettmark Firearms order " + inv : "Rettmark Firearms order confirmation";
 
   var customerTo = String(body.customerEmail || "").trim();
-  var salesTo = "sales@rettmarkfirearms.com";
+  var salesTo = String(process.env.RESEND_SALES_EMAIL || "sales@rettmarkfirearms.com").trim();
+  var replyTo = String(process.env.RESEND_REPLY_TO || salesTo).trim();
 
-  var payloadBase = {
+  var payload = {
     from: from,
     subject: subject,
-    html: html
+    html: html,
+    text: text
   };
 
-  try {
-    if (customerTo) {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + key,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(Object.assign({}, payloadBase, { to: [customerTo] }))
-      });
+  if (customerTo) {
+    payload.to = [customerTo];
+    payload.bcc = [salesTo];
+    if (replyTo) {
+      payload.reply_to = [replyTo];
     }
-    await fetch("https://api.resend.com/emails", {
+  } else {
+    console.warn(
+      "[rettmark] No customerEmail on order; sending invoice only to " + salesTo + "."
+    );
+    payload.to = [salesTo];
+    if (replyTo) {
+      payload.reply_to = [replyTo];
+    }
+  }
+
+  try {
+    var res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + key,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(Object.assign({}, payloadBase, { to: [salesTo] }))
+      body: JSON.stringify(payload)
     });
+    var raw = await res.text();
+    var parsed = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch (parseErr) {
+      parsed = null;
+    }
+    if (!res.ok) {
+      console.error(
+        "[rettmark] Resend API error",
+        res.status,
+        raw || "(empty body)"
+      );
+      return {
+        ok: false,
+        skipped: false,
+        httpStatus: res.status,
+        resendMessage: raw ? raw.slice(0, 500) : ""
+      };
+    }
+    var id = parsed && parsed.id ? String(parsed.id) : "";
+    console.log("[rettmark] Invoice email queued in Resend", id || "(no id in response)");
+    return { ok: true, skipped: false, resendId: id };
   } catch (e) {
-    /* Payment already succeeded; email failure is non-fatal. */
+    console.error("[rettmark] Resend fetch failed", e && e.message ? e.message : String(e));
+    return { ok: false, skipped: false, reason: "fetch_error", message: e && e.message };
   }
 }
 
@@ -402,13 +472,17 @@ exports.handler = async function (event) {
         tx.responseCode === 1);
 
     if (resultCode === "ok" && txApproved) {
-      await sendInvoiceEmails(body, amountStr);
-      return json(200, {
+      var emailDelivery = await sendInvoiceEmails(body, amountStr);
+      var successBody = {
         ok: true,
         transactionId: tx.transId,
         authCode: tx.authCode,
         message: "Payment approved"
-      });
+      };
+      if (String(process.env.RESEND_DEBUG || "").trim() === "1") {
+        successBody.emailDelivery = emailDelivery;
+      }
+      return json(200, successBody);
     }
 
     var errText = "Transaction declined";

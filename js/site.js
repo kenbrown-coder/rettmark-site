@@ -1,4 +1,13 @@
 (function () {
+  /* HHDG product inline scripts use NodeList#forEach on querySelectorAll results; Safari < 10 lacks it. */
+  if (
+    typeof window.NodeList !== "undefined" &&
+    window.NodeList.prototype &&
+    typeof window.NodeList.prototype.forEach !== "function"
+  ) {
+    window.NodeList.prototype.forEach = Array.prototype.forEach;
+  }
+
   function syncHeaderOffset() {
     var header = document.querySelector(".site-header");
     if (!header) return;
@@ -189,21 +198,28 @@
     renderCartPage();
 
     document.addEventListener("click", function (e) {
+      var t = e.target;
+      var el = t && t.nodeType === 1 ? t : t && t.parentElement;
+      if (!el) return;
+
       /* Color / variant chips: handled by per-page scripts + inventory listener — never treat as add-to-cart. */
-      if (e.target && e.target.closest && e.target.closest(".variant-chip")) {
+      if (el.closest && el.closest(".variant-chip")) {
         return;
       }
 
-      var addBtn = e.target && e.target.closest && e.target.closest("[data-add-to-cart]");
+      var addBtn = el.closest && el.closest("[data-add-to-cart]");
       if (addBtn) {
         addToCartFromButton(addBtn);
         return;
       }
 
-      var dec = e.target && e.target.getAttribute && e.target.getAttribute("data-cart-dec");
-      var inc = e.target && e.target.getAttribute && e.target.getAttribute("data-cart-inc");
-      var rem = e.target && e.target.getAttribute && e.target.getAttribute("data-cart-remove");
-      var clr = e.target && e.target.getAttribute && e.target.getAttribute("data-cart-clear");
+      var cartBtn =
+        el.closest &&
+        el.closest("[data-cart-dec],[data-cart-inc],[data-cart-remove],[data-cart-clear]");
+      var dec = cartBtn && cartBtn.getAttribute("data-cart-dec");
+      var inc = cartBtn && cartBtn.getAttribute("data-cart-inc");
+      var rem = cartBtn && cartBtn.getAttribute("data-cart-remove");
+      var clr = cartBtn && cartBtn.getAttribute("data-cart-clear");
       if (dec !== null || inc !== null || rem !== null || clr !== null) {
         var cart = readCart();
         if (dec !== null) {

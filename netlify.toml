@@ -10,7 +10,8 @@
 #   ANET_TRANSACTION_KEY (secret) → POST /.netlify/functions/anet-transaction
 #   ANET_SANDBOX — true = developer sandbox API hosts (apitest/jstest). false = production hosts
 #     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
-#   Optional invoice email (Resend): RESEND_API_KEY, RESEND_FROM (verified sender domain).
+#   Invoice email (Resend): RESEND_API_KEY + RESEND_FROM (domain verified in Resend).
+#     Optional: RESEND_SALES_EMAIL (default sales@rettmarkfirearms.com), RESEND_REPLY_TO, RESEND_DEBUG=1.
 #   If Accept.js says invalid authentication, open in browser (production):
 #   https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys
 

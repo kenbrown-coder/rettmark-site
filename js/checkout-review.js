@@ -315,10 +315,6 @@
       return;
     }
     var shipAddr = (addrPayload && addrPayload.shipping) || {};
-    var billZip = (addrPayload && addrPayload.billing && addrPayload.billing.zip) || "";
-    if ($("review-card-billing-zip") && !String($("review-card-billing-zip").value || "").trim()) {
-      $("review-card-billing-zip").value = billZip;
-    }
 
     state.cart = cart;
     state.subtotal = roundMoney(cartTotal(cart));
