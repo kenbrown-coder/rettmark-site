@@ -969,6 +969,128 @@
   margin-top: 16px;
 }
 
+.checkout-form .input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.checkout-form .input--readonly,
+.checkout-form .input:read-only {
+  opacity: 0.85;
+  cursor: default;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.checkout-steps {
+  margin: 0 0 8px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.checkout-review-adjust {
+  margin-top: 8px;
+}
+
+.checkout-review-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.checkout-review-code-row .input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.checkout-review-apply {
+  flex: 0 0 auto;
+  align-self: stretch;
+  margin-top: 0;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.checkout-review-money-grid {
+  margin-top: 20px;
+}
+
+.checkout-review-hint {
+  margin: 10px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.checkout-review-hint--error {
+  color: #e8a0a0;
+}
+
+.checkout-review-breakdown {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.checkout-review-breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.checkout-review-breakdown__row strong {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.checkout-review-breakdown__row--total {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.checkout-review-breakdown__row--total strong {
+  font-size: 1.12rem;
+}
+
+.checkout-pay-breakdown {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+  text-align: left;
+}
+
+.checkout-review-payment {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.checkout-review-payment-notice {
+  max-width: 42rem;
+  line-height: 1.55;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 @media (max-width: 640px) {
   .checkout-form__grid {
     grid-template-columns: 1fr;
@@ -976,6 +1098,11 @@
 
   .checkout-field--wide {
     grid-column: 1;
+  }
+
+  .checkout-review-apply {
+    flex: 1 1 auto;
+    width: 100%;
   }
 }
 

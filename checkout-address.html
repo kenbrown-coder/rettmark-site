@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Shipping &amp; billing | Rettmark Firearms</title>
+  <meta name="description" content="Enter shipping and billing addresses — Rettmark Firearms checkout." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-shield-anim="off">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand-rm" href="index.html" aria-label="Rettmark Firearms home">
+      <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="firearms.html">Firearms</a>
+      <a href="cases.html">Cases &amp; Bags</a>
+      <a href="shooting-glasses.html">Shooting Glasses</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
+  </header>
+
+  <div class="page-shell" id="main">
+    <div class="page">
+      <header class="page-intro">
+        <p class="checkout-steps" id="checkout-step-label">Checkout · Step 1 of 4</p>
+        <h1>Shipping &amp; billing</h1>
+        <p class="lede">
+          Enter where we should ship your order and the billing address for your card. Next you’ll review items, shipping, tax, and card entry, then confirm and pay.
+        </p>
+      </header>
+
+      <section class="panel checkout-panel" aria-labelledby="checkout-address-summary-heading">
+        <h2 id="checkout-address-summary-heading">Your order</h2>
+        <div id="checkout-address-summary" class="checkout-summary"></div>
+      </section>
+
+      <section class="panel checkout-panel">
+        <h2>Addresses</h2>
+        <form id="checkout-address-form" class="checkout-form" novalidate>
+          <h3 class="checkout-form__card-heading">Contact</h3>
+          <div class="checkout-form__grid">
+            <label class="checkout-field checkout-field--wide">
+              <span>Email</span>
+              <input class="input" type="email" id="checkout-email" name="email" autocomplete="email" required />
+            </label>
+          </div>
+
+          <h3 class="checkout-form__card-heading">Shipping information</h3>
+          <div class="checkout-form__grid">
+            <label class="checkout-field">
+              <span>First name</span>
+              <input class="input" type="text" id="ship-first" name="shipFirstName" autocomplete="shipping given-name" required />
+            </label>
+            <label class="checkout-field">
+              <span>Last name</span>
+              <input class="input" type="text" id="ship-last" name="shipLastName" autocomplete="shipping family-name" required />
+            </label>
+            <label class="checkout-field checkout-field--wide">
+              <span>Street address</span>
+              <input class="input" type="text" id="ship-address" name="shipAddress" autocomplete="shipping street-address" required />
+            </label>
+            <label class="checkout-field">
+              <span>City</span>
+              <input class="input" type="text" id="ship-city" name="shipCity" autocomplete="shipping address-level2" required />
+            </label>
+            <label class="checkout-field">
+              <span>State / Province</span>
+              <input class="input" type="text" id="ship-state" name="shipState" autocomplete="shipping address-level1" required />
+            </label>
+            <label class="checkout-field">
+              <span>ZIP / Postal</span>
+              <input class="input" type="text" id="ship-zip" name="shipZip" autocomplete="shipping postal-code" required />
+            </label>
+            <label class="checkout-field">
+              <span>Country</span>
+              <input class="input" type="text" id="ship-country" name="shipCountry" value="US" autocomplete="shipping country" />
+            </label>
+          </div>
+
+          <h3 class="checkout-form__card-heading">Billing address</h3>
+          <label class="checkout-field checkout-field--checkbox checkout-field--wide">
+            <span class="checkout-field__checkbox-wrap">
+              <input type="checkbox" id="bill-same-as-ship" name="billingSameAsShipping" checked autocomplete="off" />
+              <span class="checkout-field__checkbox-label">Billing address is same as shipping address</span>
+            </span>
+          </label>
+          <div class="checkout-form__grid" id="billing-fields-block" aria-label="Billing address fields">
+            <label class="checkout-field">
+              <span>First name</span>
+              <input class="input" type="text" id="bill-first" name="billFirstName" autocomplete="billing given-name" required />
+            </label>
+            <label class="checkout-field">
+              <span>Last name</span>
+              <input class="input" type="text" id="bill-last" name="billLastName" autocomplete="billing family-name" required />
+            </label>
+            <label class="checkout-field checkout-field--wide">
+              <span>Street address</span>
+              <input class="input" type="text" id="bill-address" name="billAddress" autocomplete="billing street-address" required />
+            </label>
+            <label class="checkout-field">
+              <span>City</span>
+              <input class="input" type="text" id="bill-city" name="billCity" autocomplete="billing address-level2" required />
+            </label>
+            <label class="checkout-field">
+              <span>State / Province</span>
+              <input class="input" type="text" id="bill-state" name="billState" autocomplete="billing address-level1" required />
+            </label>
+            <label class="checkout-field">
+              <span>ZIP / Postal</span>
+              <input class="input" type="text" id="bill-zip" name="billZip" autocomplete="billing postal-code" required />
+            </label>
+            <label class="checkout-field">
+              <span>Country</span>
+              <input class="input" type="text" id="bill-country" name="billCountry" value="US" autocomplete="billing country" />
+            </label>
+          </div>
+
+          <p id="checkout-address-error" class="notify-form__error" hidden role="alert"></p>
+
+          <div class="checkout-form__actions">
+            <button type="submit" class="submit" id="checkout-address-continue">Continue to review</button>
+          </div>
+        </form>
+      </section>
+
+      <p style="margin-top: 24px; text-align: center">
+        <a class="inline-cta" href="cart.html">← Back to cart</a>
+      </p>
+
+      <footer class="site-footer">
+        <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
+        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/site.js"></script>
+  <script src="js/checkout-address.js"></script>
+</body>
+</html>

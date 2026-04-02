@@ -10,6 +10,7 @@
 #   ANET_TRANSACTION_KEY (secret) → POST /.netlify/functions/anet-transaction
 #   ANET_SANDBOX — true = developer sandbox API hosts (apitest/jstest). false = production hosts
 #     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
+#   Optional invoice email (Resend): RESEND_API_KEY, RESEND_FROM (verified sender domain).
 #   If Accept.js says invalid authentication, open in browser (production):
 #   https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys
 
@@ -62,9 +63,25 @@
   to = "/cart.html"
   status = 200
 
+# Pretty URL: /checkout starts at step 1 (addresses); review + card → /checkout-review; confirm → /checkout-confirm.
 [[redirects]]
   from = "/checkout"
-  to = "/checkout.html"
+  to = "/checkout-address.html"
+  status = 200
+
+[[redirects]]
+  from = "/checkout-address"
+  to = "/checkout-address.html"
+  status = 200
+
+[[redirects]]
+  from = "/checkout-review"
+  to = "/checkout-review.html"
+  status = 200
+
+[[redirects]]
+  from = "/checkout-confirm"
+  to = "/checkout-confirm.html"
   status = 200
 
 [[redirects]]

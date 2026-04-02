@@ -152,6 +152,7 @@
       return;
     }
 
+    var pUrl = btn.getAttribute("data-url") || "";
     var item = {
       sku: sku,
       name: btn.getAttribute("data-name") || "Item",
@@ -159,9 +160,19 @@
       color: mode === "selected-variant" ? details.color : "",
       price: parseFloat(btn.getAttribute("data-price") || "0"),
       image: mode === "selected-variant" ? details.image : (btn.getAttribute("data-image") || ""),
-      url: btn.getAttribute("data-url") || "",
-      qty: 1
+      url: pUrl,
+      qty: 1,
+      /** "glasses" (HHDG) vs "casebag" (cases, bags) — drives checkout flat shipping. */
+      shippingClass: /hhdg-/i.test(pUrl) ? "glasses" : "casebag"
     };
+    var wLb = parseFloat(btn.getAttribute("data-weight-lb") || "");
+    if (isFinite(wLb) && wLb >= 0) {
+      item.weightLb = wLb;
+    }
+    var dimIn = (btn.getAttribute("data-dim-in") || "").trim();
+    if (dimIn) {
+      item.dimIn = dimIn;
+    }
 
     var cart = readCart();
     var existing = cart.find(function (x) { return x.sku === item.sku; });

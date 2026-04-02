@@ -4,20 +4,18 @@
  * Env (Netlify → Site configuration → Environment variables):
  *   ANET_API_LOGIN_ID
  *   ANET_TRANSACTION_KEY  — API Transaction Key (not Public Client Key, not Signature Key).
- *   ANET_SANDBOX          — "true" = apitest host; "false" = production api host (use false for live
- *                           account + merchant “Test Mode”; that toggle is separate from this flag)
+ *   ANET_SANDBOX          — "true" = apitest host; "false" = production api host
+ *
+ * Optional invoice emails (Resend):
+ *   RESEND_API_KEY
+ *   RESEND_FROM          — verified sender, e.g. orders@yourdomain.com
  *
  * POST JSON body:
- *   { opaqueData: { dataDescriptor, dataValue }, amount, cart, customerEmail,
- *     billTo: { firstName, lastName, address, city, state, zip, country },
- *     shipTo?: same shape when shipping differs from billing }
- *   (customerEmail and invoice metadata go in transactionRequest.userFields — some processor XSDs
- *    reject transactionRequest.customer and transactionRequest.order; userFields is documented and allowed.)
- *
- * Request shape follows Authorize.Net createTransaction + opaqueData (Accept.js):
- *   merchantAuthentication.name, merchantAuthentication.transactionKey, refId,
- *   transactionRequest: transactionType, amount, payment.opaqueData { dataDescriptor, dataValue },
- *   then billTo, optional shipTo, optional userFields (max 20 fields per docs).
+ *   { opaqueData, amount, cart, customerEmail, billTo, shipTo?, invoiceNumber?,
+ *     discountAmount?, shippingAmount?, taxAmount? }
+ *   When discountAmount, shippingAmount, or taxAmount are present (even 0), amount must equal
+ *   merchandise subtotal − discount + shipping + tax (all in dollars, 2 decimal places).
+ *   Omit all three for legacy behavior: amount must equal sum of cart line totals only.
  */
 
 function corsHeaders() {
@@ -45,6 +43,117 @@ function sumCartCents(cart) {
   }, 0);
 }
 
+function dollarsToCents(n) {
+  var x = Number(n);
+  if (!isFinite(x)) return NaN;
+  return Math.round(x * 100);
+}
+
+function escapeHtml(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function addrLinesHtml(prefix, a) {
+  if (!a || typeof a !== "object") return "";
+  var lines = [
+    escapeHtml((a.firstName || "") + " " + (a.lastName || "")).trim(),
+    escapeHtml(a.address || ""),
+    escapeHtml(
+      [a.city || "", a.state || "", a.zip || ""]
+        .filter(Boolean)
+        .join(", ")
+    ),
+    escapeHtml(a.country || "")
+  ].filter(Boolean);
+  if (!lines.length) return "";
+  return (
+    "<p><strong>" +
+    escapeHtml(prefix) +
+    "</strong><br>" +
+    lines.join("<br>") +
+    "</p>"
+  );
+}
+
+function buildInvoiceEmailHtml(body, amountStr) {
+  var cart = Array.isArray(body.cart) ? body.cart : [];
+  var inv = escapeHtml(body.invoiceNumber || "");
+  var email = escapeHtml(body.customerEmail || "");
+  var rows = cart
+    .map(function (item) {
+      var q = parseInt(item.qty, 10) || 0;
+      var line = ((Number(item.price) || 0) * q).toFixed(2);
+      var meta = [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
+      var name = escapeHtml(item.name || "Item") + (meta ? " <small>(" + escapeHtml(meta) + ")</small>" : "");
+      return (
+        "<tr><td>" +
+        name +
+        " × " +
+        q +
+        "</td><td style=\"text-align:right\">$" +
+        line +
+        "</td></tr>"
+      );
+    })
+    .join("");
+
+  var subCents = sumCartCents(cart);
+  var sub = (subCents / 100).toFixed(2);
+  var hasBreakdown =
+    Object.prototype.hasOwnProperty.call(body, "discountAmount") ||
+    Object.prototype.hasOwnProperty.call(body, "shippingAmount") ||
+    Object.prototype.hasOwnProperty.call(body, "taxAmount");
+
+  var extra = "";
+  if (hasBreakdown) {
+    var discCents = dollarsToCents(body.discountAmount || 0);
+    var ship = (dollarsToCents(body.shippingAmount || 0) / 100).toFixed(2);
+    var tax = (dollarsToCents(body.taxAmount || 0) / 100).toFixed(2);
+    var code = String(body.discountCode || "").trim();
+    if (discCents > 0) {
+      var disc = (discCents / 100).toFixed(2);
+      extra +=
+        "<tr><td>Discount" +
+        (code ? " (" + escapeHtml(code) + ")" : "") +
+        '</td><td style="text-align:right">−$' +
+        disc +
+        "</td></tr>";
+    }
+    extra += '<tr><td>Shipping</td><td style="text-align:right">$' + ship + "</td></tr>";
+    extra += '<tr><td>Sales tax</td><td style="text-align:right">$' + tax + "</td></tr>";
+  }
+
+  var bill = addrLinesHtml("Billing", body.billTo);
+  var shipBlock = "";
+  if (body.shipTo && typeof body.shipTo === "object") {
+    shipBlock = addrLinesHtml("Shipping", body.shipTo);
+  }
+
+  return (
+    "<!DOCTYPE html><html><body style=\"font-family:sans-serif;font-size:14px\">" +
+    "<h2>Rettmark Firearms — Order receipt</h2>" +
+    (inv ? "<p><strong>Order #</strong> " + inv + "</p>" : "") +
+    (email ? "<p><strong>Email</strong> " + email + "</p>" : "") +
+    "<table style=\"border-collapse:collapse;width:100%;max-width:520px\">" +
+    "<thead><tr><th style=\"text-align:left\">Item</th><th style=\"text-align:right\">Amount</th></tr></thead><tbody>" +
+    rows +
+    '<tr><td>Subtotal</td><td style="text-align:right">$' +
+    sub +
+    "</td></tr>" +
+    extra +
+    '<tr><td><strong>Total charged</strong></td><td style="text-align:right"><strong>$' +
+    escapeHtml(amountStr) +
+    "</strong></td></tr></tbody></table>" +
+    bill +
+    shipBlock +
+    "<p>Thank you for your order.</p></body></html>"
+  );
+}
+
 function anetApiUrl() {
   var sandboxRaw = String(
     process.env.ANET_SANDBOX != null ? process.env.ANET_SANDBOX : "true"
@@ -55,6 +164,48 @@ function anetApiUrl() {
   return useSandbox
     ? "https://apitest.authorize.net/xml/v1/request.api"
     : "https://api.authorize.net/xml/v1/request.api";
+}
+
+async function sendInvoiceEmails(body, amountStr) {
+  var key = String(process.env.RESEND_API_KEY || "").trim();
+  if (!key) return;
+
+  var from = String(process.env.RESEND_FROM || "orders@rettmarkfirearms.com").trim();
+  var html = buildInvoiceEmailHtml(body, amountStr);
+  var inv = String(body.invoiceNumber || "").trim();
+  var subject = inv ? "Rettmark Firearms order " + inv : "Rettmark Firearms order confirmation";
+
+  var customerTo = String(body.customerEmail || "").trim();
+  var salesTo = "sales@rettmarkfirearms.com";
+
+  var payloadBase = {
+    from: from,
+    subject: subject,
+    html: html
+  };
+
+  try {
+    if (customerTo) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + key,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(Object.assign({}, payloadBase, { to: [customerTo] }))
+      });
+    }
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + key,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(Object.assign({}, payloadBase, { to: [salesTo] }))
+    });
+  } catch (e) {
+    /* Payment already succeeded; email failure is non-fatal. */
+  }
 }
 
 exports.handler = async function (event) {
@@ -98,9 +249,35 @@ exports.handler = async function (event) {
 
   var cart = body.cart;
   var amountCents = Math.round(amountNum * 100);
-  var computedCents = sumCartCents(cart);
-  if (amountCents !== computedCents) {
-    return json(400, { error: "Amount does not match cart total" });
+  var subtotalCents = sumCartCents(cart);
+
+  var hasBreakdown =
+    Object.prototype.hasOwnProperty.call(body, "discountAmount") ||
+    Object.prototype.hasOwnProperty.call(body, "shippingAmount") ||
+    Object.prototype.hasOwnProperty.call(body, "taxAmount");
+
+  var expectedCents;
+  if (!hasBreakdown) {
+    expectedCents = subtotalCents;
+  } else {
+    var discountCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
+    if (isNaN(discountCents)) {
+      return json(400, { error: "Invalid discount amount" });
+    }
+    discountCents = Math.min(discountCents, subtotalCents);
+    var shippingCents = Math.max(0, dollarsToCents(body.shippingAmount || 0));
+    var taxCents = Math.max(0, dollarsToCents(body.taxAmount || 0));
+    if (isNaN(shippingCents) || isNaN(taxCents)) {
+      return json(400, { error: "Invalid shipping or tax amount" });
+    }
+    expectedCents = subtotalCents - discountCents + shippingCents + taxCents;
+    if (expectedCents < 0) {
+      return json(400, { error: "Invalid order total" });
+    }
+  }
+
+  if (amountCents !== expectedCents) {
+    return json(400, { error: "Amount does not match order total" });
   }
 
   var bill = body.billTo || {};
@@ -225,6 +402,7 @@ exports.handler = async function (event) {
         tx.responseCode === 1);
 
     if (resultCode === "ok" && txApproved) {
+      await sendInvoiceEmails(body, amountStr);
       return json(200, {
         ok: true,
         transactionId: tx.transId,

@@ -1,6 +1,7 @@
 (function () {
   var CART_KEY = "rettmark_cart_v1";
   var INVOICE_SESSION_KEY = "rettmark_checkout_invoice_v1";
+  var TOTALS_SESSION_KEY = "rettmark_checkout_totals_v1";
 
   function pad2(n) {
     return (n < 10 ? "0" : "") + n;
@@ -95,8 +96,64 @@
     return cartTotalCents(cart) / 100;
   }
 
+  function roundMoney(n) {
+    return Math.round(Number(n || 0) * 100) / 100;
+  }
+
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /** Step-2 review totals; must match current cart or we fall back to cart subtotal only. */
+  function loadTotalsForCart(cart) {
+    var subtotal = roundMoney(cartTotal(cart));
+    var sig = cartSignature(cart);
+    try {
+      var raw = sessionStorage.getItem(TOTALS_SESSION_KEY);
+      if (!raw) {
+        return { ok: false, subtotal: subtotal, grandTotal: subtotal };
+      }
+      var t = JSON.parse(raw);
+      if (!t || typeof t !== "object" || t.cartSig !== sig) {
+        return { ok: false, subtotal: subtotal, grandTotal: subtotal };
+      }
+      var storedSub = roundMoney(t.subtotal);
+      if (Math.abs(storedSub - subtotal) > 0.02) {
+        return { ok: false, subtotal: subtotal, grandTotal: subtotal };
+      }
+      var grand = roundMoney(t.grandTotal);
+      if (!isFinite(grand) || grand < 0) {
+        return { ok: false, subtotal: subtotal, grandTotal: subtotal };
+      }
+      return {
+        ok: true,
+        subtotal: subtotal,
+        discountCode: String(t.discountCode || "").trim(),
+        discountAmount: roundMoney(t.discountAmount),
+        shippingAmount: roundMoney(t.shippingAmount),
+        taxAmount: roundMoney(t.taxAmount),
+        taxRatePercent:
+          t.taxStateCode && t.taxRatePercent != null && isFinite(Number(t.taxRatePercent))
+            ? Number(t.taxRatePercent)
+            : null,
+        taxStateCode: String(t.taxStateCode || "").trim(),
+        grandTotal: grand
+      };
+    } catch (e) {
+      return { ok: false, subtotal: subtotal, grandTotal: subtotal };
+    }
+  }
+
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function go(htmlFile) {
+    window.location.href = new URL(htmlFile, window.location.href).href;
   }
 
   function netlifyFunctionUrl(name) {
@@ -203,7 +260,7 @@
       orderRefInput.value = checkoutInvoice;
     }
 
-    var total = cartTotal(cart);
+    var totals = loadTotalsForCart(cart);
     if (summaryEl) {
       var lines = cart
         .map(function (item) {
@@ -222,17 +279,56 @@
           );
         })
         .join("");
-      summaryEl.innerHTML =
-        '<ul class="checkout-summary-list">' +
-        lines +
-        '</ul><p class="checkout-summary-invoice">Order # <strong>' +
+      var invoiceBlock =
+        '<p class="checkout-summary-invoice">Order # <strong>' +
         checkoutInvoice +
-        '</strong></p><p class="checkout-summary-total">Total <strong data-checkout-total>' +
-        formatUsd(total) +
         "</strong></p>";
+      var totalsBlock;
+      if (totals.ok) {
+        totalsBlock =
+          '<div class="checkout-pay-breakdown">' +
+          '<div class="checkout-review-breakdown__row"><span>Subtotal</span><strong>' +
+          formatUsd(totals.subtotal) +
+          "</strong></div>";
+        if (totals.discountAmount > 0) {
+          totalsBlock +=
+            '<div class="checkout-review-breakdown__row"><span>Discount' +
+            (totals.discountCode ? " (" + escapeHtml(totals.discountCode) + ")" : "") +
+            '</span><strong>−' +
+            formatUsd(totals.discountAmount) +
+            "</strong></div>";
+        }
+        totalsBlock +=
+          '<div class="checkout-review-breakdown__row"><span>Shipping</span><strong>' +
+          formatUsd(totals.shippingAmount) +
+          "</strong></div>";
+        var taxPctSuffix = "";
+        if (totals.taxStateCode && totals.taxRatePercent != null && isFinite(totals.taxRatePercent)) {
+          var tr = Number(totals.taxRatePercent);
+          if (!isFinite(tr) || tr < 0) tr = 0;
+          var trs = tr.toFixed(4).replace(/\.?0+$/, "");
+          taxPctSuffix = " (" + escapeHtml(trs) + "%)";
+        }
+        totalsBlock +=
+          '<div class="checkout-review-breakdown__row"><span>Sales tax' +
+          taxPctSuffix +
+          '</span><strong>' +
+          formatUsd(totals.taxAmount) +
+          '</strong></div>' +
+          '<div class="checkout-review-breakdown__row checkout-review-breakdown__row--total"><span>Total due</span><strong data-checkout-total>' +
+          formatUsd(totals.grandTotal) +
+          "</strong></div></div>";
+      } else {
+        totalsBlock =
+          '<p class="checkout-summary-total">Total <strong data-checkout-total>' +
+          formatUsd(totals.subtotal) +
+          "</strong></p>";
+      }
+      summaryEl.innerHTML =
+        '<ul class="checkout-summary-list">' + lines + "</ul>" + invoiceBlock + totalsBlock;
     }
 
-    $("checkout-amount") && ($("checkout-amount").value = total.toFixed(2));
+    $("checkout-amount") && ($("checkout-amount").value = totals.grandTotal.toFixed(2));
 
     fetchPublicAnetConfig().then(function (remote) {
       var cfg = mergeAnetConfig(remote, window.RETTMARK_ANET || {});
@@ -441,7 +537,8 @@
             }
 
             var freshCart = readCart();
-            var amt = cartTotal(freshCart);
+            var totalsFresh = loadTotalsForCart(freshCart);
+            var amt = totalsFresh.grandTotal;
             var invoiceForCharge = getOrCreateCheckoutInvoice(freshCart);
             var refInput = $("order-ref");
             if (refInput) refInput.value = invoiceForCharge;
@@ -459,6 +556,12 @@
             };
             if (shipToPayload) {
               payload.shipTo = shipToPayload;
+            }
+            if (totalsFresh.ok) {
+              payload.discountAmount = totalsFresh.discountAmount.toFixed(2);
+              payload.shippingAmount = totalsFresh.shippingAmount.toFixed(2);
+              payload.taxAmount = totalsFresh.taxAmount.toFixed(2);
+              payload.discountCode = totalsFresh.discountCode || "";
             }
 
             var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -493,6 +596,7 @@
                   writeCart([]);
                   try {
                     sessionStorage.removeItem(INVOICE_SESSION_KEY);
+                    sessionStorage.removeItem(TOTALS_SESSION_KEY);
                     sessionStorage.setItem(
                       "rettmark_last_order",
                       JSON.stringify({
@@ -502,7 +606,7 @@
                       })
                     );
                   } catch (ignore) {}
-                  window.location.href = "/order-success";
+                  go("order-success.html");
                   return;
                 }
                 var err =

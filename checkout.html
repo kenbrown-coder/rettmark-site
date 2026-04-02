@@ -5,172 +5,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Checkout | Rettmark Firearms</title>
-  <meta name="description" content="Secure checkout — Rettmark Firearms. Card data is tokenized by Authorize.Net; your site never stores card numbers." />
-  <link rel="stylesheet" href="css/site.css" />
+  <meta name="description" content="Checkout — Rettmark Firearms." />
+  <script>
+    (function () {
+      var u = new URL("checkout-review.html", window.location.href).href;
+      window.location.replace(u);
+    })();
+  </script>
+  <link rel="canonical" href="checkout-review.html" />
 </head>
-<body data-shield-anim="off">
-  <a class="skip-link" href="#main">Skip to content</a>
-  <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
-
-  <header class="site-header">
-    <a class="brand-rm" href="index.html" aria-label="Rettmark Firearms home">
-      <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
-    </a>
-    <nav class="site-nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a href="firearms.html">Firearms</a>
-      <a href="cases.html">Cases &amp; Bags</a>
-      <a href="shooting-glasses.html">Shooting Glasses</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
-  </header>
-
-  <div class="page-shell" id="main">
-    <div class="page">
-      <header class="page-intro">
-        <h1>Checkout</h1>
-        <p class="lede">
-          Pay securely with your card. Numbers are tokenized by <strong>Authorize.Net</strong> before they reach our server.
-        </p>
-      </header>
-
-      <section class="panel checkout-panel">
-        <h2>Your order</h2>
-        <div id="checkout-cart-summary" class="checkout-summary"></div>
-      </section>
-
-      <section class="panel checkout-panel">
-        <h2>Billing</h2>
-        <form id="checkout-payment-form" class="checkout-form" novalidate>
-          <input type="hidden" id="checkout-amount" name="amount" value="" />
-
-          <div class="checkout-form__grid">
-            <label class="checkout-field">
-              <span>Email</span>
-              <input class="input" type="email" id="bill-email" name="email" autocomplete="email" required />
-            </label>
-            <label class="checkout-field">
-              <span>First name</span>
-              <input class="input" type="text" id="bill-first" name="firstName" autocomplete="given-name" required />
-            </label>
-            <label class="checkout-field">
-              <span>Last name</span>
-              <input class="input" type="text" id="bill-last" name="lastName" autocomplete="family-name" required />
-            </label>
-            <label class="checkout-field checkout-field--wide">
-              <span>Street address</span>
-              <input class="input" type="text" id="bill-address" name="address" autocomplete="street-address" required />
-            </label>
-            <label class="checkout-field">
-              <span>City</span>
-              <input class="input" type="text" id="bill-city" name="city" autocomplete="address-level2" required />
-            </label>
-            <label class="checkout-field">
-              <span>State / Province</span>
-              <input class="input" type="text" id="bill-state" name="state" autocomplete="address-level1" required />
-            </label>
-            <label class="checkout-field">
-              <span>ZIP / Postal</span>
-              <input class="input" type="text" id="bill-zip" name="zip" autocomplete="postal-code" required />
-            </label>
-            <label class="checkout-field">
-              <span>Country</span>
-              <input class="input" type="text" id="bill-country" name="country" value="US" autocomplete="country" />
-            </label>
-            <label class="checkout-field">
-              <span>Order number</span>
-              <input class="input" type="text" id="order-ref" name="invoice" maxlength="20" readonly autocomplete="off" aria-readonly="true" title="Generated for this order; appears on your receipt and in our payment reports." />
-            </label>
-            <label class="checkout-field checkout-field--checkbox checkout-field--wide">
-              <span class="checkout-field__checkbox-wrap">
-                <input type="checkbox" id="ship-diff" name="differentShipping" autocomplete="off" />
-                <span class="checkout-field__checkbox-label">Ship to a different address</span>
-              </span>
-            </label>
-          </div>
-
-          <div id="checkout-shipping-block" class="checkout-shipping-block" hidden>
-            <h3 class="checkout-form__card-heading">Shipping address</h3>
-            <div class="checkout-form__grid">
-              <label class="checkout-field">
-                <span>First name</span>
-                <input class="input" type="text" id="ship-first" name="shipFirstName" autocomplete="shipping given-name" />
-              </label>
-              <label class="checkout-field">
-                <span>Last name</span>
-                <input class="input" type="text" id="ship-last" name="shipLastName" autocomplete="shipping family-name" />
-              </label>
-              <label class="checkout-field checkout-field--wide">
-                <span>Street address</span>
-                <input class="input" type="text" id="ship-address" name="shipAddress" autocomplete="shipping street-address" />
-              </label>
-              <label class="checkout-field">
-                <span>City</span>
-                <input class="input" type="text" id="ship-city" name="shipCity" autocomplete="shipping address-level2" />
-              </label>
-              <label class="checkout-field">
-                <span>State / Province</span>
-                <input class="input" type="text" id="ship-state" name="shipState" autocomplete="shipping address-level1" />
-              </label>
-              <label class="checkout-field">
-                <span>ZIP / Postal</span>
-                <input class="input" type="text" id="ship-zip" name="shipZip" autocomplete="shipping postal-code" />
-              </label>
-              <label class="checkout-field">
-                <span>Country</span>
-                <input class="input" type="text" id="ship-country" name="shipCountry" value="US" autocomplete="shipping country" />
-              </label>
-            </div>
-          </div>
-
-          <h3 class="checkout-form__card-heading">Card</h3>
-          <div class="checkout-form__grid">
-            <label class="checkout-field checkout-field--wide">
-              <span>Card number</span>
-              <input class="input" type="text" id="card-number" inputmode="numeric" autocomplete="cc-number" required />
-            </label>
-            <label class="checkout-field">
-              <span>Exp. month</span>
-              <input class="input" type="text" id="card-exp-month" inputmode="numeric" placeholder="MM" maxlength="2" autocomplete="cc-exp-month" required />
-            </label>
-            <label class="checkout-field">
-              <span>Exp. year</span>
-              <input class="input" type="text" id="card-exp-year" inputmode="numeric" placeholder="YY or YYYY" maxlength="4" autocomplete="cc-exp-year" required />
-            </label>
-            <label class="checkout-field">
-              <span>Security code</span>
-              <input class="input" type="text" id="card-cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required />
-            </label>
-            <label class="checkout-field">
-              <span>Billing ZIP (card)</span>
-              <input class="input" type="text" id="card-billing-zip" name="cardBillingZip" inputmode="numeric" autocomplete="billing postal-code" maxlength="20" required title="Postal code for this card; usually matches billing ZIP above." />
-            </label>
-          </div>
-
-          <p id="checkout-error" class="notify-form__error" hidden role="alert"></p>
-
-          <div class="checkout-form__actions">
-            <button type="submit" class="submit" id="checkout-pay-btn" disabled>Pay now</button>
-          </div>
-        </form>
-      </section>
-
-      <p style="margin-top: 24px; text-align: center">
-        <a class="inline-cta" href="cart.html">← Back to cart</a>
-        &nbsp;&nbsp;
-        <a class="inline-cta" href="contact.html">Contact</a>
-      </p>
-
-      <footer class="site-footer">
-        <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
-        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
-      </footer>
-    </div>
-  </div>
-
-  <script src="js/anet-config.js"></script>
-  <script src="js/site.js"></script>
-  <script src="js/checkout-pay.js"></script>
+<body>
+  <p style="font-family: system-ui, sans-serif; padding: 1rem">
+    This step has moved.
+    <a href="checkout-review.html">Continue to checkout</a>.
+  </p>
 </body>
 </html>

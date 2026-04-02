@@ -4,8 +4,8 @@
   <base href="/" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cart | Rettmark Firearms</title>
-  <meta name="description" content="Shopping cart — Rettmark Firearms." />
+  <title>Checkout — Review &amp; pay | Rettmark Firearms</title>
+  <meta name="description" content="Review your invoice and submit payment — Rettmark Firearms checkout." />
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body data-shield-anim="off">
@@ -23,31 +23,33 @@
       <a href="shooting-glasses.html">Shooting Glasses</a>
       <a href="contact.html">Contact</a>
     </nav>
-    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items" aria-current="page">Cart <span class="cart-count">0</span></a>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
   </header>
 
   <div class="page-shell" id="main">
     <div class="page">
       <header class="page-intro">
-        <h1>Cart</h1>
+        <p class="checkout-steps">Checkout · Step 3 of 4</p>
+        <h1>Review &amp; pay</h1>
         <p class="lede">
-          Review your items below, then continue to secure checkout when you are ready to pay.
+          Check this invoice carefully. When you submit, your card will be charged the total shown.
         </p>
       </header>
 
-      <section class="panel" aria-labelledby="cart-heading">
-        <h2 id="cart-heading">Your order</h2>
-        <div id="cart-root" class="cart-root">
-          <p class="cart-empty">Your cart is empty.</p>
-        </div>
-        <p class="cart-flow-note">
-          Card payments use <strong>Authorize.Net</strong> (Accept.js). Your full card number is not stored on this site. Set Netlify environment variables for live keys before taking real payments.
-        </p>
-        <div class="cart-actions">
-          <a class="submit" href="checkout-address.html" style="text-decoration: none" id="cart-checkout-link">Proceed to checkout</a>
-          <a class="submit" href="cases.html" style="text-decoration: none; background: rgba(255,255,255,0.06)">Continue shopping</a>
+      <section class="panel checkout-panel" aria-labelledby="confirm-invoice-heading">
+        <h2 id="confirm-invoice-heading">Invoice</h2>
+        <div id="confirm-invoice-root" class="checkout-summary"></div>
+        <p id="confirm-error" class="notify-form__error" hidden role="alert"></p>
+        <div class="checkout-form__actions" style="margin-top: 20px">
+          <button type="button" class="submit" id="confirm-submit" disabled>Submit order &amp; pay</button>
         </div>
       </section>
+
+      <p style="margin-top: 24px; text-align: center">
+        <a class="inline-cta" href="checkout-review.html" id="confirm-back-review">← Edit order or card</a>
+        &nbsp;&nbsp;
+        <a class="inline-cta" href="cart.html">Cart</a>
+      </p>
 
       <footer class="site-footer">
         <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
@@ -56,6 +58,8 @@
     </div>
   </div>
 
+  <script src="js/checkout-shared.js"></script>
   <script src="js/site.js"></script>
+  <script src="js/checkout-confirm.js"></script>
 </body>
 </html>

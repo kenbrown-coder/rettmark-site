@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Review order | Rettmark Firearms</title>
+  <meta name="description" content="Review your order, shipping, and tax — Rettmark Firearms checkout." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-shield-anim="off">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand-rm" href="index.html" aria-label="Rettmark Firearms home">
+      <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="firearms.html">Firearms</a>
+      <a href="cases.html">Cases &amp; Bags</a>
+      <a href="shooting-glasses.html">Shooting Glasses</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="cart-pill" href="cart.html" title="Shopping cart" aria-label="Shopping cart, 0 items">Cart <span class="cart-count">0</span></a>
+  </header>
+
+  <div class="page-shell" id="main">
+    <div class="page">
+      <header class="page-intro">
+        <p class="checkout-steps">Checkout · Step 2 of 4</p>
+        <h1>Review your order</h1>
+        <p class="lede">
+          Confirm line items, discount, shipping, and tax. Enter your card below; on the next step you’ll review one invoice and submit payment.
+        </p>
+      </header>
+
+      <section class="panel checkout-panel" aria-labelledby="checkout-review-lines-heading">
+        <h2 id="checkout-review-lines-heading">Items in your cart</h2>
+        <div id="checkout-review-lines" class="checkout-summary"></div>
+      </section>
+
+      <section class="panel checkout-panel" aria-labelledby="checkout-review-adjust-heading">
+        <h2 id="checkout-review-adjust-heading">Discount, shipping &amp; tax</h2>
+        <div class="checkout-review-adjust">
+          <label class="checkout-field checkout-field--wide">
+            <span>Discount code</span>
+            <div class="checkout-review-code-row">
+              <input class="input" type="text" id="review-discount-code" name="discountCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter code" />
+              <button type="button" class="submit checkout-review-apply" id="review-apply-code">Apply</button>
+            </div>
+          </label>
+          <p id="review-code-hint" class="checkout-review-hint" hidden role="status"></p>
+
+          <div class="checkout-form__grid checkout-review-money-grid">
+            <label class="checkout-field">
+              <span>Shipping cost ($)</span>
+              <input class="input input--readonly" type="text" id="review-shipping" name="shipping" readonly autocomplete="off" aria-readonly="true" title="Shipping for this order." value="0.00" />
+            </label>
+            <label class="checkout-field">
+              <span>Sales tax ($)</span>
+              <input class="input input--readonly" type="text" id="review-tax" name="tax" readonly autocomplete="off" aria-readonly="true" title="Estimated sales tax for this order." value="0.00" />
+            </label>
+          </div>
+
+          <div class="checkout-review-breakdown" aria-live="polite">
+            <div class="checkout-review-breakdown__row">
+              <span>Subtotal</span>
+              <strong id="review-line-subtotal">$0.00</strong>
+            </div>
+            <div class="checkout-review-breakdown__row" id="review-line-discount-row" hidden>
+              <span>Discount<span id="review-discount-label"></span></span>
+              <strong id="review-line-discount">−$0.00</strong>
+            </div>
+            <div class="checkout-review-breakdown__row">
+              <span>Shipping</span>
+              <strong id="review-line-shipping">$0.00</strong>
+            </div>
+            <div class="checkout-review-breakdown__row">
+              <span>Sales tax<span id="review-tax-pct-label"></span></span>
+              <strong id="review-line-tax">$0.00</strong>
+            </div>
+            <div class="checkout-review-breakdown__row checkout-review-breakdown__row--total">
+              <span>Total due</span>
+              <strong id="review-grand-total">$0.00</strong>
+            </div>
+          </div>
+
+          <p id="review-error" class="notify-form__error" hidden role="alert"></p>
+
+          <section class="checkout-review-payment" aria-labelledby="checkout-review-payment-heading">
+            <h2 id="checkout-review-payment-heading" class="checkout-form__card-heading">Payment</h2>
+            <p class="checkout-review-payment-notice">
+              Thank you for choosing Rettmark Firearms. At this time, we accept credit cards only. We hope to expand our payment options in the future. If you have any questions, please contact us at
+              <a class="contact-link" href="mailto:info@rettmarkfirearms.com" style="margin-top:0">info@rettmarkfirearms.com</a>.
+            </p>
+            <div class="checkout-form__grid">
+              <label class="checkout-field checkout-field--wide">
+                <span>Card number</span>
+                <input class="input" type="text" id="review-card-number" inputmode="numeric" autocomplete="cc-number" />
+              </label>
+              <label class="checkout-field">
+                <span>Exp. month</span>
+                <input class="input" type="text" id="review-card-exp-month" inputmode="numeric" placeholder="MM" maxlength="2" autocomplete="cc-exp-month" />
+              </label>
+              <label class="checkout-field">
+                <span>Exp. year</span>
+                <input class="input" type="text" id="review-card-exp-year" inputmode="numeric" placeholder="YY or YYYY" maxlength="4" autocomplete="cc-exp-year" />
+              </label>
+              <label class="checkout-field">
+                <span>Security code</span>
+                <input class="input" type="text" id="review-card-cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" />
+              </label>
+              <label class="checkout-field">
+                <span>Billing ZIP (card)</span>
+                <input class="input" type="text" id="review-card-billing-zip" name="cardBillingZip" inputmode="numeric" autocomplete="billing postal-code" maxlength="20" title="Postal code for this card; usually matches your billing ZIP." />
+              </label>
+            </div>
+            <p id="review-card-error" class="notify-form__error" hidden role="alert"></p>
+          </section>
+
+          <div class="checkout-form__actions">
+            <button type="button" class="submit" id="review-continue">Continue to review &amp; pay</button>
+          </div>
+        </div>
+      </section>
+
+      <p style="margin-top: 24px; text-align: center">
+        <a class="inline-cta" href="checkout-address.html">← Back to addresses</a>
+        &nbsp;&nbsp;
+        <a class="inline-cta" href="cart.html">Cart</a>
+      </p>
+
+      <footer class="site-footer">
+        <img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" />
+        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/shipping-rules.js"></script>
+  <script src="js/sales-tax-rates.js"></script>
+  <script src="js/checkout-shared.js"></script>
+  <script src="js/anet-config.js"></script>
+  <script src="js/site.js"></script>
+  <script src="js/checkout-review.js"></script>
+</body>
+</html>
