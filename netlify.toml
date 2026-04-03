@@ -2,6 +2,9 @@
 # Redirects keep legacy double-extension thank-you URLs working if your script
 # still points at success.html.html / unsubscribe.html.html.
 #
+# Google Search Console (optional): GOOGLE_SITE_VERIFICATION — HTML tag "content" value only.
+# Build injects <meta name="google-site-verification"> into index.html. See docs/google-search-console.md
+#
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
 # Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges (see docs/security-checkout.md).
