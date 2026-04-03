@@ -3,7 +3,7 @@
   "private": true,
   "description": "Static site + Netlify Functions (Authorize.Net checkout)",
   "scripts": {
-    "build": "node scripts/inject-turnstile-config.cjs && node scripts/inject-anet-config.cjs"
+    "build": "node scripts/generate-sitemap.cjs && node scripts/inject-turnstile-config.cjs && node scripts/inject-anet-config.cjs"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.4"

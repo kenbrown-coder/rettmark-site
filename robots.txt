@@ -1,3 +1,16 @@
 # https://www.robotstxt.org/robotstxt.html
+# Disallow: polite crawlers only — not a security boundary.
 User-agent: *
 Allow: /
+
+# Shopping cart, checkout, post-purchase, and list unsubscribe (not useful to index)
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-success
+Disallow: /success
+Disallow: /unsubscribe
+
+# Netlify Functions (no HTML; reduces crawler noise)
+Disallow: /.netlify/
+
+Sitemap: https://rettmarkfirearms.com/sitemap.xml
