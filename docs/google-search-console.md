@@ -2,6 +2,17 @@
 
 Use [Google Search Console](https://search.google.com/search-console) to see how Google indexes the site and to submit your sitemap.
 
+## Recommended setup (Domain + DNS — skip optionals)
+
+If you verified with a **Domain** property and a **DNS TXT** record at Squarespace (or similar):
+
+| Step | Action |
+|------|--------|
+| Done | Domain verification |
+| **Do once in GSC** | [Submit sitemap](#3-submit-sitemap-do-this-in-search-console) (`sitemap.xml`) |
+| Skip | Second property for `www` only — not needed for a Domain property |
+| Skip | **`GOOGLE_SITE_VERIFICATION`** in Netlify — only for HTML-tag + URL-prefix verification |
+
 ## 1. Add a property
 
 1. Open [Search Console](https://search.google.com/search-console) and sign in with a Google account you want as owner.
@@ -13,6 +24,8 @@ Use [Google Search Console](https://search.google.com/search-console) to see how
 If you use **both** `https://rettmarkfirearms.com` and `https://www.rettmarkfirearms.com`, add **both** URL-prefix properties (or use **Domain** once).
 
 ## 2. Verify with HTML tag (URL prefix)
+
+**Skip this section** if you already verified with **Domain** + **DNS** (recommended path above).
 
 1. In Search Console, choose **HTML tag** verification.
 2. Copy **only** the `content` value from the meta tag Google shows (the long string inside `content="..."`).
@@ -27,15 +40,31 @@ If you use **both** `https://rettmarkfirearms.com` and `https://www.rettmarkfire
 
 The build script `scripts/inject-google-site-verification.cjs` inserts that tag into `index.html` during the Netlify build. The token is **not** a password, but keeping it in Netlify avoids committing it to git.
 
-## 3. Submit sitemap
+## 3. Submit sitemap (do this in Search Console)
 
-After the property is verified:
+After verification, **you still add the sitemap in the Search Console UI** (nothing in git submits it for you).
 
-1. In Search Console, open your property → **Sitemaps** (under **Indexing**).
-2. Enter: `sitemap.xml` (or full URL `https://rettmarkfirearms.com/sitemap.xml`).
-3. Submit. Status may show “Success” or “Couldn’t fetch” until Google has crawled it; check again later.
+1. Open [Google Search Console](https://search.google.com/search-console) and select your **property** (`rettmarkfirearms.com` if you used Domain).
+2. In the left menu, open **Sitemaps** (under **Indexing**; on small screens use the ☰ menu).
+3. Under **Add a new sitemap**, in the text field after your domain, enter exactly:
+   - **`sitemap.xml`**  
+   (Domain properties show the domain prefix already; you only add the path.)
+4. Click **Submit**.
+5. The table below may show **Success**, **Pending**, or **Couldn’t fetch** at first. **Pending** is normal for a few hours. If it stays failed after 24–48 hours, confirm the live file loads:  
+   **https://rettmarkfirearms.com/sitemap.xml**
 
-Your `robots.txt` already includes `Sitemap: https://rettmarkfirearms.com/sitemap.xml`, which helps discovery.
+**Already in the repo (no extra step for discovery):**
+
+- `robots.txt` includes `Sitemap: https://rettmarkfirearms.com/sitemap.xml`.
+- `sitemap.xml` is generated on each Netlify build (`scripts/generate-sitemap.cjs`).
+
+## 3b. After DNS verification: other choices
+
+| Topic | Recommended? | Notes |
+|--------|----------------|--------|
+| **Submit sitemap** (above) | **Yes — do this** | Tells Google your URL list explicitly; low effort, standard practice. |
+| **Separate `www` URL-prefix property** | **Optional** | With a **Domain** property you already own the whole domain; a second property for `https://www.…` is only if you want split reports or used URL-prefix verification for `www` only. Not required for indexing both. |
+| **`GOOGLE_SITE_VERIFICATION` in Netlify** | **Optional / skip** | Only for **HTML tag** verification on **URL prefix**. If you verified with **DNS** on a **Domain** property, you **do not** need this env var; leaving it unset is fine. |
 
 ## 4. Optional checks
 
