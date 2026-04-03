@@ -1236,6 +1236,14 @@
   display: block;
 }
 
+/* Wide brand logo in standard product thumb (shooting-glasses ordering promo) */
+.product-card--hhdg-ordering .ph-thumb-img {
+  object-fit: contain;
+  object-position: center;
+  padding: 10px 14px;
+  box-sizing: border-box;
+}
+
 .product-card h3 {
   margin: 0;
   font-size: 0.95rem;
