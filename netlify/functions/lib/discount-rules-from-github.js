@@ -67,6 +67,45 @@ async function fetchDiscountRulesFromGithub() {
   return { ok: true, rules: arr, error: null };
 }
 
+/**
+ * Hunters HD Gold lines must not receive merchandise discounts or surcharges.
+ * Matches cart rows from site.js: shippingClass "glasses" or product URL containing hhdg-.
+ */
+function isHuntersHdGoldCartLine(item) {
+  if (!item || typeof item !== "object") return false;
+  if (String(item.shippingClass || "").toLowerCase() === "glasses") return true;
+  if (/hhdg-/i.test(String(item.url || ""))) return true;
+  return false;
+}
+
+function sumCartLineCents(item) {
+  var q = parseInt(item.qty, 10) || 0;
+  var cents = Math.round((Number(item.price) || 0) * 100);
+  return q * cents;
+}
+
+/** Full cart subtotal in cents (same math as checkout). */
+function sumCartCents(cart) {
+  if (!Array.isArray(cart)) return 0;
+  var s = 0;
+  for (var i = 0; i < cart.length; i++) {
+    s += sumCartLineCents(cart[i]);
+  }
+  return s;
+}
+
+/** Subtotal cents for lines that may receive percent/fixed merchandise promos and surcharges. */
+function sumPromoEligibleMerchCents(cart) {
+  if (!Array.isArray(cart)) return 0;
+  var s = 0;
+  for (var i = 0; i < cart.length; i++) {
+    if (!isHuntersHdGoldCartLine(cart[i])) {
+      s += sumCartLineCents(cart[i]);
+    }
+  }
+  return s;
+}
+
 function findRuleForCode(rules, code) {
   var key = String(code || "").trim().toUpperCase();
   if (!key || !Array.isArray(rules)) return null;
@@ -106,13 +145,14 @@ function computeDiscountDollars(subtotalDollars, def) {
 }
 
 /**
- * @param {number} subtotalCents
  * @param {number} shippingCents gross quoted shipping
  * @param {object} rule matched rule
+ * @param {number} promoMerchBaseCents merchandise subtotal that may be discounted / surcharged (excludes HHDG)
  * @returns {{ merchDiscCents: number, shipCreditCents: number, surchargeCents: number }}
  */
-function computePromoPartsCents(subtotalCents, shippingCents, rule) {
-  var subD = subtotalCents / 100;
+function computePromoPartsCents(shippingCents, rule, promoMerchBaseCents) {
+  var base = Math.max(0, Math.round(Number(promoMerchBaseCents) || 0));
+  var subD = base / 100;
   var shipD = shippingCents / 100;
   if (!rule || !rule.kind) {
     return { merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
@@ -153,7 +193,7 @@ function computePromoPartsCents(subtotalCents, shippingCents, rule) {
   }
   var dollars = computeDiscountDollars(subD, rule);
   var cents = Math.round(dollars * 100);
-  cents = Math.min(Math.max(0, cents), subtotalCents);
+  cents = Math.min(Math.max(0, cents), base);
   return { merchDiscCents: cents, shipCreditCents: 0, surchargeCents: 0 };
 }
 
@@ -163,10 +203,15 @@ function computePromoPartsCents(subtotalCents, shippingCents, rule) {
  * @param {number} subtotalCents
  * @param {number} shippingCents gross shipping before credit
  * @param {object} [lambdaEvent]
+ * @param {object[]|null|undefined} cart same shape as checkout cart; used to exclude Hunters HD Gold from merch promos
  * @returns {Promise<{ ok: boolean, merchDiscCents: number, shipCreditCents: number, surchargeCents: number, shippingCreditMaxCents?: number, error?: string }>}
  */
-async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents, lambdaEvent) {
+async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents, lambdaEvent, cart) {
   var shipIn = Math.max(0, Math.round(Number(shippingCents) || 0));
+  var promoMerchBaseCents = subtotalCents;
+  if (Array.isArray(cart)) {
+    promoMerchBaseCents = sumPromoEligibleMerchCents(cart);
+  }
   if (!codeTrim) {
     return { ok: true, merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
   }
@@ -222,7 +267,7 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
       };
     }
   }
-  var parts = computePromoPartsCents(subtotalCents, shipIn, rule);
+  var parts = computePromoPartsCents(shipIn, rule, promoMerchBaseCents);
   var sc = Math.min(Math.max(0, parts.shipCreditCents), shipIn);
   var out = {
     ok: true,
@@ -247,5 +292,8 @@ module.exports = {
   computeDiscountDollars,
   computePromoPartsCents,
   roundMoney,
-  resolveExpectedPromoCents
+  resolveExpectedPromoCents,
+  sumCartCents,
+  sumPromoEligibleMerchCents,
+  isHuntersHdGoldCartLine
 };

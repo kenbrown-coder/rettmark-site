@@ -1,7 +1,7 @@
 /**
  * Validate a discount code against private GitHub rules (preview for checkout UI).
- * POST JSON: { "code": "SAVE10", "subtotal": 199.99, "shipping": 12.5 }
- *   shipping = gross quoted shipping (optional, default 0); required for shipping credits (applyTo: shipping).
+ * POST JSON: { "code", "subtotal", "shipping"?, "cart": [ line items same as checkout ] }
+ *   cart is required; subtotal must match sum(cart) within 2¢. Merch discounts/surcharges exclude Hunters HD Gold lines.
  * Response: { ok, discountAmount, shippingCreditAmount, surchargeAmount, code } (amounts in dollars).
  *   shippingCreditMaxAmount — optional; promotion cap for fixed shipping credits (actual credit = min(cap, quoted shipping)).
  *
@@ -62,11 +62,21 @@ exports.handler = async function (event) {
 
   var subtotalCents = Math.round(subtotal * 100);
   var shippingCents = Math.round(shipping * 100);
+
+  if (!Array.isArray(body.cart)) {
+    return json(400, { ok: false, error: "missing_cart" });
+  }
+  var cartSumCents = discountLib.sumCartCents(body.cart);
+  if (Math.abs(cartSumCents - subtotalCents) > 2) {
+    return json(400, { ok: false, error: "cart_subtotal_mismatch" });
+  }
+
   var resolved = await discountLib.resolveExpectedPromoCents(
     codeRaw,
     subtotalCents,
     shippingCents,
-    event
+    event,
+    body.cart
   );
   if (!resolved.ok) {
     var err = resolved.error || "invalid";

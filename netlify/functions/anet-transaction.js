@@ -392,7 +392,8 @@ exports.handler = async function (event) {
           codeTrim,
           subtotalCents,
           shippingGrossCents,
-          event
+          event,
+          Array.isArray(cart) ? cart : []
         );
         if (!resolvedPromo.ok) {
           if (resolvedPromo.error === "invalid_discount_code") {

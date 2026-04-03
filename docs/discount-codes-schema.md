@@ -38,6 +38,10 @@ Checkout sends **gross** `shipping` to `discount-validate`; shipping credits are
 
 See `data/discount-codes.example.json` in this repo (placeholders only).
 
+## Platform rule (not configurable in JSON)
+
+**Hunters HD Gold** cart lines never receive **merchandise** percent/fixed discounts or **surcharges**. They are identified the same way as checkout shipping: `shippingClass === "glasses"` or product `url` containing `hhdg-`. **Shipping credits** (`applyTo: shipping`) still apply to the order’s quoted shipping when the code allows it.
+
 ## Private mode
 
 Production rules live in a **private** GitHub repository. Do not commit real codes to a **public** site repo.

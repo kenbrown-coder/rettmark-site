@@ -14,14 +14,15 @@
   }
 
   /** @returns {Promise<{ data: object, httpOk: boolean, status: number }>} */
-  function validateDiscountRemote(code, subtotal, shippingDollars) {
+  function validateDiscountRemote(code, subtotal, shippingDollars, cart) {
     return fetch(discountValidateUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code: String(code || "").trim(),
         subtotal: Number(subtotal) || 0,
-        shipping: Number(shippingDollars) || 0
+        shipping: Number(shippingDollars) || 0,
+        cart: Array.isArray(cart) ? cart : []
       })
     })
       .then(function (res) {
@@ -413,7 +414,7 @@
     applyComputedSalesTax(shipAddr);
 
     if (state.appliedCode) {
-      validateDiscountRemote(state.appliedCode, state.subtotal, state.shippingAmount).then(
+      validateDiscountRemote(state.appliedCode, state.subtotal, state.shippingAmount, state.cart).then(
         function (result) {
           var d = result.data;
           if (d && d.ok && typeof d.discountAmount === "number") {
@@ -482,7 +483,7 @@
         }
         recalcShippingOnly();
         showCodeHint("Checking code…", false);
-        validateDiscountRemote(code, state.subtotal, state.shippingAmount).then(function (result) {
+        validateDiscountRemote(code, state.subtotal, state.shippingAmount, state.cart).then(function (result) {
           var d = result.data;
           if (d && d.ok && typeof d.discountAmount === "number") {
             state.appliedCode = code;
@@ -513,6 +514,13 @@
             showCodeHint("That code isn’t recognized. Check spelling or try another code.", true);
           } else if (d && d.error === "code_exhausted") {
             showCodeHint("That code has reached its maximum number of uses.", true);
+          } else if (d && d.error === "cart_subtotal_mismatch") {
+            showCodeHint(
+              "Cart totals don’t match. Refresh this page or return to the cart and open checkout again.",
+              true
+            );
+          } else if (d && d.error === "missing_cart") {
+            showCodeHint("Could not read your cart for this code. Refresh the page and try again.", true);
           } else if ((d && d.error === "network") || result.status === 0) {
             showCodeHint("Could not reach the server. Check your connection and try again.", true);
           } else {
