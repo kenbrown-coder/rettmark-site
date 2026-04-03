@@ -134,6 +134,8 @@
         subtotal: subtotal,
         discountCode: String(t.discountCode || "").trim(),
         discountAmount: roundMoney(t.discountAmount),
+        shippingCreditAmount: roundMoney(t.shippingCreditAmount),
+        surchargeAmount: roundMoney(t.surchargeAmount),
         shippingAmount: roundMoney(t.shippingAmount),
         taxAmount: roundMoney(t.taxAmount),
         taxRatePercent:
@@ -290,6 +292,15 @@
           '<div class="checkout-review-breakdown__row"><span>Subtotal</span><strong>' +
           formatUsd(totals.subtotal) +
           "</strong></div>";
+        var surAmt = Number(totals.surchargeAmount) || 0;
+        if (surAmt > 0) {
+          totalsBlock +=
+            '<div class="checkout-review-breakdown__row"><span>Surcharge' +
+            (totals.discountCode ? " (" + escapeHtml(totals.discountCode) + ")" : "") +
+            '</span><strong>' +
+            formatUsd(surAmt) +
+            "</strong></div>";
+        }
         if (totals.discountAmount > 0) {
           totalsBlock +=
             '<div class="checkout-review-breakdown__row"><span>Discount' +
@@ -298,9 +309,22 @@
             formatUsd(totals.discountAmount) +
             "</strong></div>";
         }
+        var scAmt = Number(totals.shippingCreditAmount) || 0;
+        if (scAmt > 0) {
+          totalsBlock +=
+            '<div class="checkout-review-breakdown__row"><span>Shipping credit' +
+            (totals.discountCode ? " (" + escapeHtml(totals.discountCode) + ")" : "") +
+            '</span><strong>−' +
+            formatUsd(scAmt) +
+            "</strong></div>";
+        }
+        var shipPay = Math.max(
+          0,
+          roundMoney((Number(totals.shippingAmount) || 0) - scAmt)
+        );
         totalsBlock +=
           '<div class="checkout-review-breakdown__row"><span>Shipping</span><strong>' +
-          formatUsd(totals.shippingAmount) +
+          formatUsd(shipPay) +
           "</strong></div>";
         var taxPctSuffix = "";
         if (totals.taxStateCode && totals.taxRatePercent != null && isFinite(totals.taxRatePercent)) {
@@ -560,6 +584,8 @@
             if (totalsFresh.ok) {
               payload.discountAmount = totalsFresh.discountAmount.toFixed(2);
               payload.shippingAmount = totalsFresh.shippingAmount.toFixed(2);
+              payload.shippingCreditAmount = (Number(totalsFresh.shippingCreditAmount) || 0).toFixed(2);
+              payload.surchargeAmount = (Number(totalsFresh.surchargeAmount) || 0).toFixed(2);
               payload.taxAmount = totalsFresh.taxAmount.toFixed(2);
               payload.discountCode = totalsFresh.discountCode || "";
             }

@@ -17,9 +17,9 @@
  *
  * POST JSON body:
  *   { opaqueData, amount, cart, customerEmail, billTo, shipTo?, invoiceNumber?,
- *     discountAmount?, shippingAmount?, taxAmount? }
- *   When discountAmount, shippingAmount, or taxAmount are present (even 0), amount must equal
- *   merchandise subtotal − discount + shipping + tax (all in dollars, 2 decimal places).
+ *     discountAmount?, shippingAmount?, shippingCreditAmount?, surchargeAmount?, taxAmount? }
+ *   When those breakdown fields are present (even 0), amount must equal
+ *   subtotal − merchandise discount + surcharge + (shipping − shipping credit) + tax (dollars, 2 decimals).
  *   Omit all three for legacy behavior: amount must equal sum of cart line totals only.
  *
  * Private discount rules (GitHub): GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER,
@@ -123,9 +123,22 @@ function buildInvoiceEmailHtml(body, amountStr) {
   var extra = "";
   if (hasBreakdown) {
     var discCents = dollarsToCents(body.discountAmount || 0);
-    var ship = (dollarsToCents(body.shippingAmount || 0) / 100).toFixed(2);
+    var shipGrossCents = dollarsToCents(body.shippingAmount || 0);
+    var shipCreditCents = Math.max(0, dollarsToCents(body.shippingCreditAmount || 0));
+    var surCents = Math.max(0, dollarsToCents(body.surchargeAmount || 0));
+    var shipNetCents = Math.max(0, shipGrossCents - shipCreditCents);
+    var ship = (shipNetCents / 100).toFixed(2);
     var tax = (dollarsToCents(body.taxAmount || 0) / 100).toFixed(2);
     var code = String(body.discountCode || "").trim();
+    if (surCents > 0) {
+      var sur = (surCents / 100).toFixed(2);
+      extra +=
+        "<tr><td>Surcharge" +
+        (code ? " (" + escapeHtml(code) + ")" : "") +
+        '</td><td style="text-align:right">$' +
+        sur +
+        "</td></tr>";
+    }
     if (discCents > 0) {
       var disc = (discCents / 100).toFixed(2);
       extra +=
@@ -133,6 +146,15 @@ function buildInvoiceEmailHtml(body, amountStr) {
         (code ? " (" + escapeHtml(code) + ")" : "") +
         '</td><td style="text-align:right">−$' +
         disc +
+        "</td></tr>";
+    }
+    if (shipCreditCents > 0) {
+      var sc = (shipCreditCents / 100).toFixed(2);
+      extra +=
+        "<tr><td>Shipping credit" +
+        (code ? " (" + escapeHtml(code) + ")" : "") +
+        '</td><td style="text-align:right">−$' +
+        sc +
         "</td></tr>";
     }
     extra += '<tr><td>Shipping</td><td style="text-align:right">$' + ship + "</td></tr>";
@@ -342,40 +364,71 @@ exports.handler = async function (event) {
       return json(400, { error: "Invalid discount amount" });
     }
     discountCents = Math.min(discountCents, subtotalCents);
+    var shipCreditBody = dollarsToCents(body.shippingCreditAmount || 0);
+    if (isNaN(shipCreditBody)) {
+      return json(400, { error: "Invalid shipping credit amount" });
+    }
+    var shipCreditCents = Math.max(0, shipCreditBody);
+    var surchargeCents = Math.max(0, dollarsToCents(body.surchargeAmount || 0));
+    if (isNaN(surchargeCents)) {
+      return json(400, { error: "Invalid surcharge amount" });
+    }
     var codeTrim = String(body.discountCode || "").trim();
-    var wantsDiscount = discountCents > 0 || codeTrim.length > 0;
-    if (wantsDiscount) {
-      if (discountCents > 0 && !codeTrim) {
-        return json(400, { error: "Discount requires a valid code" });
+    var wantsPromo =
+      discountCents > 0 || shipCreditCents > 0 || surchargeCents > 0 || codeTrim.length > 0;
+    if (wantsPromo) {
+      if ((discountCents > 0 || shipCreditCents > 0 || surchargeCents > 0) && !codeTrim) {
+        return json(400, { error: "Promo requires a valid code" });
       }
       if (codeTrim) {
         if (!discountLib.githubEnvConfigured()) {
           return json(503, { error: "Discount validation is not configured" });
         }
-        var resolvedDisc = await discountLib.resolveExpectedDiscountCents(codeTrim, subtotalCents, event);
-        if (!resolvedDisc.ok) {
-          if (resolvedDisc.error === "invalid_discount_code") {
+        var shippingGrossCents = Math.max(0, dollarsToCents(body.shippingAmount || 0));
+        if (isNaN(shippingGrossCents)) {
+          return json(400, { error: "Invalid shipping amount" });
+        }
+        var resolvedPromo = await discountLib.resolveExpectedPromoCents(
+          codeTrim,
+          subtotalCents,
+          shippingGrossCents,
+          event
+        );
+        if (!resolvedPromo.ok) {
+          if (resolvedPromo.error === "invalid_discount_code") {
             return json(400, { error: "Invalid or expired discount code" });
           }
-          if (resolvedDisc.error === "discount_code_exhausted") {
+          if (resolvedPromo.error === "discount_code_exhausted") {
             return json(400, { error: "This discount code has reached its usage limit" });
           }
-          if (resolvedDisc.error === "discount_usage_unavailable") {
+          if (resolvedPromo.error === "discount_usage_unavailable") {
             return json(503, { error: "Could not verify discount usage; try again shortly" });
           }
           return json(503, { error: "Could not validate discount" });
         }
-        if (resolvedDisc.expectedCents !== discountCents) {
-          return json(400, { error: "Discount amount does not match code" });
+        if (
+          resolvedPromo.merchDiscCents !== discountCents ||
+          resolvedPromo.shipCreditCents !== shipCreditCents ||
+          resolvedPromo.surchargeCents !== surchargeCents
+        ) {
+          return json(400, { error: "Promo amounts do not match code" });
         }
       }
     }
-    var shippingCents = Math.max(0, dollarsToCents(body.shippingAmount || 0));
+    var shippingGrossCents2 = Math.max(0, dollarsToCents(body.shippingAmount || 0));
     var taxCents = Math.max(0, dollarsToCents(body.taxAmount || 0));
-    if (isNaN(shippingCents) || isNaN(taxCents)) {
+    if (isNaN(shippingGrossCents2) || isNaN(taxCents)) {
       return json(400, { error: "Invalid shipping or tax amount" });
     }
-    expectedCents = subtotalCents - discountCents + shippingCents + taxCents;
+    if (shipCreditCents > shippingGrossCents2) {
+      return json(400, { error: "Shipping credit cannot exceed shipping cost" });
+    }
+    var merchNetCents = subtotalCents - discountCents + surchargeCents;
+    var shipPayCents = shippingGrossCents2 - shipCreditCents;
+    if (merchNetCents < 0) {
+      return json(400, { error: "Invalid order total" });
+    }
+    expectedCents = merchNetCents + shipPayCents + taxCents;
     if (expectedCents < 0) {
       return json(400, { error: "Invalid order total" });
     }
@@ -509,7 +562,9 @@ exports.handler = async function (event) {
     if (resultCode === "ok" && txApproved) {
       var codeForUsage = String(body.discountCode || "").trim();
       var paidDiscCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
-      if (codeForUsage && paidDiscCents > 0) {
+      var paidShipCred = Math.max(0, dollarsToCents(body.shippingCreditAmount || 0));
+      var paidSur = Math.max(0, dollarsToCents(body.surchargeAmount || 0));
+      if (codeForUsage && (paidDiscCents > 0 || paidShipCred > 0 || paidSur > 0)) {
         try {
           var usageMod = require("./lib/discount-usage-blobs.js");
           await usageMod.incrementUseCount(event, codeForUsage);

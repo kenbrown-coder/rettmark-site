@@ -1,7 +1,9 @@
 /**
  * Validate a discount code against private GitHub rules (preview for checkout UI).
- * POST JSON: { "code": "SAVE10", "subtotal": 199.99 }
- * Response: { "ok": true, "discountAmount": 19.99, "code": "SAVE10" } or { "ok": false, "error": "..." }
+ * POST JSON: { "code": "SAVE10", "subtotal": 199.99, "shipping": 12.5 }
+ *   shipping = gross quoted shipping (optional, default 0); required for shipping credits (applyTo: shipping).
+ * Response: { ok, discountAmount, shippingCreditAmount, surchargeAmount, code } (amounts in dollars).
+ *   shippingCreditMaxAmount — optional; promotion cap for fixed shipping credits (actual credit = min(cap, quoted shipping)).
  *
  * Same env as lib/discount-rules-from-github.js
  */
@@ -49,12 +51,23 @@ exports.handler = async function (event) {
     return json(400, { ok: false, error: "invalid_subtotal" });
   }
 
+  var shipping = Number(body.shipping);
+  if (!isFinite(shipping) || shipping < 0) {
+    shipping = 0;
+  }
+
   if (!discountLib.githubEnvConfigured()) {
     return json(503, { ok: false, error: "discount_service_unconfigured" });
   }
 
   var subtotalCents = Math.round(subtotal * 100);
-  var resolved = await discountLib.resolveExpectedDiscountCents(codeRaw, subtotalCents, event);
+  var shippingCents = Math.round(shipping * 100);
+  var resolved = await discountLib.resolveExpectedPromoCents(
+    codeRaw,
+    subtotalCents,
+    shippingCents,
+    event
+  );
   if (!resolved.ok) {
     var err = resolved.error || "invalid";
     if (err === "invalid_discount_code") {
@@ -69,10 +82,15 @@ exports.handler = async function (event) {
     return json(503, { ok: false, error: "discount_rules_unavailable" });
   }
 
-  var amt = resolved.expectedCents / 100;
-  return json(200, {
+  var resBody = {
     ok: true,
-    discountAmount: amt,
+    discountAmount: resolved.merchDiscCents / 100,
+    shippingCreditAmount: resolved.shipCreditCents / 100,
+    surchargeAmount: resolved.surchargeCents / 100,
     code: codeRaw
-  });
+  };
+  if (resolved.shippingCreditMaxCents != null && isFinite(resolved.shippingCreditMaxCents)) {
+    resBody.shippingCreditMaxAmount = resolved.shippingCreditMaxCents / 100;
+  }
+  return json(200, resBody);
 };

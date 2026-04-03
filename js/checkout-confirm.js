@@ -31,6 +31,10 @@
     return "$" + num.toFixed(2);
   }
 
+  function roundMoney(n) {
+    return Math.round(Number(n || 0) * 100) / 100;
+  }
+
   function addressesDiffer(bill, ship) {
     if (!bill || !ship) return false;
     return ["firstName", "lastName", "address", "city", "state", "zip", "country"].some(function (k) {
@@ -175,6 +179,16 @@
         })
         .join("");
 
+      var surRow = "";
+      var sur = Number(totals.surchargeAmount) || 0;
+      if (sur > 0) {
+        surRow =
+          '<div class="checkout-review-breakdown__row"><span>Surcharge' +
+          (totals.discountCode ? " (" + escapeHtml(totals.discountCode) + ")" : "") +
+          '</span><strong>' +
+          formatUsd(sur) +
+          "</strong></div>";
+      }
       var discRow = "";
       if (totals.discountAmount > 0) {
         discRow =
@@ -184,6 +198,18 @@
           formatUsd(totals.discountAmount) +
           "</strong></div>";
       }
+      var scRow = "";
+      var sc = Number(totals.shippingCreditAmount) || 0;
+      if (sc > 0) {
+        scRow =
+          '<div class="checkout-review-breakdown__row"><span>Shipping credit' +
+          (totals.discountCode ? " (" + escapeHtml(totals.discountCode) + ")" : "") +
+          '</span><strong>−' +
+          formatUsd(sc) +
+          "</strong></div>";
+      }
+      var shipPay =
+        Math.max(0, roundMoney((Number(totals.shippingAmount) || 0) - (Number(totals.shippingCreditAmount) || 0)));
 
       var taxPctSuffix = "";
       if (totals.taxStateCode && totals.taxRatePercent != null && isFinite(totals.taxRatePercent)) {
@@ -235,9 +261,11 @@
         '<div class="checkout-review-breakdown__row"><span>Subtotal</span><strong>' +
         formatUsd(totals.subtotal) +
         "</strong></div>" +
+        surRow +
         discRow +
+        scRow +
         '<div class="checkout-review-breakdown__row"><span>Shipping</span><strong>' +
-        formatUsd(totals.shippingAmount) +
+        formatUsd(shipPay) +
         "</strong></div>" +
         '<div class="checkout-review-breakdown__row"><span>Sales tax' +
         taxPctSuffix +
@@ -332,6 +360,8 @@
           invoiceNumber: inv,
           discountAmount: t.discountAmount.toFixed(2),
           shippingAmount: t.shippingAmount.toFixed(2),
+          shippingCreditAmount: (Number(t.shippingCreditAmount) || 0).toFixed(2),
+          surchargeAmount: (Number(t.surchargeAmount) || 0).toFixed(2),
           taxAmount: t.taxAmount.toFixed(2),
           discountCode: t.discountCode || ""
         };

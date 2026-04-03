@@ -107,6 +107,8 @@
         subtotal: subtotal,
         discountCode: String(t.discountCode || "").trim(),
         discountAmount: roundMoney(t.discountAmount),
+        shippingCreditAmount: roundMoney(t.shippingCreditAmount),
+        surchargeAmount: roundMoney(t.surchargeAmount),
         shippingAmount: roundMoney(t.shippingAmount),
         taxAmount: roundMoney(t.taxAmount),
         taxRatePercent:

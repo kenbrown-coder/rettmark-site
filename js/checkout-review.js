@@ -14,13 +14,14 @@
   }
 
   /** @returns {Promise<{ data: object, httpOk: boolean, status: number }>} */
-  function validateDiscountRemote(code, subtotal) {
+  function validateDiscountRemote(code, subtotal, shippingDollars) {
     return fetch(discountValidateUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code: String(code || "").trim(),
-        subtotal: Number(subtotal) || 0
+        subtotal: Number(subtotal) || 0,
+        shipping: Number(shippingDollars) || 0
       })
     })
       .then(function (res) {
@@ -114,11 +115,32 @@
     cartSig: "",
     appliedCode: "",
     discountAmount: 0,
+    shippingCreditAmount: 0,
+    shippingCreditMaxAmount: null,
+    surchargeAmount: 0,
     shippingAmount: 0,
     taxAmount: 0,
     taxRatePercent: 0,
     taxStateCode: ""
   };
+
+  function applyPromoFromValidateData(d) {
+    if (!d || typeof d !== "object") return;
+    state.discountAmount = roundMoney(d.discountAmount || 0);
+    state.shippingCreditAmount = roundMoney(d.shippingCreditAmount || 0);
+    state.surchargeAmount = roundMoney(d.surchargeAmount || 0);
+    var cap = d.shippingCreditMaxAmount;
+    state.shippingCreditMaxAmount =
+      typeof cap === "number" && isFinite(cap) && cap >= 0 ? roundMoney(cap) : null;
+  }
+
+  function promoHasAnyEffect() {
+    return (
+      state.discountAmount > 0 ||
+      state.shippingCreditAmount > 0 ||
+      state.surchargeAmount > 0
+    );
+  }
 
   function formatSalesTaxPctLabel(code, pct) {
     if (!code) return "";
@@ -136,8 +158,11 @@
   }
 
   function applyComputedSalesTax(shipAddr) {
-    var afterDisc = Math.max(0, roundMoney(state.subtotal - state.discountAmount));
-    var taxable = roundMoney(afterDisc);
+    var merchNet = Math.max(
+      0,
+      roundMoney(state.subtotal - state.discountAmount + state.surchargeAmount)
+    );
+    var taxable = roundMoney(merchNet);
     var fn =
       typeof window !== "undefined" && typeof window.rettmarkComputeStateSalesTax === "function"
         ? window.rettmarkComputeStateSalesTax
@@ -161,12 +186,28 @@
   }
 
   function grandTotal() {
-    var afterDiscount = Math.max(0, roundMoney(state.subtotal - state.discountAmount));
-    return roundMoney(afterDiscount + state.shippingAmount + state.taxAmount);
+    var merchNet = Math.max(
+      0,
+      roundMoney(state.subtotal - state.discountAmount + state.surchargeAmount)
+    );
+    var shipPay = Math.max(0, roundMoney(state.shippingAmount - state.shippingCreditAmount));
+    return roundMoney(merchNet + shipPay + state.taxAmount);
   }
 
   function updateBreakdownDisplay() {
     $("review-line-subtotal") && ($("review-line-subtotal").textContent = formatUsd(state.subtotal));
+
+    var surRow = $("review-line-surcharge-row");
+    var surLabel = $("review-surcharge-label");
+    var surVal = $("review-line-surcharge");
+    if (state.surchargeAmount > 0) {
+      if (surRow) surRow.hidden = false;
+      if (surLabel) surLabel.textContent = state.appliedCode ? " (" + state.appliedCode + ")" : "";
+      if (surVal) surVal.textContent = formatUsd(state.surchargeAmount);
+    } else {
+      if (surRow) surRow.hidden = true;
+      if (surLabel) surLabel.textContent = "";
+    }
 
     var discRow = $("review-line-discount-row");
     var discLabel = $("review-discount-label");
@@ -182,7 +223,27 @@
       if (discLabel) discLabel.textContent = "";
     }
 
-    $("review-line-shipping") && ($("review-line-shipping").textContent = formatUsd(state.shippingAmount));
+    var scRow = $("review-line-ship-credit-row");
+    var scLabel = $("review-ship-credit-label");
+    var scVal = $("review-line-ship-credit");
+    if (state.shippingCreditAmount > 0) {
+      if (scRow) scRow.hidden = false;
+      if (scLabel) {
+        var capPart =
+          state.shippingCreditMaxAmount != null && state.shippingCreditMaxAmount > 0
+            ? ", up to " + formatUsd(state.shippingCreditMaxAmount) + " off shipping"
+            : "";
+        scLabel.textContent =
+          (state.appliedCode ? " (" + state.appliedCode + ")" : "") + capPart;
+      }
+      if (scVal) scVal.textContent = "−" + formatUsd(state.shippingCreditAmount);
+    } else {
+      if (scRow) scRow.hidden = true;
+      if (scLabel) scLabel.textContent = "";
+    }
+
+    var shipPay = Math.max(0, roundMoney(state.shippingAmount - state.shippingCreditAmount));
+    $("review-line-shipping") && ($("review-line-shipping").textContent = formatUsd(shipPay));
     $("review-line-tax") && ($("review-line-tax").textContent = formatUsd(state.taxAmount));
     var taxPctEl = $("review-tax-pct-label");
     if (taxPctEl) {
@@ -208,6 +269,9 @@
       subtotal: state.subtotal,
       discountCode: state.appliedCode,
       discountAmount: state.discountAmount,
+      shippingCreditAmount: state.shippingCreditAmount,
+      shippingCreditMaxAmount: state.shippingCreditMaxAmount,
+      surchargeAmount: state.surchargeAmount,
       shippingAmount: state.shippingAmount,
       taxAmount: state.taxAmount,
       taxRatePercent: state.taxStateCode ? state.taxRatePercent : null,
@@ -248,6 +312,13 @@
       }
       state.appliedCode = saved.discountCode ? String(saved.discountCode).trim() : "";
       state.discountAmount = roundMoney(saved.discountAmount || 0);
+      state.shippingCreditAmount = roundMoney(saved.shippingCreditAmount || 0);
+      var savedCap = saved.shippingCreditMaxAmount;
+      state.shippingCreditMaxAmount =
+        typeof savedCap === "number" && isFinite(savedCap) && savedCap >= 0
+          ? roundMoney(savedCap)
+          : null;
+      state.surchargeAmount = roundMoney(saved.surchargeAmount || 0);
     } catch (e) {}
     return { restoredShipping: restoredShipping };
   }
@@ -342,40 +413,54 @@
     applyComputedSalesTax(shipAddr);
 
     if (state.appliedCode) {
-      validateDiscountRemote(state.appliedCode, state.subtotal).then(function (result) {
-        var d = result.data;
-        if (d && d.ok && typeof d.discountAmount === "number") {
-          var exp = roundMoney(d.discountAmount);
-          if (Math.abs(exp - state.discountAmount) > 0.02) {
-            state.discountAmount = exp;
-            showCodeHint("Discount updated to match current promotion rules.", false);
+      validateDiscountRemote(state.appliedCode, state.subtotal, state.shippingAmount).then(
+        function (result) {
+          var d = result.data;
+          if (d && d.ok && typeof d.discountAmount === "number") {
+            var prevDisc = state.discountAmount;
+            var prevSc = state.shippingCreditAmount;
+            var prevSur = state.surchargeAmount;
+            applyPromoFromValidateData(d);
+            var changed =
+              Math.abs(state.discountAmount - prevDisc) > 0.02 ||
+              Math.abs(state.shippingCreditAmount - prevSc) > 0.02 ||
+              Math.abs(state.surchargeAmount - prevSur) > 0.02;
+            if (changed) {
+              showCodeHint("Promotion updated to match current rules (subtotal or shipping changed).", false);
+            }
+            recalcShippingOnly();
+            applyComputedSalesTax(shipAddr);
+            updateBreakdownDisplay();
+          } else if ((d && d.error === "network") || result.status === 0) {
+            state.discountAmount = 0;
+            state.shippingCreditAmount = 0;
+            state.shippingCreditMaxAmount = null;
+            state.surchargeAmount = 0;
+            showCodeHint("Could not verify saved discount. Check your connection and tap Apply again.", true);
+            recalcShippingOnly();
+            applyComputedSalesTax(shipAddr);
+            updateBreakdownDisplay();
+          } else {
+            state.appliedCode = "";
+            state.discountAmount = 0;
+            state.shippingCreditAmount = 0;
+            state.shippingCreditMaxAmount = null;
+            state.surchargeAmount = 0;
+            if ($("review-discount-code")) $("review-discount-code").value = "";
+            showCodeHint(
+              d && d.error === "invalid_code"
+                ? "That saved code is no longer valid."
+                : d && d.error === "code_exhausted"
+                  ? "That code has reached its maximum number of uses."
+                  : "Could not verify discount. Re-enter a code or continue without one.",
+              true
+            );
             recalcShippingOnly();
             applyComputedSalesTax(shipAddr);
             updateBreakdownDisplay();
           }
-        } else if ((d && d.error === "network") || result.status === 0) {
-          state.discountAmount = 0;
-          showCodeHint("Could not verify saved discount. Check your connection and tap Apply again.", true);
-          recalcShippingOnly();
-          applyComputedSalesTax(shipAddr);
-          updateBreakdownDisplay();
-        } else {
-          state.appliedCode = "";
-          state.discountAmount = 0;
-          if ($("review-discount-code")) $("review-discount-code").value = "";
-          showCodeHint(
-            d && d.error === "invalid_code"
-              ? "That saved code is no longer valid."
-              : d && d.error === "code_exhausted"
-                ? "That code has reached its maximum number of uses."
-                : "Could not verify discount. Re-enter a code or continue without one.",
-            true
-          );
-          recalcShippingOnly();
-          applyComputedSalesTax(shipAddr);
-          updateBreakdownDisplay();
         }
-      });
+      );
     }
 
     $("review-apply-code") &&
@@ -386,22 +471,39 @@
         if (!code) {
           state.appliedCode = "";
           state.discountAmount = 0;
+          state.shippingCreditAmount = 0;
+          state.shippingCreditMaxAmount = null;
+          state.surchargeAmount = 0;
           showCodeHint("", false);
           recalcShippingOnly();
           applyComputedSalesTax(shipAddr);
           updateBreakdownDisplay();
           return;
         }
+        recalcShippingOnly();
         showCodeHint("Checking code…", false);
-        validateDiscountRemote(code, state.subtotal).then(function (result) {
+        validateDiscountRemote(code, state.subtotal, state.shippingAmount).then(function (result) {
           var d = result.data;
           if (d && d.ok && typeof d.discountAmount === "number") {
             state.appliedCode = code;
-            state.discountAmount = roundMoney(d.discountAmount);
-            showCodeHint(
-              state.discountAmount > 0 ? "Code applied." : "Code accepted (no discount for this subtotal).",
-              false
-            );
+            applyPromoFromValidateData(d);
+            if (state.shippingCreditAmount > 0 && state.shippingCreditMaxAmount != null) {
+              showCodeHint(
+                "Code applied. Shipping credit for this order is " +
+                  formatUsd(state.shippingCreditAmount) +
+                  " (never more than quoted shipping; promotion covers up to " +
+                  formatUsd(state.shippingCreditMaxAmount) +
+                  ").",
+                false
+              );
+            } else {
+              showCodeHint(
+                promoHasAnyEffect()
+                  ? "Code applied."
+                  : "Code accepted (no change for this subtotal and shipping).",
+                false
+              );
+            }
             recalcShippingOnly();
             applyComputedSalesTax(shipAddr);
             updateBreakdownDisplay();
@@ -421,6 +523,9 @@
           }
           state.appliedCode = "";
           state.discountAmount = 0;
+          state.shippingCreditAmount = 0;
+          state.shippingCreditMaxAmount = null;
+          state.surchargeAmount = 0;
           recalcShippingOnly();
           applyComputedSalesTax(shipAddr);
           updateBreakdownDisplay();

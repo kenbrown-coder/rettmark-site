@@ -1,16 +1,21 @@
 [
   {
-    "code": "EXAMPLE10",
-    "kind": "percent",
-    "value": 10,
+    "code": "RELOADING",
+    "kind": "fixed",
+    "value": 19.99,
+    "applyTo": "shipping",
     "active": true
   },
   {
-    "code": "SAVE5",
-    "kind": "fixed",
-    "value": 5,
-    "active": true,
-    "expiresAt": "2030-12-31T23:59:59.000Z",
-    "maxUses": 100
+    "code": "YOUR20",
+    "kind": "percent",
+    "value": 20,
+    "active": true
+  },
+  {
+    "code": "TEST",
+    "kind": "surcharge_percent",
+    "value": 10,
+    "active": true
   }
 ]

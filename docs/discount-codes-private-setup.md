@@ -42,6 +42,6 @@ After deploy, checkout calls **`POST /.netlify/functions/discount-validate`** (s
 
 ## 5. Optional: limit how many times a code works (`maxUses`)
 
-In `discount-codes.json`, add **`maxUses`** (positive integer) on a rule. The site counts **successful paid checkouts** that applied a non-zero discount in **Netlify Blobs** (store name `rettmark-discount-usage`). No extra env vars are required on Netlify; Blobs context is injected for serverless functions.
+In `discount-codes.json`, add **`maxUses`** (positive integer) on a rule. The site counts **successful paid checkouts** where the code had any effect (merchandise discount, shipping credit, or surcharge) in **Netlify Blobs** (store name `rettmark-discount-usage`). No extra env vars are required on Netlify; Blobs context is injected for serverless functions.
 
 The site repo must list **`@netlify/blobs`** in `package.json` so Netlify bundles it with functions. Run `npm install` locally or on CI before deploy if you add dependencies.

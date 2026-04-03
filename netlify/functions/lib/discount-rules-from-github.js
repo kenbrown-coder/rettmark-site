@@ -106,43 +106,138 @@ function computeDiscountDollars(subtotalDollars, def) {
 }
 
 /**
- * Expected discount cents from GitHub rules, or null if invalid / unavailable.
+ * @param {number} subtotalCents
+ * @param {number} shippingCents gross quoted shipping
+ * @param {object} rule matched rule
+ * @returns {{ merchDiscCents: number, shipCreditCents: number, surchargeCents: number }}
+ */
+function computePromoPartsCents(subtotalCents, shippingCents, rule) {
+  var subD = subtotalCents / 100;
+  var shipD = shippingCents / 100;
+  if (!rule || !rule.kind) {
+    return { merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
+  }
+  if (rule.kind === "surcharge_percent") {
+    var sp = Number(rule.value);
+    if (!isFinite(sp) || sp < 0) sp = 0;
+    sp = Math.min(sp, 500);
+    var sur = roundMoney((subD * sp) / 100);
+    return {
+      merchDiscCents: 0,
+      shipCreditCents: 0,
+      surchargeCents: Math.round(sur * 100)
+    };
+  }
+  var applyTo = String(rule.applyTo || "merchandise").toLowerCase();
+  if (applyTo === "shipping") {
+    var v2 = Number(rule.value);
+    if (!isFinite(v2) || v2 < 0) v2 = 0;
+    if (rule.kind === "fixed") {
+      var creditD = roundMoney(Math.min(v2, shipD));
+      return {
+        merchDiscCents: 0,
+        shipCreditCents: Math.round(creditD * 100),
+        surchargeCents: 0
+      };
+    }
+    if (rule.kind === "percent") {
+      var pctS = Math.min(v2, 100);
+      var credP = roundMoney((shipD * pctS) / 100);
+      return {
+        merchDiscCents: 0,
+        shipCreditCents: Math.round(credP * 100),
+        surchargeCents: 0
+      };
+    }
+    return { merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
+  }
+  var dollars = computeDiscountDollars(subD, rule);
+  var cents = Math.round(dollars * 100);
+  cents = Math.min(Math.max(0, cents), subtotalCents);
+  return { merchDiscCents: cents, shipCreditCents: 0, surchargeCents: 0 };
+}
+
+/**
+ * Merchandise discount, shipping credit, and surcharge (all cents) for a code.
  * @param {string} codeTrim
  * @param {number} subtotalCents
- * @param {object} [lambdaEvent] Netlify function event (for Netlify Blobs + connectLambda).
- * @returns {Promise<{ ok: boolean, expectedCents: number, error?: string }>}
+ * @param {number} shippingCents gross shipping before credit
+ * @param {object} [lambdaEvent]
+ * @returns {Promise<{ ok: boolean, merchDiscCents: number, shipCreditCents: number, surchargeCents: number, shippingCreditMaxCents?: number, error?: string }>}
  */
-async function resolveExpectedDiscountCents(codeTrim, subtotalCents, lambdaEvent) {
-  var subDollars = subtotalCents / 100;
+async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents, lambdaEvent) {
+  var shipIn = Math.max(0, Math.round(Number(shippingCents) || 0));
   if (!codeTrim) {
-    return { ok: true, expectedCents: 0 };
+    return { ok: true, merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
   }
   if (!githubEnvConfigured()) {
-    return { ok: false, expectedCents: 0, error: "discount_validation_unconfigured" };
+    return {
+      ok: false,
+      merchDiscCents: 0,
+      shipCreditCents: 0,
+      surchargeCents: 0,
+      error: "discount_validation_unconfigured"
+    };
   }
   var loaded = await fetchDiscountRulesFromGithub();
   if (!loaded.ok || !loaded.rules) {
-    return { ok: false, expectedCents: 0, error: "discount_rules_unavailable" };
+    return {
+      ok: false,
+      merchDiscCents: 0,
+      shipCreditCents: 0,
+      surchargeCents: 0,
+      error: "discount_rules_unavailable"
+    };
   }
   var rule = findRuleForCode(loaded.rules, codeTrim);
   if (!rule) {
-    return { ok: false, expectedCents: 0, error: "invalid_discount_code" };
+    return {
+      ok: false,
+      merchDiscCents: 0,
+      shipCreditCents: 0,
+      surchargeCents: 0,
+      error: "invalid_discount_code"
+    };
   }
   var maxUsesNum = Number(rule.maxUses);
   if (isFinite(maxUsesNum) && maxUsesNum > 0) {
     var usage = require("./discount-usage-blobs.js");
     var used = await usage.getUseCount(lambdaEvent, codeTrim);
     if (used === null) {
-      return { ok: false, expectedCents: 0, error: "discount_usage_unavailable" };
+      return {
+        ok: false,
+        merchDiscCents: 0,
+        shipCreditCents: 0,
+        surchargeCents: 0,
+        error: "discount_usage_unavailable"
+      };
     }
     if (used >= Math.floor(maxUsesNum)) {
-      return { ok: false, expectedCents: 0, error: "discount_code_exhausted" };
+      return {
+        ok: false,
+        merchDiscCents: 0,
+        shipCreditCents: 0,
+        surchargeCents: 0,
+        error: "discount_code_exhausted"
+      };
     }
   }
-  var dollars = computeDiscountDollars(subDollars, rule);
-  var cents = Math.round(dollars * 100);
-  cents = Math.min(Math.max(0, cents), subtotalCents);
-  return { ok: true, expectedCents: cents };
+  var parts = computePromoPartsCents(subtotalCents, shipIn, rule);
+  var sc = Math.min(Math.max(0, parts.shipCreditCents), shipIn);
+  var out = {
+    ok: true,
+    merchDiscCents: parts.merchDiscCents,
+    shipCreditCents: sc,
+    surchargeCents: Math.max(0, parts.surchargeCents)
+  };
+  var applyToR = String(rule.applyTo || "merchandise").toLowerCase();
+  if (applyToR === "shipping" && rule.kind === "fixed") {
+    var capVal = Number(rule.value);
+    if (isFinite(capVal) && capVal >= 0) {
+      out.shippingCreditMaxCents = Math.round(roundMoney(capVal) * 100);
+    }
+  }
+  return out;
 }
 
 module.exports = {
@@ -150,6 +245,7 @@ module.exports = {
   fetchDiscountRulesFromGithub,
   findRuleForCode,
   computeDiscountDollars,
+  computePromoPartsCents,
   roundMoney,
-  resolveExpectedDiscountCents
+  resolveExpectedPromoCents
 };
