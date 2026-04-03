@@ -46,9 +46,8 @@ After verification, **you still add the sitemap in the Search Console UI** (noth
 
 1. Open [Google Search Console](https://search.google.com/search-console) and select your **property** (`rettmarkfirearms.com` if you used Domain).
 2. In the left menu, open **Sitemaps** (under **Indexing**; on small screens use the ☰ menu).
-3. Under **Add a new sitemap**, in the text field after your domain, enter exactly:
-   - **`sitemap.xml`**  
-   (Domain properties show the domain prefix already; you only add the path.)
+3. Under **Add a new sitemap**, enter the **full URL** (Domain properties often reject `sitemap.xml` alone):
+   - **`https://rettmarkfirearms.com/sitemap.xml`**
 4. Click **Submit**.
 5. The table below may show **Success**, **Pending**, or **Couldn’t fetch** at first. **Pending** is normal for a few hours. If it stays failed after 24–48 hours, confirm the live file loads:  
    **https://rettmarkfirearms.com/sitemap.xml**
