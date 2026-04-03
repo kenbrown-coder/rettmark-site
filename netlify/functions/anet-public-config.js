@@ -8,23 +8,47 @@
  *
  * ANET_SANDBOX: true → jstest.authorize.net; false → js.authorize.net (live account + UI Test Mode → false).
  * In Netlify, scope this variable for Functions (or “All”), not Builds-only — otherwise functions see it as unset and default to sandbox.
+ *
+ * CORS: optional CHECKOUT_ALLOWED_ORIGINS — see docs/security-checkout.md
  */
-function headers() {
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Cache-Control": "no-store"
-  };
+var corsAllowlist = require("./lib/cors-allowlist.js");
+
+function buildHeaders(corsResult) {
+  return Object.assign(
+    {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    },
+    corsResult.headers
+  );
 }
 
 exports.handler = async function (event) {
+  var corsResult = corsAllowlist.corsForRequest(event, "GET, OPTIONS");
+
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: headers(), body: "" };
+    if (!corsResult.ok) {
+      return { statusCode: 403, headers: corsResult.headers, body: "" };
+    }
+    return { statusCode: 204, headers: buildHeaders(corsResult), body: "" };
   }
   if (event.httpMethod !== "GET") {
-    return { statusCode: 405, headers: headers(), body: JSON.stringify({ error: "Method not allowed" }) };
+    if (!corsResult.ok) {
+      return { statusCode: 403, headers: corsResult.headers, body: JSON.stringify({ error: "Forbidden" }) };
+    }
+    return {
+      statusCode: 405,
+      headers: buildHeaders(corsResult),
+      body: JSON.stringify({ error: "Method not allowed" })
+    };
+  }
+
+  if (!corsResult.ok) {
+    return {
+      statusCode: 403,
+      headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+      body: JSON.stringify({ error: "Forbidden" })
+    };
   }
 
   var clientKey = String(
@@ -41,7 +65,7 @@ exports.handler = async function (event) {
 
   return {
     statusCode: 200,
-    headers: headers(),
+    headers: buildHeaders(corsResult),
     body: JSON.stringify({
       clientKey: clientKey,
       apiLoginId: apiLoginId,

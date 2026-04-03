@@ -280,7 +280,64 @@
     }
 
     var submitBtn = $("confirm-submit");
-    if (submitBtn) submitBtn.disabled = false;
+    var siteKeyForPay = String(window.RETTMARK_TURNSTILE_SITE_KEY || "").trim();
+    if (submitBtn) {
+      submitBtn.disabled = Boolean(siteKeyForPay);
+    }
+
+    var tsWidgetId = null;
+    var turnstileAfterToken = null;
+
+    function loadConfirmTurnstile() {
+      var siteKey = String(window.RETTMARK_TURNSTILE_SITE_KEY || "").trim();
+      if (!siteKey) {
+        return;
+      }
+      var mount = $("checkout-confirm-turnstile");
+      if (!mount) {
+        if (submitBtn) submitBtn.disabled = false;
+        return;
+      }
+      function renderTs() {
+        if (!window.turnstile) {
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+        tsWidgetId = window.turnstile.render(mount, {
+          sitekey: siteKey,
+          size: "invisible",
+          callback: function (token) {
+            if (typeof turnstileAfterToken === "function") {
+              var fn = turnstileAfterToken;
+              turnstileAfterToken = null;
+              fn(token || "");
+            }
+          },
+          "error-callback": function () {
+            turnstileAfterToken = null;
+            showErr("Security verification failed to load. Please refresh the page.");
+            resetSubmitBtn();
+          }
+        });
+        if (submitBtn) submitBtn.disabled = false;
+      }
+      if (window.turnstile) {
+        renderTs();
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      s.async = true;
+      s.defer = true;
+      s.onload = renderTs;
+      s.onerror = function () {
+        if (submitBtn) submitBtn.disabled = false;
+        showErr("Could not load security verification. Check your connection and refresh.");
+      };
+      document.head.appendChild(s);
+    }
+
+    loadConfirmTurnstile();
 
     function resetSubmitBtn() {
       if (!submitBtn) return;
@@ -340,99 +397,126 @@
           };
         }
 
-        var payload = {
-          opaqueData: {
-            dataDescriptor: op.opaqueData.dataDescriptor,
-            dataValue: op.opaqueData.dataValue
-          },
-          amount: t.grandTotal.toFixed(2),
-          cart: freshCart,
-          customerEmail: email,
-          billTo: {
-            firstName: billTo.firstName || "",
-            lastName: billTo.lastName || "",
-            address: billTo.address || "",
-            city: billTo.city || "",
-            state: billTo.state || "",
-            zip: billTo.zip || "",
-            country: billTo.country || "US"
-          },
-          invoiceNumber: inv,
-          discountAmount: t.discountAmount.toFixed(2),
-          shippingAmount: t.shippingAmount.toFixed(2),
-          shippingCreditAmount: (Number(t.shippingCreditAmount) || 0).toFixed(2),
-          surchargeAmount: (Number(t.surchargeAmount) || 0).toFixed(2),
-          taxAmount: t.taxAmount.toFixed(2),
-          discountCode: t.discountCode || ""
-        };
-        if (shipTo) {
-          payload.shipTo = shipTo;
-        }
-
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.textContent = "Processing…";
         }
 
-        var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
-        var timeoutId = ac
-          ? setTimeout(function () {
-              ac.abort();
-            }, 90000)
-          : null;
+        function sendCharge(turnstileToken) {
+          var payload = {
+            opaqueData: {
+              dataDescriptor: op.opaqueData.dataDescriptor,
+              dataValue: op.opaqueData.dataValue
+            },
+            amount: t.grandTotal.toFixed(2),
+            cart: freshCart,
+            customerEmail: email,
+            billTo: {
+              firstName: billTo.firstName || "",
+              lastName: billTo.lastName || "",
+              address: billTo.address || "",
+              city: billTo.city || "",
+              state: billTo.state || "",
+              zip: billTo.zip || "",
+              country: billTo.country || "US"
+            },
+            invoiceNumber: inv,
+            discountAmount: t.discountAmount.toFixed(2),
+            shippingAmount: t.shippingAmount.toFixed(2),
+            shippingCreditAmount: (Number(t.shippingCreditAmount) || 0).toFixed(2),
+            surchargeAmount: (Number(t.surchargeAmount) || 0).toFixed(2),
+            taxAmount: t.taxAmount.toFixed(2),
+            discountCode: t.discountCode || "",
+            turnstileToken: turnstileToken || ""
+          };
+          if (shipTo) {
+            payload.shipTo = shipTo;
+          }
 
-        var fetchOpts = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        };
-        if (ac) fetchOpts.signal = ac.signal;
+          var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+          var timeoutId = ac
+            ? setTimeout(function () {
+                ac.abort();
+              }, 90000)
+            : null;
 
-        fetch(S.netlifyFunctionUrl("anet-transaction"), fetchOpts)
-          .then(function (r) {
-            return r.text().then(function (text) {
-              var data = {};
-              try {
-                data = text ? JSON.parse(text) : {};
-              } catch (parseErr) {
-                data = { error: "Invalid response from payment server." };
+          var fetchOpts = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          };
+          if (ac) fetchOpts.signal = ac.signal;
+
+          fetch(S.netlifyFunctionUrl("anet-transaction"), fetchOpts)
+            .then(function (r) {
+              return r.text().then(function (text) {
+                var data = {};
+                try {
+                  data = text ? JSON.parse(text) : {};
+                } catch (parseErr) {
+                  data = { error: "Invalid response from payment server." };
+                }
+                return { ok: r.ok, status: r.status, data: data };
+              });
+            })
+            .then(function (result) {
+              if (result.ok && result.data && result.data.ok) {
+                writeCartEmpty(S);
+                clearCheckoutSession(S);
+                try {
+                  sessionStorage.setItem(
+                    "rettmark_last_order",
+                    JSON.stringify({
+                      transactionId: result.data.transactionId,
+                      authCode: result.data.authCode,
+                      invoiceNumber: inv
+                    })
+                  );
+                } catch (e5) {}
+                go("order-success.html");
+                return;
               }
-              return { ok: r.ok, status: r.status, data: data };
+              if (tsWidgetId != null && window.turnstile && typeof window.turnstile.reset === "function") {
+                try {
+                  window.turnstile.reset(tsWidgetId);
+                } catch (rs) {}
+              }
+              var err =
+                (result.data && result.data.error) || "Payment could not be completed.";
+              showErr(err);
+              resetSubmitBtn();
+            })
+            .catch(function (err) {
+              if (tsWidgetId != null && window.turnstile && typeof window.turnstile.reset === "function") {
+                try {
+                  window.turnstile.reset(tsWidgetId);
+                } catch (rs2) {}
+              }
+              if (err && err.name === "AbortError") {
+                showErr("Payment timed out. Wait a moment and try again.");
+              } else {
+                showErr("Network error. Try again or contact us.");
+              }
+              resetSubmitBtn();
+            })
+            .finally(function () {
+              if (timeoutId) clearTimeout(timeoutId);
             });
-          })
-          .then(function (result) {
-            if (result.ok && result.data && result.data.ok) {
-              writeCartEmpty(S);
-              clearCheckoutSession(S);
-              try {
-                sessionStorage.setItem(
-                  "rettmark_last_order",
-                  JSON.stringify({
-                    transactionId: result.data.transactionId,
-                    authCode: result.data.authCode,
-                    invoiceNumber: inv
-                  })
-                );
-              } catch (e5) {}
-              go("order-success.html");
-              return;
-            }
-            var err =
-              (result.data && result.data.error) || "Payment could not be completed.";
-            showErr(err);
+        }
+
+        if (tsWidgetId != null && window.turnstile) {
+          turnstileAfterToken = sendCharge;
+          try {
+            window.turnstile.reset(tsWidgetId);
+            window.turnstile.execute(tsWidgetId);
+          } catch (execErr) {
+            turnstileAfterToken = null;
             resetSubmitBtn();
-          })
-          .catch(function (err) {
-            if (err && err.name === "AbortError") {
-              showErr("Payment timed out. Wait a moment and try again.");
-            } else {
-              showErr("Network error. Try again or contact us.");
-            }
-            resetSubmitBtn();
-          })
-          .finally(function () {
-            if (timeoutId) clearTimeout(timeoutId);
-          });
+            showErr("Security check failed. Please refresh and try again.");
+          }
+        } else {
+          sendCharge("");
+        }
       });
   }
 

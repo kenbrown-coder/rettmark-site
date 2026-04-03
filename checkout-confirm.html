@@ -40,6 +40,7 @@
         <h2 id="confirm-invoice-heading">Invoice</h2>
         <div id="confirm-invoice-root" class="checkout-summary"></div>
         <p id="confirm-error" class="notify-form__error" hidden role="alert"></p>
+        <div id="checkout-confirm-turnstile" class="checkout-confirm-turnstile" aria-hidden="true"></div>
         <div class="checkout-form__actions" style="margin-top: 20px">
           <button type="button" class="submit" id="confirm-submit" disabled>Submit order &amp; pay</button>
         </div>
@@ -58,6 +59,7 @@
     </div>
   </div>
 
+  <script src="js/turnstile-config.js"></script>
   <script src="js/checkout-shared.js"></script>
   <script src="js/site.js"></script>
   <script src="js/checkout-confirm.js"></script>

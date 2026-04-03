@@ -453,7 +453,9 @@
                 ? "That saved code is no longer valid."
                 : d && d.error === "code_exhausted"
                   ? "That code has reached its maximum number of uses."
-                  : "Could not verify discount. Re-enter a code or continue without one.",
+                  : d && d.error === "forbidden"
+                    ? "This page can’t reach the discount service from here. Open the shop from the live site or contact us."
+                    : "Could not verify discount. Re-enter a code or continue without one.",
               true
             );
             recalcShippingOnly();
@@ -521,6 +523,11 @@
             );
           } else if (d && d.error === "missing_cart") {
             showCodeHint("Could not read your cart for this code. Refresh the page and try again.", true);
+          } else if (d && d.error === "forbidden") {
+            showCodeHint(
+              "This page can’t reach the discount service from here. Open the shop from the live site or contact us.",
+              true
+            );
           } else if ((d && d.error === "network") || result.status === 0) {
             showCodeHint("Could not reach the server. Check your connection and try again.", true);
           } else {

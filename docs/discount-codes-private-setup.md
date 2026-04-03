@@ -22,8 +22,11 @@ You chose **private** rules: codes are not exposed via a public `raw.githubuserc
 
 ## 3. Security habits
 
+- Prefer a **fine-grained** GitHub PAT with **Contents: Read-only** on the discount-rules repo only (not full `repo` scope unless required).
 - Rotate the PAT if it leaks; restrict to the smallest repo access possible.
 - Never paste the token into frontend code or public issues.
+
+See [security-checkout.md](security-checkout.md) for checkout hardening (CORS, Turnstile on pay, logging).
 
 ## 4. Updating promos later
 

@@ -4,6 +4,11 @@
 #
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
+# Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges (see docs/security-checkout.md).
+# Optional: REQUIRE_TURNSTILE_ON_CHARGE=1 — 503 if secret missing (production safety).
+#
+# Checkout API CORS: CHECKOUT_ALLOWED_ORIGINS — comma-separated exact origins (e.g. https://rettmarkfirearms.com).
+# If unset, functions allow * (legacy). Set in production.
 #
 # Authorize.Net checkout (env vars only — not baked into js/* for Netlify secret scan):
 #   ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID → GET /.netlify/functions/anet-public-config
@@ -12,8 +17,8 @@
 #     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
 #   Invoice email (Resend): RESEND_API_KEY + RESEND_FROM (domain verified in Resend).
 #     Optional: RESEND_SALES_EMAIL (default sales@rettmarkfirearms.com), RESEND_REPLY_TO, RESEND_DEBUG=1.
-#   If Accept.js says invalid authentication, open in browser (production):
-#   https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys
+#   Key diagnostic: GET /.netlify/functions/anet-verify-keys — disabled unless ANET_VERIFY_KEYS_ENABLED=1
+#   (leave unset in production). If enabled, same CORS allowlist as other checkout functions.
 #
 # Private discount codes (GitHub JSON in a private repo; server-only PAT):
 #   GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER, GITHUB_DISCOUNT_REPO, GITHUB_DISCOUNT_PATH

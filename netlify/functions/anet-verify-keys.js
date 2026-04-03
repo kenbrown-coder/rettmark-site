@@ -4,23 +4,20 @@
  *
  * Does not expose the transaction key. Public client key prefixes are included only
  * if they differ (both are already public once used on checkout).
+ *
+ * Disabled by default: set ANET_VERIFY_KEYS_ENABLED=1 to expose this endpoint.
+ * CORS: optional CHECKOUT_ALLOWED_ORIGINS — see docs/security-checkout.md
  */
-function corsHeaders() {
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Cache-Control": "no-store"
-  };
-}
+var corsAllowlist = require("./lib/cors-allowlist.js");
 
-function json(status, obj) {
-  return {
-    statusCode: status,
-    headers: corsHeaders(),
-    body: JSON.stringify(obj)
-  };
+function buildHeaders(corsResult) {
+  return Object.assign(
+    {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    },
+    corsResult.headers
+  );
 }
 
 function anetApiUrl() {
@@ -58,11 +55,45 @@ function extractPublicClientKey(data) {
 }
 
 exports.handler = async function (event) {
+  var enabled = String(process.env.ANET_VERIFY_KEYS_ENABLED || "")
+    .trim()
+    .toLowerCase();
+  if (enabled !== "1" && enabled !== "true") {
+    return { statusCode: 404, headers: { "Content-Type": "text/plain; charset=utf-8" }, body: "Not found" };
+  }
+
+  var corsResult = corsAllowlist.corsForRequest(event, "GET, OPTIONS");
+  function json(status, obj) {
+    if (!corsResult.ok) {
+      return {
+        statusCode: 403,
+        headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+        body: JSON.stringify({ error: "Forbidden" })
+      };
+    }
+    return {
+      statusCode: status,
+      headers: buildHeaders(corsResult),
+      body: JSON.stringify(obj)
+    };
+  }
+
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders(), body: "" };
+    if (!corsResult.ok) {
+      return { statusCode: 403, headers: corsResult.headers, body: "" };
+    }
+    return { statusCode: 204, headers: buildHeaders(corsResult), body: "" };
   }
   if (event.httpMethod !== "GET") {
     return json(405, { error: "Method not allowed" });
+  }
+
+  if (!corsResult.ok) {
+    return {
+      statusCode: 403,
+      headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+      body: JSON.stringify({ error: "Forbidden" })
+    };
   }
 
   var login = String(

@@ -6,29 +6,34 @@
  *   shippingCreditMaxAmount — optional; promotion cap for fixed shipping credits (actual credit = min(cap, quoted shipping)).
  *
  * Same env as lib/discount-rules-from-github.js
+ * CORS: optional CHECKOUT_ALLOWED_ORIGINS — see docs/security-checkout.md
  */
 
 var discountLib = require("./lib/discount-rules-from-github.js");
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
-  };
-}
-
-function json(status, obj) {
-  return {
-    statusCode: status,
-    headers: Object.assign({ "Content-Type": "application/json" }, corsHeaders()),
-    body: JSON.stringify(obj)
-  };
-}
+var corsAllowlist = require("./lib/cors-allowlist.js");
 
 exports.handler = async function (event) {
+  var corsResult = corsAllowlist.corsForRequest(event, "POST, OPTIONS");
+  function json(status, obj) {
+    if (!corsResult.ok) {
+      return {
+        statusCode: 403,
+        headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+        body: JSON.stringify({ ok: false, error: "forbidden" })
+      };
+    }
+    return {
+      statusCode: status,
+      headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+      body: JSON.stringify(obj)
+    };
+  }
+
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders(), body: "" };
+    if (!corsResult.ok) {
+      return { statusCode: 403, headers: corsResult.headers, body: "" };
+    }
+    return { statusCode: 204, headers: corsResult.headers, body: "" };
   }
   if (event.httpMethod !== "POST") {
     return json(405, { ok: false, error: "method_not_allowed" });

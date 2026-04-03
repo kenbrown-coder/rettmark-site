@@ -10,6 +10,10 @@ __pycache__/
 # Node (Netlify runs npm install when package.json exists)
 node_modules/
 
+# Local secret overrides (keep real keys here; never commit)
+.env.local
+.env.*.local
+
 # Editor / OS
 .vscode/preview-url.txt
 .cursor/

@@ -17,7 +17,9 @@
  *
  * POST JSON body:
  *   { opaqueData, amount, cart, customerEmail, billTo, shipTo?, invoiceNumber?,
- *     discountAmount?, shippingAmount?, shippingCreditAmount?, surchargeAmount?, taxAmount? }
+ *     discountAmount?, shippingAmount?, shippingCreditAmount?, surchargeAmount?, taxAmount?,
+ *     turnstileToken? }
+ *   When TURNSTILE_SECRET_KEY is set, turnstileToken is required (Cloudflare siteverify).
  *   When those breakdown fields are present (even 0), amount must equal
  *   subtotal − merchandise discount + surcharge + (shipping − shipping credit) + tax (dollars, 2 decimals).
  *   Omit all three for legacy behavior: amount must equal sum of cart line totals only.
@@ -26,25 +28,15 @@
  * GITHUB_DISCOUNT_REPO, GITHUB_DISCOUNT_PATH, optional GITHUB_DISCOUNT_REF.
  * When a discount code or non-zero discount is present, the server recomputes the
  * discount from GitHub and rejects mismatches.
+ *
+ * CORS: optional CHECKOUT_ALLOWED_ORIGINS (comma-separated exact origins).
+ * Turnstile: optional TURNSTILE_SECRET_KEY; body.turnstileToken verified before charge.
+ * See docs/security-checkout.md.
  */
 
 var discountLib = require("./lib/discount-rules-from-github.js");
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
-  };
-}
-
-function json(status, obj) {
-  return {
-    statusCode: status,
-    headers: Object.assign({ "Content-Type": "application/json" }, corsHeaders()),
-    body: JSON.stringify(obj)
-  };
-}
+var corsAllowlist = require("./lib/cors-allowlist.js");
+var turnstileVerify = require("./lib/turnstile-verify.js");
 
 function sumCartCents(cart) {
   if (!Array.isArray(cart)) return 0;
@@ -308,8 +300,27 @@ async function sendInvoiceEmails(body, amountStr) {
 }
 
 exports.handler = async function (event) {
+  var corsResult = corsAllowlist.corsForRequest(event, "POST, OPTIONS");
+  function json(status, obj) {
+    if (!corsResult.ok) {
+      return {
+        statusCode: 403,
+        headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+        body: JSON.stringify({ error: "Forbidden" })
+      };
+    }
+    return {
+      statusCode: status,
+      headers: Object.assign({ "Content-Type": "application/json" }, corsResult.headers),
+      body: JSON.stringify(obj)
+    };
+  }
+
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders(), body: "" };
+    if (!corsResult.ok) {
+      return { statusCode: 403, headers: corsResult.headers, body: "" };
+    }
+    return { statusCode: 204, headers: corsResult.headers, body: "" };
   }
 
   if (event.httpMethod !== "POST") {
@@ -334,6 +345,16 @@ exports.handler = async function (event) {
     body = JSON.parse(event.body || "{}");
   } catch (e) {
     return json(400, { error: "Invalid JSON body" });
+  }
+
+  var ts = await turnstileVerify.verifyTurnstileForCharge(
+    body.turnstileToken,
+    turnstileVerify.clientIpFromEvent(event)
+  );
+  if (!ts.ok) {
+    return json(ts.status || 400, {
+      error: ts.userMessage || "Security verification failed."
+    });
   }
 
   var opaque = body.opaqueData;
