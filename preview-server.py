@@ -14,6 +14,24 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT_TRIES = 20
 
 
+class PreviewHTTPServer(ThreadingHTTPServer):
+    """
+    On Windows, use SO_EXCLUSIVEADDRUSE so a second preview cannot bind the same port.
+    Without this, stale Python listeners can stack on 127.0.0.1:8080 and browsers see
+    ERR_EMPTY_RESPONSE / connection closed unexpectedly.
+
+    HTTPServer defaults allow_reuse_address = 1, which sets SO_REUSEADDR; on Windows that
+    conflicts with SO_EXCLUSIVEADDRUSE, so we disable reuse here.
+    """
+
+    allow_reuse_address = False
+
+    def server_bind(self):
+        if sys.platform == "win32":
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def _configure_stdio():
     if hasattr(sys.stdout, "reconfigure"):
         try:
@@ -28,7 +46,10 @@ def _automate():
 
 
 def _probe_loopback(port, bind_host):
-    """Ensure TCP accept works before telling the IDE to open Simple Browser (-102 = connection refused)."""
+    """Ensure TCP accept works before telling the IDE to open Simple Browser (-102 = connection refused).
+
+    Must not send an HTTP request here: serve_forever() has not started yet, so nothing would accept it.
+    """
     connect_host = "127.0.0.1" if bind_host in ("0.0.0.0", "::") else bind_host
     for _ in range(60):
         try:
@@ -105,7 +126,7 @@ def main():
     port = None
     for p in port_candidates:
         try:
-            httpd = ThreadingHTTPServer((host, p), PreviewHandler)
+            httpd = PreviewHTTPServer((host, p), PreviewHandler)
             port = p
             break
         except OSError:
@@ -113,7 +134,12 @@ def main():
 
     if httpd is None:
         if _automate():
-            print("Could not bind port %s (is another preview already running?)" % base, flush=True)
+            print(
+                "Could not bind port %s - stop other previews or end stray Python processes "
+                "using that port (duplicate listeners on Windows cause empty browser responses)."
+                % base,
+                flush=True,
+            )
         else:
             print("Could not bind any port in range %s-%s." % (base, base + PORT_TRIES - 1), flush=True)
         sys.exit(1)

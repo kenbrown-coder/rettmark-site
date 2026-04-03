@@ -649,40 +649,6 @@
 
   initSupplyNotice();
 
-  function initHhdgOrderNotice() {
-    var shop = document.getElementById("hhdg-shop");
-    var catalog = document.getElementById("hhdg-catalog");
-    var dlg = document.getElementById("hhdg-order-notice");
-    if (!shop || !catalog || !dlg || typeof dlg.showModal !== "function") return;
-
-    var key = "rettmark_hhdg_order_notice_v1";
-
-    function unlock() {
-      catalog.removeAttribute("inert");
-      catalog.removeAttribute("aria-hidden");
-      shop.classList.remove("is-locked");
-    }
-
-    if (localStorage.getItem(key) === "1") {
-      unlock();
-      return;
-    }
-
-    var form = dlg.querySelector("form");
-    if (form) {
-      form.addEventListener("submit", function () {
-        try {
-          localStorage.setItem(key, "1");
-        } catch (e) {}
-        unlock();
-      });
-    }
-
-    dlg.showModal();
-  }
-
-  initHhdgOrderNotice();
-
   function initNotifyFormTurnstile() {
     var siteKey =
       typeof window.RETTMARK_TURNSTILE_SITE_KEY === "string"

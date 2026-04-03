@@ -21,7 +21,7 @@
         "pattern": { "regexp": "^$" },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": ".",
+          "beginsPattern": ".*",
           "endsPattern": "RETTMARK_PREVIEW_READY"
         }
       },
