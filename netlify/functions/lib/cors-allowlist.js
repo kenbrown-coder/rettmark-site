@@ -14,16 +14,31 @@ function parseAllowedOrigins() {
   return parts.length ? parts : null;
 }
 
-function getRequestOrigin(event) {
+function headerValue(event, nameLower) {
   var h = event.headers || {};
-  var origin = "";
   for (var k in h) {
-    if (Object.prototype.hasOwnProperty.call(h, k) && String(k).toLowerCase() === "origin") {
-      origin = String(h[k] || "").trim();
-      break;
+    if (Object.prototype.hasOwnProperty.call(h, k) && String(k).toLowerCase() === nameLower) {
+      return String(h[k] || "").trim();
     }
   }
-  return origin;
+  return "";
+}
+
+function getRequestOrigin(event) {
+  return headerValue(event, "origin");
+}
+
+/**
+ * Same-origin fetch GET often omits Origin. Netlify sends Host + x-forwarded-proto;
+ * synthesize an origin so CHECKOUT_ALLOWED_ORIGINS can still match the live site.
+ */
+function syntheticOriginFromRequest(event) {
+  var host = headerValue(event, "host");
+  if (!host) return "";
+  var proto = headerValue(event, "x-forwarded-proto").split(",")[0].trim().toLowerCase();
+  if (proto !== "https" && proto !== "http") proto = "https";
+  var hostname = host.split(":")[0].toLowerCase();
+  return proto + "://" + hostname;
 }
 
 /**
@@ -52,6 +67,20 @@ function corsForRequest(event, allowMethods) {
       headers: Object.assign(
         {
           "Access-Control-Allow-Origin": origin,
+          Vary: "Origin"
+        },
+        base
+      )
+    };
+  }
+
+  var synthetic = syntheticOriginFromRequest(event);
+  if (synthetic && list.indexOf(synthetic) !== -1) {
+    return {
+      ok: true,
+      headers: Object.assign(
+        {
+          "Access-Control-Allow-Origin": synthetic,
           Vary: "Origin"
         },
         base
