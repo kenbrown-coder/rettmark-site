@@ -17,6 +17,7 @@
 #     (api/js.authorize.net). Use false for a live merchant account even if “Test Mode” is ON in the UI.
 #   Invoice email (Resend): RESEND_API_KEY + RESEND_FROM (domain verified in Resend).
 #     Optional: RESEND_SALES_EMAIL (default sales@rettmarkfirearms.com), RESEND_REPLY_TO, RESEND_DEBUG=1.
+#     Step-by-step: docs/resend-setup.md (requires your Resend account + DNS; cannot be automated in git).
 #   Key diagnostic: GET /.netlify/functions/anet-verify-keys — disabled unless ANET_VERIFY_KEYS_ENABLED=1
 #   (leave unset in production). If enabled, same CORS allowlist as other checkout functions.
 #
