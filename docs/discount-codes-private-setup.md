@@ -6,7 +6,7 @@ You chose **private** rules: codes are not exposed via a public `raw.githubuserc
 
 - Create a **private** repo (e.g. `rettmark-discount-rules`) **or** use an existing private repo.
 - Add a file such as `discount-codes.json` at the path you prefer (e.g. root or `config/discount-codes.json`).
-- Copy from this site’s `data/discount-codes.example.json`, replace with real codes, commit on `main` (or note the branch you use).
+- In the **site repo**, treat **`data/discount-codes.local.txt`** as an **exact mirror** of that private file: same JSON array, end to end. It uses a **`.txt`** extension for easy copy-paste; contents must still be valid JSON. When promos change, edit the local file here, then copy **the whole file** into the private GitHub **`.json`** file and push (no site redeploy for content-only GitHub edits). **`data/discount-codes.example.json`** should stay aligned with the same shape (and sample rules) for documentation and public repos.
 
 ## 2. Token for Netlify (read-only)
 
@@ -30,8 +30,9 @@ See [security-checkout.md](security-checkout.md) for checkout hardening (CORS, T
 
 ## 4. Updating promos later
 
-- Edit `discount-codes.json` in the **private** repo → commit → push.  
-- No Netlify **site** redeploy is required for content-only changes **after** Step 2–3 are implemented (functions read GitHub at runtime).
+- **Recommended:** Edit **`data/discount-codes.local.txt`** in the **site** repo first, then paste its full contents into **`discount-codes.json`** (or your configured path) in the **private** repo → commit → push. That keeps your working copy and GitHub in lockstep.
+- Alternatively, edit the private file directly—then copy back into `discount-codes.local.txt` here so the site repo stays the single offline mirror.
+- No Netlify **site** redeploy is required for content-only JSON changes (functions read GitHub at runtime).
 
 **Implemented names** (use these in Netlify):
 

@@ -94,7 +94,11 @@ function sumCartCents(cart) {
   return s;
 }
 
-/** Subtotal cents for lines that may receive percent/fixed merchandise promos and surcharges. */
+/**
+ * Subtotal cents for lines that may receive percent/fixed merchandise promos and surcharges.
+ * Hunters HD Gold (glasses / hhdg- URLs) is excluded so catalog pricing (e.g. $299.99) is not
+ * reduced by merchandise discounts or surcharges.
+ */
 function sumPromoEligibleMerchCents(cart) {
   if (!Array.isArray(cart)) return 0;
   var s = 0;
@@ -145,6 +149,28 @@ function computeDiscountDollars(subtotalDollars, def) {
 }
 
 /**
+ * Extra merchandise % stacked on shipping promos (see docs/discount-codes-schema.md).
+ * Accepts a few alternate keys in case the private JSON was edited by hand.
+ */
+function readMerchandiseStackPercent(rule) {
+  if (!rule || typeof rule !== "object") return NaN;
+  var raw =
+    rule.merchandiseDiscountPercent != null && rule.merchandiseDiscountPercent !== ""
+      ? rule.merchandiseDiscountPercent
+      : rule.merchDiscountPercent != null && rule.merchDiscountPercent !== ""
+        ? rule.merchDiscountPercent
+        : rule.MerchandiseDiscountPercent != null && rule.MerchandiseDiscountPercent !== ""
+          ? rule.MerchandiseDiscountPercent
+          : rule.merchandise_discount_percent != null && rule.merchandise_discount_percent !== ""
+            ? rule.merchandise_discount_percent
+            : rule.merchandiseDiscountPrecent != null && rule.merchandiseDiscountPrecent !== ""
+              ? rule.merchandiseDiscountPrecent
+              : NaN;
+  var n = Number(raw);
+  return isFinite(n) ? n : NaN;
+}
+
+/**
  * @param {number} shippingCents gross quoted shipping
  * @param {object} rule matched rule
  * @param {number} promoMerchBaseCents merchandise subtotal that may be discounted / surcharged (excludes HHDG)
@@ -172,24 +198,34 @@ function computePromoPartsCents(shippingCents, rule, promoMerchBaseCents) {
   if (applyTo === "shipping") {
     var v2 = Number(rule.value);
     if (!isFinite(v2) || v2 < 0) v2 = 0;
+    var shipResult;
     if (rule.kind === "fixed") {
       var creditD = roundMoney(Math.min(v2, shipD));
-      return {
+      shipResult = {
         merchDiscCents: 0,
         shipCreditCents: Math.round(creditD * 100),
         surchargeCents: 0
       };
-    }
-    if (rule.kind === "percent") {
+    } else if (rule.kind === "percent") {
       var pctS = Math.min(v2, 100);
       var credP = roundMoney((shipD * pctS) / 100);
-      return {
+      shipResult = {
         merchDiscCents: 0,
         shipCreditCents: Math.round(credP * 100),
         surchargeCents: 0
       };
+    } else {
+      shipResult = { merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
     }
-    return { merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
+    var mdp = readMerchandiseStackPercent(rule);
+    if (isFinite(mdp) && mdp > 0) {
+      mdp = Math.min(mdp, 100);
+      var extraD = roundMoney((subD * mdp) / 100);
+      var exCents = Math.round(extraD * 100);
+      exCents = Math.min(Math.max(0, exCents), base);
+      shipResult.merchDiscCents = exCents;
+    }
+    return shipResult;
   }
   var dollars = computeDiscountDollars(subD, rule);
   var cents = Math.round(dollars * 100);
@@ -204,7 +240,7 @@ function computePromoPartsCents(shippingCents, rule, promoMerchBaseCents) {
  * @param {number} shippingCents gross shipping before credit
  * @param {object} [lambdaEvent]
  * @param {object[]|null|undefined} cart same shape as checkout cart; used to exclude Hunters HD Gold from merch promos
- * @returns {Promise<{ ok: boolean, merchDiscCents: number, shipCreditCents: number, surchargeCents: number, shippingCreditMaxCents?: number, error?: string }>}
+ * @returns {Promise<{ ok: boolean, merchDiscCents: number, shipCreditCents: number, surchargeCents: number, shippingCreditMaxCents?: number, promoEligibleMerchCents?: number, merchandiseDiscountPercentOffered?: number|null, error?: string }>}
  */
 async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents, lambdaEvent, cart) {
   var shipIn = Math.max(0, Math.round(Number(shippingCents) || 0));
@@ -282,6 +318,14 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
       out.shippingCreditMaxCents = Math.round(roundMoney(capVal) * 100);
     }
   }
+  out.promoEligibleMerchCents = promoMerchBaseCents;
+  if (applyToR === "shipping") {
+    var mdpOffer = readMerchandiseStackPercent(rule);
+    out.merchandiseDiscountPercentOffered =
+      isFinite(mdpOffer) && mdpOffer > 0 ? Math.min(mdpOffer, 100) : null;
+  } else {
+    out.merchandiseDiscountPercentOffered = null;
+  }
   return out;
 }
 
@@ -291,6 +335,7 @@ module.exports = {
   findRuleForCode,
   computeDiscountDollars,
   computePromoPartsCents,
+  readMerchandiseStackPercent,
   roundMoney,
   resolveExpectedPromoCents,
   sumCartCents,

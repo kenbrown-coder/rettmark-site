@@ -4,6 +4,9 @@
  *   cart is required; subtotal must match sum(cart) within 2¢. Merch discounts/surcharges exclude Hunters HD Gold lines.
  * Response: { ok, discountAmount, shippingCreditAmount, surchargeAmount, code } (amounts in dollars).
  *   shippingCreditMaxAmount — optional; promotion cap for fixed shipping credits (actual credit = min(cap, quoted shipping)).
+ *   eligibleMerchandiseSubtotal — dollars; promo-eligible merchandise only (Hunters HD Gold / hhdg- lines excluded).
+ *   merchandiseDiscountPercentOffered — optional; if the matched rule is applyTo shipping with merchandiseDiscountPercent in JSON.
+ *   Shipping rules may set merchandiseDiscountPercent (see docs/discount-codes-schema.md) for a stacked merch discount (HHDG excluded).
  *
  * Same env as lib/discount-rules-from-github.js
  * CORS: optional CHECKOUT_ALLOWED_ORIGINS — see docs/security-checkout.md
@@ -104,6 +107,12 @@ exports.handler = async function (event) {
     surchargeAmount: resolved.surchargeCents / 100,
     code: codeRaw
   };
+  if (resolved.promoEligibleMerchCents != null && isFinite(resolved.promoEligibleMerchCents)) {
+    resBody.eligibleMerchandiseSubtotal = discountLib.roundMoney(resolved.promoEligibleMerchCents / 100);
+  }
+  if (resolved.merchandiseDiscountPercentOffered != null) {
+    resBody.merchandiseDiscountPercentOffered = resolved.merchandiseDiscountPercentOffered;
+  }
   if (resolved.shippingCreditMaxCents != null && isFinite(resolved.shippingCreditMaxCents)) {
     resBody.shippingCreditMaxAmount = resolved.shippingCreditMaxCents / 100;
   }

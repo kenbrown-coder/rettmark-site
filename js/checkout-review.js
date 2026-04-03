@@ -76,6 +76,12 @@
     return Math.round(Number(n || 0) * 100) / 100;
   }
 
+  /** Coerce API amounts (number or numeric string); missing → 0. */
+  function promoMoney(v) {
+    var n = Number(v);
+    return isFinite(n) ? n : 0;
+  }
+
   function parseMoneyInput(raw) {
     if (raw == null) return 0;
     var s = String(raw).trim().replace(/[$,\s]/g, "");
@@ -127,12 +133,13 @@
 
   function applyPromoFromValidateData(d) {
     if (!d || typeof d !== "object") return;
-    state.discountAmount = roundMoney(d.discountAmount || 0);
-    state.shippingCreditAmount = roundMoney(d.shippingCreditAmount || 0);
-    state.surchargeAmount = roundMoney(d.surchargeAmount || 0);
+    state.discountAmount = roundMoney(promoMoney(d.discountAmount));
+    state.shippingCreditAmount = roundMoney(promoMoney(d.shippingCreditAmount));
+    state.surchargeAmount = roundMoney(promoMoney(d.surchargeAmount));
     var cap = d.shippingCreditMaxAmount;
+    var capN = promoMoney(cap);
     state.shippingCreditMaxAmount =
-      typeof cap === "number" && isFinite(cap) && cap >= 0 ? roundMoney(cap) : null;
+      cap != null && cap !== "" && isFinite(capN) && capN >= 0 ? roundMoney(capN) : null;
   }
 
   function promoHasAnyEffect() {
@@ -141,6 +148,49 @@
       state.shippingCreditAmount > 0 ||
       state.surchargeAmount > 0
     );
+  }
+
+  /** After applyPromoFromValidateData(d); uses d.eligibleMerchandiseSubtotal / merchandiseDiscountPercentOffered when present. */
+  function showPromoApplySuccessHint(d) {
+    var bits = [];
+    if (state.shippingCreditAmount > 0 && state.shippingCreditMaxAmount != null) {
+      bits.push(
+        "Shipping credit for this order is " +
+          formatUsd(state.shippingCreditAmount) +
+          " (never more than quoted shipping; promotion covers up to " +
+          formatUsd(state.shippingCreditMaxAmount) +
+          ")."
+      );
+    } else if (state.shippingCreditAmount > 0) {
+      bits.push("Shipping credit for this order is " + formatUsd(state.shippingCreditAmount) + ".");
+    }
+    var elig = Number(d && d.eligibleMerchandiseSubtotal);
+    var stackPct = d && d.merchandiseDiscountPercentOffered;
+    if (isFinite(elig) && elig > 0.005 && state.discountAmount > 0.005) {
+      bits.push(
+        "Merchandise discount " +
+          formatUsd(state.discountAmount) +
+          " off eligible items (subtotal " +
+          formatUsd(elig) +
+          "; Hunters HD Gold frames are not included)."
+      );
+    } else if (stackPct != null && stackPct > 0 && (!isFinite(elig) || elig <= 0.005)) {
+      bits.push(
+        "This code includes " +
+          stackPct +
+          "% off eligible cases and bags, but your cart has no qualifying lines (HHDG frames are excluded from that discount)."
+      );
+    }
+    if (bits.length === 0) {
+      showCodeHint(
+        promoHasAnyEffect()
+          ? "Code applied."
+          : "Code accepted (no change for this subtotal and shipping).",
+        false
+      );
+      return;
+    }
+    showCodeHint("Code applied. " + bits.join(" "), false);
   }
 
   function formatSalesTaxPctLabel(code, pct) {
@@ -305,8 +355,10 @@
         String(saved.shippingAddressSig).toUpperCase() === String(currentAddrSig || "").toUpperCase();
 
       if (sigOk && $("review-shipping") && saved.shippingAmount != null) {
-        $("review-shipping").value = roundMoney(saved.shippingAmount).toFixed(2);
-        restoredShipping = true;
+        var savedShipAmt = roundMoney(saved.shippingAmount || 0);
+        $("review-shipping").value = savedShipAmt.toFixed(2);
+        /* Only skip recomputing shipping when we restored a positive quote; $0.00 is invalid for promo math. */
+        restoredShipping = savedShipAmt > 0.005;
       }
       if (saved.discountCode) {
         if ($("review-discount-code")) $("review-discount-code").value = String(saved.discountCode);
@@ -336,6 +388,14 @@
     if ($("review-shipping")) {
       $("review-shipping").value = roundMoney(quote.amount).toFixed(2);
     }
+  }
+
+  /** If the shipping field is still $0, re-run flat-rate rules (fixes stale session totals). */
+  function ensureShippingQuoted(shipAddr, cart) {
+    if (typeof window.rettmarkComputeShipping !== "function") return;
+    var n = parseMoneyInput($("review-shipping") && $("review-shipping").value);
+    if (isFinite(n) && n > 0.005) return;
+    applyRulesShipping(shipAddr, state.subtotal, false, cart || []);
   }
 
   function init() {
@@ -411,13 +471,15 @@
 
     applyRulesShipping(shipAddr, state.subtotal, loadResult.restoredShipping, state.cart);
     recalcShippingOnly();
+    ensureShippingQuoted(shipAddr, state.cart);
+    recalcShippingOnly();
     applyComputedSalesTax(shipAddr);
 
     if (state.appliedCode) {
       validateDiscountRemote(state.appliedCode, state.subtotal, state.shippingAmount, state.cart).then(
         function (result) {
           var d = result.data;
-          if (d && d.ok && typeof d.discountAmount === "number") {
+          if (d && d.ok === true) {
             var prevDisc = state.discountAmount;
             var prevSc = state.shippingCreditAmount;
             var prevSur = state.surchargeAmount;
@@ -484,28 +546,29 @@
           return;
         }
         recalcShippingOnly();
+        ensureShippingQuoted(shipAddr, state.cart);
+        recalcShippingOnly();
         showCodeHint("Checking code…", false);
         validateDiscountRemote(code, state.subtotal, state.shippingAmount, state.cart).then(function (result) {
           var d = result.data;
-          if (d && d.ok && typeof d.discountAmount === "number") {
+          if (d && d.ok === true) {
             state.appliedCode = code;
             applyPromoFromValidateData(d);
-            if (state.shippingCreditAmount > 0 && state.shippingCreditMaxAmount != null) {
-              showCodeHint(
-                "Code applied. Shipping credit for this order is " +
-                  formatUsd(state.shippingCreditAmount) +
-                  " (never more than quoted shipping; promotion covers up to " +
-                  formatUsd(state.shippingCreditMaxAmount) +
-                  ").",
-                false
-              );
+            if (promoHasAnyEffect()) {
+              showPromoApplySuccessHint(d);
             } else {
-              showCodeHint(
-                promoHasAnyEffect()
-                  ? "Code applied."
-                  : "Code accepted (no change for this subtotal and shipping).",
-                false
-              );
+              var shipN = parseMoneyInput($("review-shipping") && $("review-shipping").value);
+              if (!isFinite(shipN) || shipN <= 0.005) {
+                showCodeHint(
+                  "Code accepted, but quoted shipping is still $0.00 — shipping credits need a non-zero shipping amount. Refresh this page or go back to addresses so shipping can be calculated.",
+                  true
+                );
+              } else {
+                showCodeHint(
+                  "Code accepted, but nothing changed on this total. Merchandise discounts exclude Hunters HD Gold frames (10% applies to cases/bags only). Confirm your private GitHub discount file matches data/discount-codes.local.txt and redeploy the site if functions are outdated.",
+                  true
+                );
+              }
             }
             recalcShippingOnly();
             applyComputedSalesTax(shipAddr);

@@ -90,7 +90,7 @@ We will execute **one step at a time**; confirm each step before moving on.
 
 - **Rate limiting / abuse:** optional; low priority unless you see abuse.
 - **Logging:** log rejected code attempts (no full PAN); optional.
-- **Runbook for you:** “Edit `discount-codes.json` → commit → push → wait ~seconds for raw CDN; no Netlify deploy for rule-only changes.”
+- **Runbook for you:** “Edit **`data/discount-codes.local.txt`** in the site repo (mirror of private rules) → paste entire file into private **`discount-codes.json`** → commit → push; no Netlify deploy for rule-only JSON changes.”
 - **When code deploy IS required:** changes to `anet-transaction.js`, checkout JS, or schema logic.
 
 **You:** Confirm runbook; add branch protection if others edit the repo.

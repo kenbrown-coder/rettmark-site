@@ -1,0 +1,11 @@
+---
+description: Discount promos are edited in data/discount-codes.local.txt only; never add site-wide discount logic unless the user explicitly asks for code changes.
+alwaysApply: true
+---
+
+# Discount codes workflow (Rettmark)
+
+- **`data/discount-codes.local.txt`** is an **exact mirror** of the private GitHub rules file (`GITHUB_DISCOUNT_PATH`). It is **plain text** (`.txt`) so you can copy the whole file easily; **contents must still be valid JSON** when pasted into the private `.json` file. Netlify reads **only** GitHub at runtime, not this path.
+- Keep **`data/discount-codes.example.json`** aligned with **`discount-codes.local.txt`** (same shape / sample rules) whenever you change the local file, unless the example is intentionally placeholder-only.
+- **Do not** implement discounts by changing checkout JS, Netlify functions, or site-wide “auto discount” logic **unless the user explicitly requests engineering work** (e.g. new rule types). Default response: update `data/discount-codes.local.txt` and remind them to paste into the private repo.
+- **Hunters HD Gold** lines must never receive merchandise discounts from rules: the server excludes them from the promo merchandise subtotal (see `docs/discount-codes-schema.md`).
