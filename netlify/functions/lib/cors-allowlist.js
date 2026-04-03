@@ -7,19 +7,45 @@
  */
 
 function parseAllowedOrigins() {
-  var raw = String(process.env.CHECKOUT_ALLOWED_ORIGINS || "").trim();
+  var raw = String(process.env.CHECKOUT_ALLOWED_ORIGINS || "")
+    .replace(/^\uFEFF/, "")
+    .replace(/\uFF0C/g, ",")
+    .trim();
   if (!raw) return null;
+  if (raw === "*" || raw.toLowerCase() === "any") return null;
   var parts = raw.split(",").map(function (s) {
-    return s.trim();
+    return s
+      .trim()
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "");
   }).filter(Boolean);
   return parts.length ? parts : null;
+}
+
+function isEmptyKeySet(set) {
+  for (var k in set) {
+    if (Object.prototype.hasOwnProperty.call(set, k)) return false;
+  }
+  return true;
+}
+
+function singleHeaderString(v) {
+  if (v == null) return "";
+  if (Array.isArray(v)) return String(v[v.length - 1] || "").trim();
+  return String(v).trim();
 }
 
 function headerValue(event, nameLower) {
   var h = event.headers || {};
   for (var k in h) {
     if (Object.prototype.hasOwnProperty.call(h, k) && String(k).toLowerCase() === nameLower) {
-      return String(h[k] || "").trim();
+      return singleHeaderString(h[k]);
+    }
+  }
+  var mv = event.multiValueHeaders || {};
+  for (var k2 in mv) {
+    if (Object.prototype.hasOwnProperty.call(mv, k2) && String(k2).toLowerCase() === nameLower) {
+      var arr = mv[k2];
+      if (Array.isArray(arr) && arr.length) return singleHeaderString(arr[arr.length - 1]);
     }
   }
   return "";
@@ -68,11 +94,35 @@ function originFromReferer(referer) {
   }
 }
 
+function addHttpHttpsVariants(set, n) {
+  if (!n) return;
+  set[n] = true;
+  if (n.indexOf("https://") === 0) {
+    set["http://" + n.slice(8)] = true;
+  } else if (n.indexOf("http://") === 0) {
+    set["https://" + n.slice(7)] = true;
+  }
+}
+
 function buildNormalizedAllowSet(list) {
   var set = Object.create(null);
   for (var i = 0; i < list.length; i++) {
     var n = normalizeOrigin(list[i]);
-    if (n) set[n] = true;
+    addHttpHttpsVariants(set, n);
+  }
+  return set;
+}
+
+/** Hostnames from allowlist (for Host-header fallback if Origin/synthetic differ). */
+function buildAllowedHostnameSet(list) {
+  var set = Object.create(null);
+  for (var i = 0; i < list.length; i++) {
+    var n = normalizeOrigin(list[i]);
+    if (!n) continue;
+    try {
+      var u = new URL(n);
+      set[u.hostname.toLowerCase()] = true;
+    } catch (e) {}
   }
   return set;
 }
@@ -124,6 +174,13 @@ function corsForRequest(event, allowMethods) {
   }
 
   var allowedNorm = buildNormalizedAllowSet(list);
+  if (isEmptyKeySet(allowedNorm)) {
+    return {
+      ok: true,
+      headers: Object.assign({ "Access-Control-Allow-Origin": "*" }, base)
+    };
+  }
+
   var originHeader = getRequestOrigin(event);
   var refererOrigin = originFromReferer(headerValue(event, "referer"));
   var synthetic = syntheticOriginFromRequest(event);
@@ -137,6 +194,27 @@ function corsForRequest(event, allowMethods) {
     if (n && allowedNorm[n]) {
       allowOriginValue = n;
       break;
+    }
+  }
+
+  if (!allowOriginValue) {
+    var allowedHosts = buildAllowedHostnameSet(list);
+    var rawHost =
+      headerValue(event, "host") ||
+      headerValue(event, "x-forwarded-host").split(",")[0].trim();
+    var hn = "";
+    if (rawHost) {
+      var lc = rawHost.lastIndexOf(":");
+      if (lc > 0 && /^\d+$/.test(rawHost.slice(lc + 1))) {
+        hn = rawHost.slice(0, lc).toLowerCase();
+      } else {
+        hn = rawHost.toLowerCase();
+      }
+    }
+    if (hn && allowedHosts[hn]) {
+      var pr = headerValue(event, "x-forwarded-proto").split(",")[0].trim().toLowerCase();
+      if (pr !== "http" && pr !== "https") pr = "https";
+      allowOriginValue = pr + "://" + hn;
     }
   }
 
