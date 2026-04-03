@@ -517,6 +517,80 @@
 
   initCasesHelpers();
 
+  /** Cycle Condition1 catalog thumbnails by case size (leading inches in data-title, e.g. all 55" share one rotation). */
+  function initCasesCatalogThumbColors() {
+    if (!document.body || !document.body.classList.contains("page-cases")) return;
+    var catalog = document.querySelector(".cases-catalog");
+    if (!catalog) return;
+
+    var colorSlugs = [
+      "black",
+      "blue",
+      "tan",
+      "flat-dark-earth",
+      "ranger-green",
+      "orange",
+      "red",
+      "g-metal-gray",
+      "pink",
+      "yellow",
+    ];
+    var counts = Object.create(null);
+
+    function attachThumbFallback(img, primaryUrl, fallbackUrl) {
+      var phase = 0;
+      function onThumbErr() {
+        phase += 1;
+        if (phase === 1) {
+          if (/\.png$/i.test(primaryUrl)) {
+            img.src = primaryUrl.replace(/\.png$/i, ".jpg");
+            return;
+          }
+          if (/\.jpg$/i.test(primaryUrl)) {
+            img.src = primaryUrl.replace(/\.jpg$/i, ".png");
+            return;
+          }
+        }
+        img.src = fallbackUrl;
+        img.removeEventListener("error", onThumbErr);
+      }
+      function onThumbOk() {
+        img.removeEventListener("error", onThumbErr);
+        img.removeEventListener("load", onThumbOk);
+      }
+      img.addEventListener("error", onThumbErr, false);
+      img.addEventListener("load", onThumbOk, false);
+    }
+
+    var cards = catalog.querySelectorAll("article.product-card");
+    for (var i = 0; i < cards.length; i++) {
+      var article = cards[i];
+      var title = article.getAttribute("data-title") || "";
+      var sizeMatch = title.match(/^(\d+)"/);
+      if (!sizeMatch) continue;
+      var sizeKey = sizeMatch[1];
+      var idx = counts[sizeKey];
+      if (typeof idx !== "number") idx = 0;
+      counts[sizeKey] = idx + 1;
+
+      var slug = colorSlugs[idx % colorSlugs.length];
+      if (slug === "black") continue;
+
+      var img = article.querySelector("img.ph-thumb-img");
+      if (!img) continue;
+      var orig = img.getAttribute("src");
+      if (!orig || !/-black\.(jpg|png)$/i.test(orig)) continue;
+
+      var colored = orig.replace(/-black\.(jpg|png)$/i, "-" + slug + ".$1");
+      if (colored === orig) continue;
+
+      attachThumbFallback(img, colored, orig);
+      img.src = colored;
+    }
+  }
+
+  initCasesCatalogThumbColors();
+
   function initCasesSearchAndFilter() {
     if (!document.body || !document.body.classList.contains("page-cases")) return;
 

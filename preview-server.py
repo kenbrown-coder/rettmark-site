@@ -44,6 +44,10 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=ROOT, **kwargs)
 
     def end_headers(self):
+        # Simple Browser / Chromium webviews cache static files aggressively without this.
+        self.send_header("Cache-Control", "no-store, max-age=0, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.send_header("Cross-Origin-Resource-Policy", "cross-origin")
         self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()

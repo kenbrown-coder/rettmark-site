@@ -9,12 +9,29 @@
     window.location.href = new URL(htmlFile, window.location.href).href;
   }
 
-  /**
-   * Optional promo codes (merchant-editable). Keys are compared case-insensitively.
-   * kind: "percent" (of subtotal) or "fixed" (dollars off). value: number.
-   * Example: WELCOME10: { kind: "percent", value: 10 }
-   */
-  var DISCOUNT_CODES = {};
+  function discountValidateUrl() {
+    return new URL("/.netlify/functions/discount-validate", window.location.origin).href;
+  }
+
+  /** @returns {Promise<{ data: object, httpOk: boolean, status: number }>} */
+  function validateDiscountRemote(code, subtotal) {
+    return fetch(discountValidateUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: String(code || "").trim(),
+        subtotal: Number(subtotal) || 0
+      })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { httpOk: res.ok, status: res.status, data: data && typeof data === "object" ? data : {} };
+        });
+      })
+      .catch(function () {
+        return { httpOk: false, status: 0, data: { ok: false, error: "network" } };
+      });
+  }
 
   function cartSignature(cart) {
     var t = cartTotal(cart);
@@ -89,32 +106,6 @@
     el.textContent = msg || "";
     el.hidden = !msg;
     el.classList.toggle("checkout-review-hint--error", Boolean(isError));
-  }
-
-  function lookupDiscount(code) {
-    var key = String(code || "").trim().toUpperCase();
-    if (!key) return null;
-    var found = null;
-    Object.keys(DISCOUNT_CODES).forEach(function (k) {
-      if (String(k).toUpperCase() === key) {
-        found = DISCOUNT_CODES[k];
-      }
-    });
-    return found;
-  }
-
-  function computeDiscountAmount(subtotal, def) {
-    if (!def || !def.kind) return 0;
-    var v = Number(def.value);
-    if (!isFinite(v) || v < 0) return 0;
-    if (def.kind === "percent") {
-      var pct = Math.min(v, 100);
-      return roundMoney((subtotal * pct) / 100);
-    }
-    if (def.kind === "fixed") {
-      return roundMoney(Math.min(v, subtotal));
-    }
-    return 0;
   }
 
   var state = {
@@ -257,15 +248,6 @@
       }
       state.appliedCode = saved.discountCode ? String(saved.discountCode).trim() : "";
       state.discountAmount = roundMoney(saved.discountAmount || 0);
-
-      if (state.appliedCode && Object.keys(DISCOUNT_CODES).length) {
-        var def = lookupDiscount(state.appliedCode);
-        var expected = def ? computeDiscountAmount(subtotal, def) : 0;
-        if (!def || Math.abs(expected - state.discountAmount) > 0.02) {
-          state.discountAmount = def ? expected : 0;
-          if (!def) state.appliedCode = "";
-        }
-      }
     } catch (e) {}
     return { restoredShipping: restoredShipping };
   }
@@ -359,6 +341,43 @@
     recalcShippingOnly();
     applyComputedSalesTax(shipAddr);
 
+    if (state.appliedCode) {
+      validateDiscountRemote(state.appliedCode, state.subtotal).then(function (result) {
+        var d = result.data;
+        if (d && d.ok && typeof d.discountAmount === "number") {
+          var exp = roundMoney(d.discountAmount);
+          if (Math.abs(exp - state.discountAmount) > 0.02) {
+            state.discountAmount = exp;
+            showCodeHint("Discount updated to match current promotion rules.", false);
+            recalcShippingOnly();
+            applyComputedSalesTax(shipAddr);
+            updateBreakdownDisplay();
+          }
+        } else if ((d && d.error === "network") || result.status === 0) {
+          state.discountAmount = 0;
+          showCodeHint("Could not verify saved discount. Check your connection and tap Apply again.", true);
+          recalcShippingOnly();
+          applyComputedSalesTax(shipAddr);
+          updateBreakdownDisplay();
+        } else {
+          state.appliedCode = "";
+          state.discountAmount = 0;
+          if ($("review-discount-code")) $("review-discount-code").value = "";
+          showCodeHint(
+            d && d.error === "invalid_code"
+              ? "That saved code is no longer valid."
+              : d && d.error === "code_exhausted"
+                ? "That code has reached its maximum number of uses."
+                : "Could not verify discount. Re-enter a code or continue without one.",
+            true
+          );
+          recalcShippingOnly();
+          applyComputedSalesTax(shipAddr);
+          updateBreakdownDisplay();
+        }
+      });
+    }
+
     $("review-apply-code") &&
       $("review-apply-code").addEventListener("click", function () {
         showReviewErr("");
@@ -373,34 +392,39 @@
           updateBreakdownDisplay();
           return;
         }
-        if (!Object.keys(DISCOUNT_CODES).length) {
-          state.appliedCode = code;
-          state.discountAmount = 0;
-          showCodeHint(
-            "Codes aren’t validated online here yet—your code is saved with the order when you continue.",
-            false
-          );
-          recalcShippingOnly();
-          applyComputedSalesTax(shipAddr);
-          updateBreakdownDisplay();
-          return;
-        }
-        var def = lookupDiscount(code);
-        if (!def) {
-          showCodeHint("That code isn’t recognized. Check spelling or try another code.", true);
+        showCodeHint("Checking code…", false);
+        validateDiscountRemote(code, state.subtotal).then(function (result) {
+          var d = result.data;
+          if (d && d.ok && typeof d.discountAmount === "number") {
+            state.appliedCode = code;
+            state.discountAmount = roundMoney(d.discountAmount);
+            showCodeHint(
+              state.discountAmount > 0 ? "Code applied." : "Code accepted (no discount for this subtotal).",
+              false
+            );
+            recalcShippingOnly();
+            applyComputedSalesTax(shipAddr);
+            updateBreakdownDisplay();
+            return;
+          }
+          if (d && d.error === "invalid_code") {
+            showCodeHint("That code isn’t recognized. Check spelling or try another code.", true);
+          } else if (d && d.error === "code_exhausted") {
+            showCodeHint("That code has reached its maximum number of uses.", true);
+          } else if ((d && d.error === "network") || result.status === 0) {
+            showCodeHint("Could not reach the server. Check your connection and try again.", true);
+          } else {
+            showCodeHint(
+              "Discount service is unavailable. Try again later or continue without a code.",
+              true
+            );
+          }
           state.appliedCode = "";
           state.discountAmount = 0;
           recalcShippingOnly();
           applyComputedSalesTax(shipAddr);
           updateBreakdownDisplay();
-          return;
-        }
-        state.appliedCode = code;
-        state.discountAmount = computeDiscountAmount(state.subtotal, def);
-        showCodeHint("Code applied.", false);
-        recalcShippingOnly();
-        applyComputedSalesTax(shipAddr);
-        updateBreakdownDisplay();
+        });
       });
 
     updateBreakdownDisplay();

@@ -14,6 +14,12 @@
 #     Optional: RESEND_SALES_EMAIL (default sales@rettmarkfirearms.com), RESEND_REPLY_TO, RESEND_DEBUG=1.
 #   If Accept.js says invalid authentication, open in browser (production):
 #   https://rettmarkfirearms.com/.netlify/functions/anet-verify-keys
+#
+# Private discount codes (GitHub JSON in a private repo; server-only PAT):
+#   GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER, GITHUB_DISCOUNT_REPO, GITHUB_DISCOUNT_PATH
+#   Optional: GITHUB_DISCOUNT_REF (default main)
+#   POST /.netlify/functions/discount-validate — checkout preview; anet-transaction validates on charge.
+#   Optional maxUses per code: usage counts in Netlify Blobs (store rettmark-discount-usage); requires @netlify/blobs in package.json.
 
 [functions]
   directory = "netlify/functions"

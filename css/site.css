@@ -2048,6 +2048,16 @@ button.btn-secondary.btn-secondary--cart {
   color: var(--accent);
 }
 
+.hero-lead a.hero-lead-accent {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hero-lead a.hero-lead-accent:hover {
+  color: var(--accent);
+  filter: brightness(1.15);
+}
+
 .code-tag {
   font-family: var(--font-ui);
   font-size: 0.85rem;

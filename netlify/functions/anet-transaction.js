@@ -21,7 +21,14 @@
  *   When discountAmount, shippingAmount, or taxAmount are present (even 0), amount must equal
  *   merchandise subtotal − discount + shipping + tax (all in dollars, 2 decimal places).
  *   Omit all three for legacy behavior: amount must equal sum of cart line totals only.
+ *
+ * Private discount rules (GitHub): GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER,
+ * GITHUB_DISCOUNT_REPO, GITHUB_DISCOUNT_PATH, optional GITHUB_DISCOUNT_REF.
+ * When a discount code or non-zero discount is present, the server recomputes the
+ * discount from GitHub and rejects mismatches.
  */
+
+var discountLib = require("./lib/discount-rules-from-github.js");
 
 function corsHeaders() {
   return {
@@ -335,6 +342,34 @@ exports.handler = async function (event) {
       return json(400, { error: "Invalid discount amount" });
     }
     discountCents = Math.min(discountCents, subtotalCents);
+    var codeTrim = String(body.discountCode || "").trim();
+    var wantsDiscount = discountCents > 0 || codeTrim.length > 0;
+    if (wantsDiscount) {
+      if (discountCents > 0 && !codeTrim) {
+        return json(400, { error: "Discount requires a valid code" });
+      }
+      if (codeTrim) {
+        if (!discountLib.githubEnvConfigured()) {
+          return json(503, { error: "Discount validation is not configured" });
+        }
+        var resolvedDisc = await discountLib.resolveExpectedDiscountCents(codeTrim, subtotalCents, event);
+        if (!resolvedDisc.ok) {
+          if (resolvedDisc.error === "invalid_discount_code") {
+            return json(400, { error: "Invalid or expired discount code" });
+          }
+          if (resolvedDisc.error === "discount_code_exhausted") {
+            return json(400, { error: "This discount code has reached its usage limit" });
+          }
+          if (resolvedDisc.error === "discount_usage_unavailable") {
+            return json(503, { error: "Could not verify discount usage; try again shortly" });
+          }
+          return json(503, { error: "Could not validate discount" });
+        }
+        if (resolvedDisc.expectedCents !== discountCents) {
+          return json(400, { error: "Discount amount does not match code" });
+        }
+      }
+    }
     var shippingCents = Math.max(0, dollarsToCents(body.shippingAmount || 0));
     var taxCents = Math.max(0, dollarsToCents(body.taxAmount || 0));
     if (isNaN(shippingCents) || isNaN(taxCents)) {
@@ -472,6 +507,19 @@ exports.handler = async function (event) {
         tx.responseCode === 1);
 
     if (resultCode === "ok" && txApproved) {
+      var codeForUsage = String(body.discountCode || "").trim();
+      var paidDiscCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
+      if (codeForUsage && paidDiscCents > 0) {
+        try {
+          var usageMod = require("./lib/discount-usage-blobs.js");
+          await usageMod.incrementUseCount(event, codeForUsage);
+        } catch (usageErr) {
+          console.error(
+            "[rettmark] discount usage increment",
+            usageErr && usageErr.message ? usageErr.message : String(usageErr)
+          );
+        }
+      }
       var emailDelivery = await sendInvoiceEmails(body, amountStr);
       var successBody = {
         ok: true,
