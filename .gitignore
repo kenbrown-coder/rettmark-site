@@ -16,6 +16,9 @@ node_modules/
 
 # Editor / OS
 .vscode/preview-url.txt
-.cursor/
+# Track shared Cursor rules; keep other .cursor/ local-only
+.cursor/**
+!.cursor/rules/
+!.cursor/rules/*.mdc
 .DS_Store
 Thumbs.db

@@ -441,7 +441,7 @@
     initCaseColorSelectors();
 
     // Prefer spreadsheet-friendly CSV; fall back to JSON.
-    fetch("inventory.csv", { cache: "no-store" })
+    fetch("/inventory.csv", { cache: "no-store" })
       .then(function (r) {
         try {
           var lm = r.headers && r.headers.get && r.headers.get("last-modified");
@@ -461,7 +461,7 @@
       })
       .then(function (csvWorked) {
         if (csvWorked) return;
-        return fetch("inventory.json", { cache: "no-store" })
+        return fetch("/inventory.json", { cache: "no-store" })
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (inv) { if (inv) applyInventory(inv); });
       })
