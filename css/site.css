@@ -301,6 +301,10 @@
       font-family: var(--font-ui);
     }
 
+    .cart-flow-note--anet {
+      color: var(--accent);
+    }
+
     .page-shell {
       position: relative;
       z-index: 5;
@@ -1160,6 +1164,10 @@
   margin: 0 0 18px;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.checkout-review-payment .cart-flow-note--anet {
+  margin-top: 12px;
 }
 
 @media (max-width: 640px) {
