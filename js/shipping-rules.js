@@ -4,16 +4,15 @@
  * Cart lines should include `shippingClass`: "glasses" | "casebag" (see site.js).
  * Legacy lines without it: URL containing "hhdg-" → glasses, else casebag.
  *
- * - Glasses: $4.99 once per order if the cart is glasses-only; if they also order any case/bag
- *   (qty &gt; 0), the glasses shipping fee is waived (ship with the rest).
+ * - Glasses-only (Hunters HD Gold / HHDG): flat casebag.base ($14.99) when there is glasses
+ *   merchandise; no per-$100 scaling. If they also order any case/bag (qty &gt; 0), the glasses
+ *   shipping line is waived (ship with the rest).
  * - Cases & bags: $14.99 when their merchandise subtotal is $0 < subtotal ≤ $100;
  *   above $100, add $5 for each $100 increment (e.g. $100.01 → $19.99, $200.01 → $24.99).
  */
 (function (global) {
   global.RETTMARK_SHIPPING_RULES = {
-    /** Flat fee when the cart includes any “glasses” line (HHDG / Hunters HD Gold). */
-    glassesFlat: 4.99,
-    /** Cases, bags, and other non-glasses shippable merchandise. */
+    /** Cases/bags tiers; `base` is also the flat rate for glasses-only orders (no tier scaling on glasses). */
     casebag: {
       /** Merchandise subtotal from $0.01 through this amount → base only. */
       firstTierMax: 100,
@@ -34,7 +33,6 @@
     if (!r || typeof r !== "object") r = {};
     var c = r.casebag && typeof r.casebag === "object" ? r.casebag : {};
     return {
-      glassesFlat: Math.max(0, Number(r.glassesFlat) || 0),
       casebag: {
         firstTierMax: Math.max(0, Number(c.firstTierMax) || 100),
         base: Math.max(0, Number(c.base) || 0),
@@ -117,12 +115,15 @@
     ship = ship || {};
     cart = cart || [];
 
+    var gSub = sumSubtotalByClass(cart, "glasses");
     var cSub = sumSubtotalByClass(cart, "casebag");
     var hasGlasses = hasLineClass(cart, "glasses");
     var withOther = hasCasebagQuantity(cart);
 
     var glassesPart =
-      hasGlasses && !withOther ? rules.glassesFlat : 0;
+      hasGlasses && !withOther && gSub > 0
+        ? Math.round(rules.casebag.base * 100) / 100
+        : 0;
     var casePart = casebagShippingAmount(cSub, rules);
 
     var combined = Math.round((glassesPart + casePart) * 100) / 100;
@@ -131,7 +132,9 @@
     }
 
     var parts = [];
-    if (glassesPart > 0) parts.push("Glasses $" + glassesPart.toFixed(2));
+    if (glassesPart > 0) {
+      parts.push("Glasses $" + glassesPart.toFixed(2) + (gSub > 0 ? " (merch $" + gSub.toFixed(2) + ")" : ""));
+    }
     if (hasGlasses && glassesPart === 0 && withOther) {
       parts.push("Glasses free w/ cases/bags");
     }
