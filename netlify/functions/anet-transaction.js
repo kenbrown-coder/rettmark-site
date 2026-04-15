@@ -569,7 +569,13 @@ exports.handler = async function (event) {
     if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
       gatewayOpts.signal = AbortSignal.timeout(22000);
     }
-    var res = await fetch(anetApiUrl(), gatewayOpts);
+    var gatewayUrl = anetApiUrl();
+    console.log(
+      "[rettmark] anet charge",
+      gatewayUrl.indexOf("apitest") !== -1 ? "gateway=sandbox" : "gateway=live",
+      "url=" + gatewayUrl
+    );
+    var res = await fetch(gatewayUrl, gatewayOpts);
 
     var data;
     try {
@@ -587,6 +593,8 @@ exports.handler = async function (event) {
         tx.responseCode === 1);
 
     if (resultCode === "ok" && txApproved) {
+      /* Email before Blobs usage: a stuck discount counter should not block the HTTP response or receipt send. */
+      var emailDelivery = await sendInvoiceEmails(body, amountStr);
       var codeForUsage = String(body.discountCode || "").trim();
       var paidDiscCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
       var paidShipCred = Math.max(0, dollarsToCents(body.shippingCreditAmount || 0));
@@ -602,7 +610,6 @@ exports.handler = async function (event) {
           );
         }
       }
-      var emailDelivery = await sendInvoiceEmails(body, amountStr);
       var successBody = {
         ok: true,
         transactionId: tx.transId,
