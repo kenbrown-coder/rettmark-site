@@ -53,6 +53,19 @@ function dollarsToCents(n) {
   return Math.round(x * 100);
 }
 
+/** Cart line detail for invoice rows (must match checkout UI: color first when present). */
+function formatOrderLineMeta(item) {
+  if (!item || typeof item !== "object") return "";
+  var parts = [];
+  var color = String(item.color || "").trim();
+  if (color) parts.push("Color: " + color);
+  var variant = String(item.variant || "").trim();
+  if (variant) parts.push(variant);
+  var sku = String(item.sku || "").trim();
+  if (sku) parts.push("SKU: " + sku);
+  return parts.join(" · ");
+}
+
 function escapeHtml(s) {
   return String(s || "")
     .replace(/&/g, "&amp;")
@@ -91,7 +104,7 @@ function buildInvoiceEmailHtml(body, amountStr) {
     .map(function (item) {
       var q = parseInt(item.qty, 10) || 0;
       var line = ((Number(item.price) || 0) * q).toFixed(2);
-      var meta = [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
+      var meta = formatOrderLineMeta(item);
       var name = escapeHtml(item.name || "Item") + (meta ? " <small>(" + escapeHtml(meta) + ")</small>" : "");
       return (
         "<tr><td>" +

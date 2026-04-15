@@ -460,7 +460,11 @@
         .map(function (item) {
           var q = parseInt(item.qty, 10) || 0;
           var line = roundMoney(q * (Number(item.price) || 0));
-          var meta = [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
+          var meta =
+            window.RettmarkCheckoutShared &&
+            typeof window.RettmarkCheckoutShared.formatOrderLineMeta === "function"
+              ? window.RettmarkCheckoutShared.formatOrderLineMeta(item)
+              : [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
           return (
             "<li><span>" +
             (item.name || "Item") +

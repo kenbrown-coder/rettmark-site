@@ -165,7 +165,10 @@
         .map(function (item) {
           var q = parseInt(item.qty, 10) || 0;
           var line = q * (Number(item.price) || 0);
-          var meta = [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
+          var meta =
+            S && typeof S.formatOrderLineMeta === "function"
+              ? S.formatOrderLineMeta(item)
+              : [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
           return (
             "<li><span>" +
             escapeHtml(item.name || "Item") +

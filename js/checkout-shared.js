@@ -81,6 +81,19 @@
     return Math.round(Number(n || 0) * 100) / 100;
   }
 
+  /** One line for receipts and checkout summaries: color first when present, then variant, then SKU. */
+  function formatOrderLineMeta(item) {
+    if (!item || typeof item !== "object") return "";
+    var parts = [];
+    var color = String(item.color || "").trim();
+    if (color) parts.push("Color: " + color);
+    var variant = String(item.variant || "").trim();
+    if (variant) parts.push(variant);
+    var sku = String(item.sku || "").trim();
+    if (sku) parts.push("SKU: " + sku);
+    return parts.join(" · ");
+  }
+
   /** Step-2 review totals; must match current cart or caller treats as invalid. */
   function loadTotalsForCart(cart) {
     var subtotal = roundMoney(cartTotal(cart));
@@ -210,6 +223,7 @@
     loadTotalsForCart: loadTotalsForCart,
     readCart: readCart,
     roundMoney: roundMoney,
+    formatOrderLineMeta: formatOrderLineMeta,
     netlifyFunctionUrl: netlifyFunctionUrl,
     loadScript: loadScript,
     mergeAnetConfig: mergeAnetConfig,

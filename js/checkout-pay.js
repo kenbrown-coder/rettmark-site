@@ -84,6 +84,18 @@
     return "$" + num.toFixed(2);
   }
 
+  function formatOrderLineMeta(item) {
+    if (!item || typeof item !== "object") return "";
+    var parts = [];
+    var color = String(item.color || "").trim();
+    if (color) parts.push("Color: " + color);
+    var variant = String(item.variant || "").trim();
+    if (variant) parts.push(variant);
+    var sku = String(item.sku || "").trim();
+    if (sku) parts.push("SKU: " + sku);
+    return parts.join(" · ");
+  }
+
   function cartTotalCents(cart) {
     return cart.reduce(function (sum, item) {
       var q = parseInt(item.qty, 10) || 0;
@@ -265,7 +277,7 @@
         .map(function (item) {
           var q = parseInt(item.qty, 10) || 0;
           var line = q * (Number(item.price) || 0);
-          var meta = [item.variant || "", item.sku || ""].filter(Boolean).join(" · ");
+          var meta = formatOrderLineMeta(item);
           return (
             "<li><span>" +
             (item.name || "Item") +

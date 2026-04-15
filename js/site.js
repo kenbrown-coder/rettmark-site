@@ -47,6 +47,19 @@
     return "$" + num.toFixed(2);
   }
 
+  /** Matches checkout-shared / invoice email: color first, then variant, then SKU. */
+  function formatOrderLineMeta(item) {
+    if (!item || typeof item !== "object") return "";
+    var parts = [];
+    var color = String(item.color || "").trim();
+    if (color) parts.push("Color: " + color);
+    var variant = String(item.variant || "").trim();
+    if (variant) parts.push(variant);
+    var sku = String(item.sku || "").trim();
+    if (sku) parts.push("SKU: " + sku);
+    return parts.join(" · ");
+  }
+
   function updateHeaderCartCount() {
     var cart = readCart();
     var count = cartCount(cart);
@@ -103,7 +116,7 @@
       var price = Number(item.price || 0);
       var line = qty * price;
       total += line;
-      var meta = [item.variant || "", item.color || "", item.sku || ""].filter(Boolean).join(" · ");
+      var meta = formatOrderLineMeta(item);
       return (
         '<article class="cart-item">' +
           '<div class="cart-item-head">' +
