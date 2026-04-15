@@ -262,14 +262,18 @@ async function sendInvoiceEmails(body, amountStr) {
   }
 
   try {
-    var res = await fetch("https://api.resend.com/emails", {
+    var resendOpts = {
       method: "POST",
       headers: {
         Authorization: "Bearer " + key,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
-    });
+    };
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      resendOpts.signal = AbortSignal.timeout(12000);
+    }
+    var res = await fetch("https://api.resend.com/emails", resendOpts);
     var raw = await res.text();
     var parsed = null;
     try {
@@ -561,8 +565,9 @@ exports.handler = async function (event) {
       },
       body: JSON.stringify(payload)
     };
+    /* Stay under Netlify function ceiling (often 26s) after Turnstile + discount + email work. */
     if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
-      gatewayOpts.signal = AbortSignal.timeout(35000);
+      gatewayOpts.signal = AbortSignal.timeout(22000);
     }
     var res = await fetch(anetApiUrl(), gatewayOpts);
 

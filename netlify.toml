@@ -34,6 +34,12 @@
 [functions]
   directory = "netlify/functions"
 
+# Payment handler: Turnstile + optional GitHub discount + Authorize.Net + Resend can exceed the
+# default ~10s platform limit when the live gateway or email API is slow. Increase for this function only.
+# (Plan limits still apply; if deploy rejects the value, raise the site’s function timeout in Netlify UI.)
+[functions."anet-transaction"]
+  timeout = 26
+
 # Serve this folder as the site root (must include css/, js/, assets/, *.html).
 [build]
   publish = "."

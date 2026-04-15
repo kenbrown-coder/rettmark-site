@@ -44,14 +44,18 @@ async function fetchDiscountRulesFromGithub() {
     encPath +
     "?ref=" +
     encodeURIComponent(ref);
-  var res = await fetch(url, {
+  var ghOpts = {
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: "Bearer " + token,
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "rettmark-netlify-discount"
     }
-  });
+  };
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    ghOpts.signal = AbortSignal.timeout(10000);
+  }
+  var res = await fetch(url, ghOpts);
   if (!res.ok) {
     return { ok: false, rules: null, error: "github_" + res.status };
   }

@@ -43,11 +43,15 @@ async function verifyTurnstileForCharge(token, remoteIp) {
   }
 
   try {
-    var res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    var verifyOpts = {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: params.toString()
-    });
+    };
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      verifyOpts.signal = AbortSignal.timeout(10000);
+    }
+    var res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", verifyOpts);
     var data = await res.json();
     if (data && data.success === true) {
       return { ok: true, skipped: false };
