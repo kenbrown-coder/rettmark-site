@@ -116,6 +116,26 @@
     el.classList.toggle("checkout-review-hint--error", Boolean(isError));
   }
 
+  function parseSingleDiscountCode(raw) {
+    var text = String(raw == null ? "" : raw).trim();
+    if (!text) return { code: "", empty: true, multi: false };
+    var tokens = text
+      .split(/[\s,;|+]+/)
+      .map(function (t) {
+        return String(t || "").trim();
+      })
+      .filter(Boolean);
+    if (tokens.length !== 1) return { code: "", empty: false, multi: true };
+    return { code: tokens[0], empty: false, multi: false };
+  }
+
+  function normalizeCodeInputValue() {
+    var input = $("review-discount-code");
+    if (!input) return;
+    var v = String(input.value == null ? "" : input.value).trim();
+    input.value = v ? v.toUpperCase() : "";
+  }
+
   var state = {
     cart: [],
     subtotal: 0,
@@ -531,9 +551,11 @@
     $("review-apply-code") &&
       $("review-apply-code").addEventListener("click", function () {
         showReviewErr("");
-        var codeRaw = ($("review-discount-code") && $("review-discount-code").value) || "";
-        var code = String(codeRaw).trim();
-        if (!code) {
+        var codeInput = $("review-discount-code");
+        var codeRaw = (codeInput && codeInput.value) || "";
+        var parsed = parseSingleDiscountCode(codeRaw);
+        var code = parsed.code;
+        if (parsed.empty) {
           state.appliedCode = "";
           state.discountAmount = 0;
           state.shippingCreditAmount = 0;
@@ -545,6 +567,11 @@
           updateBreakdownDisplay();
           return;
         }
+        if (parsed.multi) {
+          showCodeHint("Please enter only one discount code at a time.", true);
+          return;
+        }
+        if (codeInput) codeInput.value = code;
         recalcShippingOnly();
         ensureShippingQuoted(shipAddr, state.cart);
         recalcShippingOnly();
@@ -608,6 +635,11 @@
           applyComputedSalesTax(shipAddr);
           updateBreakdownDisplay();
         });
+      });
+
+    $("review-discount-code") &&
+      $("review-discount-code").addEventListener("blur", function () {
+        normalizeCodeInputValue();
       });
 
     updateBreakdownDisplay();

@@ -11,7 +11,6 @@
     "kind": "percent",
     "value": 10,
     "applyTo": "merchandise",
-    "expiresAt": "2026-04-15T04:00:00.000Z",
     "active": true
   },
   {
@@ -19,7 +18,7 @@
     "kind": "percent",
     "value": 20,
     "applyTo": "merchandise",
-    "expiresAt": "2026-04-15T04:00:00.000Z",
+    "expiresAt": "2026-04-16T05:00:00.000Z",
     "active": true
   }
 ]
