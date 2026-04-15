@@ -287,6 +287,16 @@
 
     var tsWidgetId = null;
     var turnstileAfterToken = null;
+    /** If Turnstile never calls back after execute(), release the stuck "Processing…" state. */
+    var turnstileTokenWaitId = null;
+    var awaitingTurnstileExec = false;
+
+    function clearTurnstileTokenWait() {
+      if (turnstileTokenWaitId) {
+        clearTimeout(turnstileTokenWaitId);
+        turnstileTokenWaitId = null;
+      }
+    }
 
     function loadConfirmTurnstile() {
       var siteKey = String(window.RETTMARK_TURNSTILE_SITE_KEY || "").trim();
@@ -307,6 +317,8 @@
           sitekey: siteKey,
           size: "invisible",
           callback: function (token) {
+            awaitingTurnstileExec = false;
+            clearTurnstileTokenWait();
             if (typeof turnstileAfterToken === "function") {
               var fn = turnstileAfterToken;
               turnstileAfterToken = null;
@@ -314,6 +326,8 @@
             }
           },
           "error-callback": function () {
+            awaitingTurnstileExec = false;
+            clearTurnstileTokenWait();
             turnstileAfterToken = null;
             showErr("Security verification failed to load. Please refresh the page.");
             resetSubmitBtn();
@@ -403,6 +417,8 @@
         }
 
         function sendCharge(turnstileToken) {
+          awaitingTurnstileExec = false;
+          clearTurnstileTokenWait();
           var payload = {
             opaqueData: {
               dataDescriptor: op.opaqueData.dataDescriptor,
@@ -506,10 +522,29 @@
 
         if (tsWidgetId != null && window.turnstile) {
           turnstileAfterToken = sendCharge;
+          awaitingTurnstileExec = true;
+          clearTurnstileTokenWait();
+          turnstileTokenWaitId = setTimeout(function () {
+            turnstileTokenWaitId = null;
+            if (!awaitingTurnstileExec) return;
+            awaitingTurnstileExec = false;
+            turnstileAfterToken = null;
+            resetSubmitBtn();
+            showErr(
+              "Security verification timed out. Try refreshing the page, or disable VPN / strict ad blockers for this site and try again."
+            );
+            if (tsWidgetId != null && window.turnstile && typeof window.turnstile.reset === "function") {
+              try {
+                window.turnstile.reset(tsWidgetId);
+              } catch (rsTw) {}
+            }
+          }, 25000);
           try {
             window.turnstile.reset(tsWidgetId);
             window.turnstile.execute(tsWidgetId);
           } catch (execErr) {
+            awaitingTurnstileExec = false;
+            clearTurnstileTokenWait();
             turnstileAfterToken = null;
             resetSubmitBtn();
             showErr("Security check failed. Please refresh and try again.");
