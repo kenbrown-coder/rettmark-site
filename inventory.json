@@ -61,13 +61,13 @@
       "qty": 0
     },
     "H1179BKF12510-2AC1": {
-      "qty": 0
+      "qty": 2
     },
     "H1179BKF12510-2AC1-44696BK": {
-      "qty": 0
+      "qty": 2
     },
     "H1179BKF12628-2AC1": {
-      "qty": 0
+      "qty": 1
     },
     "H1179BKF12628-2AC1-44696BK": {
       "qty": 0
@@ -76,7 +76,7 @@
       "qty": 0
     },
     "H1179BLF12510-2AC1-44696BK": {
-      "qty": 0
+      "qty": 1
     },
     "H1179BLF12628-2AC1": {
       "qty": 0
@@ -124,7 +124,7 @@
       "qty": 0
     },
     "H1179RDF12510-2AC1-44696BK": {
-      "qty": 0
+      "qty": 2
     },
     "H1179RDF12628-2AC1": {
       "qty": 0
@@ -885,7 +885,7 @@
       "qty": "integer >= 0"
     },
     "meaning": {
-      "qty": "On-hand quantity. If qty > 0: In stock. If qty == 0: Preorder (customer pays now; we order to fulfill)."
+      "qty": "On-hand quantity. If qty > 0: In stock. If qty == 0: Special order (customer pays now; we order to fulfill)."
     }
   }
 }

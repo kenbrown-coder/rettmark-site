@@ -1742,6 +1742,7 @@
 }
 
 .stock-badge.is-in-stock { color: #b9c7b9; }
+.stock-badge.is-special-order,
 .stock-badge.is-preorder { color: #d2c6b0; }
 .stock-badge.is-out { color: #d0a7a7; }
 

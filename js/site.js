@@ -290,19 +290,19 @@
     }
 
     function getStatus(inv, sku) {
-      // Policy: if qty == 0, we accept preorders (charge now, order to fulfill).
+      // Policy: if qty == 0, we accept special orders (charge now, order to fulfill).
       return getQty(inv, sku) > 0 ? "in_stock" : "backorder";
     }
 
     function renderBadge(el, status) {
       if (!el) return;
-      el.classList.remove("is-in-stock", "is-out", "is-preorder");
+      el.classList.remove("is-in-stock", "is-out", "is-special-order", "is-preorder");
       if (status === "in_stock") {
         el.textContent = "In stock";
         el.classList.add("is-in-stock");
       } else if (status === "backorder") {
-        el.textContent = "Preorder";
-        el.classList.add("is-preorder");
+        el.textContent = "Special order";
+        el.classList.add("is-special-order");
       } else {
         el.textContent = "Out of stock";
         el.classList.add("is-out");
@@ -319,7 +319,7 @@
     function renderCta(cta, status) {
       if (!cta) return;
       if (status === "in_stock") cta.textContent = "Add to cart";
-      else if (status === "backorder") cta.textContent = "Preorder";
+      else if (status === "backorder") cta.textContent = "Special order";
       else cta.textContent = "Out of stock";
     }
 
