@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import os
 import sys
 import urllib.request
@@ -20,6 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "inventory.csv"
+OVERRIDES_PATH = ROOT / "data" / "inventory-qty-overrides.json"
 
 
 def fetch_text(url: str) -> str:
@@ -72,6 +74,46 @@ def validate_csv(text: str) -> str:
     return out_buf.getvalue()
 
 
+def load_qty_overrides() -> dict[str, int]:
+    """SKU -> qty from repo; merged after each remote fetch so the sheet cannot zero these out."""
+    if not OVERRIDES_PATH.is_file():
+        return {}
+    raw = json.loads(OVERRIDES_PATH.read_text(encoding="utf-8"))
+    if isinstance(raw, dict) and "items" in raw and isinstance(raw["items"], dict):
+        raw = raw["items"]
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, int] = {}
+    for k, v in raw.items():
+        if not isinstance(k, str) or k.startswith("_"):
+            continue
+        try:
+            q = int(v)
+        except (TypeError, ValueError):
+            continue
+        if q >= 0:
+            out[k.strip()] = q
+    return out
+
+
+def apply_qty_overrides(normalized_csv: str, overrides: dict[str, int]) -> str:
+    if not overrides:
+        return normalized_csv
+    reader = csv.DictReader(io.StringIO(normalized_csv))
+    fieldnames = list(reader.fieldnames or [])
+    if "sku" not in fieldnames or "qty" not in fieldnames:
+        return normalized_csv
+    out_buf = io.StringIO()
+    writer = csv.DictWriter(out_buf, fieldnames=fieldnames, lineterminator="\n", extrasaction="ignore")
+    writer.writeheader()
+    for row in reader:
+        sku = (row.get("sku") or "").strip()
+        if sku in overrides:
+            row["qty"] = str(overrides[sku])
+        writer.writerow(row)
+    return out_buf.getvalue()
+
+
 def main() -> int:
     url = os.environ.get("INVENTORY_CSV_URL", "").strip()
     if not url:
@@ -81,6 +123,7 @@ def main() -> int:
     try:
         raw = fetch_text(url)
         normalized = validate_csv(raw)
+        normalized = apply_qty_overrides(normalized, load_qty_overrides())
     except Exception as exc:
         print(f"Inventory sync failed: {exc}", file=sys.stderr)
         return 1

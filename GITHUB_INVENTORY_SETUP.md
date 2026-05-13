@@ -54,7 +54,15 @@ It runs:
 
 If `inventory.csv` changes, it commits and pushes automatically.
 
-## 5) Confirm deploy behavior
+## 5) Quantity overrides (merged on sync)
+
+Some SKUs can be forced from the repo so the published spreadsheet does not zero them out on the next sync.
+
+- File: `data/inventory-qty-overrides.json` — flat object `{ "SKU": <integer qty>, ... }`.
+- When the **Inventory Sync** workflow runs, `scripts/sync_inventory_csv.py` applies these quantities to matching rows **after** fetching the spreadsheet.
+- Remove a SKU from that file when you want the spreadsheet to be the only source for it again.
+
+## 6) Confirm deploy behavior
 
 If your site host (Netlify) is connected to this GitHub repo, each commit triggers a deploy and your inventory updates live.
 
