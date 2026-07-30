@@ -1,7 +1,8 @@
 /**
  * Validate a discount code against private GitHub rules (preview for checkout UI).
  * POST JSON: { "code", "subtotal", "shipping"?, "cart": [ line items same as checkout ] }
- *   cart is required; subtotal must match sum(cart) within 2¢. Merch discounts/surcharges exclude Hunters HD Gold lines.
+ *   cart is required; prices/shippingClass are rewritten from the product catalog before math.
+ *   subtotal must match catalog sum(cart) within 2¢. Merch discounts/surcharges exclude Hunters HD Gold lines.
  * Response: { ok, discountAmount, shippingCreditAmount, surchargeAmount, code } (amounts in dollars).
  *   shippingCreditMaxAmount — optional; promotion cap for fixed shipping credits (actual credit = min(cap, quoted shipping)).
  *   eligibleMerchandiseSubtotal — dollars; promo-eligible merchandise only (Hunters HD Gold / hhdg- lines excluded).
@@ -10,10 +11,13 @@
  *
  * Same env as lib/discount-rules-from-github.js
  * CORS: optional CHECKOUT_ALLOWED_ORIGINS — see docs/security-checkout.md
+ * Soft IP rate limit via Netlify Blobs (does not block if Blobs unavailable).
  */
 
 var discountLib = require("./lib/discount-rules-from-github.js");
 var corsAllowlist = require("./lib/cors-allowlist.js");
+var productCatalog = require("./lib/product-catalog.js");
+var rateLimit = require("./lib/discount-validate-rate.js");
 
 exports.handler = async function (event) {
   var corsResult = corsAllowlist.corsForRequest(event, "POST, OPTIONS");
@@ -42,6 +46,11 @@ exports.handler = async function (event) {
     return json(405, { ok: false, error: "method_not_allowed" });
   }
 
+  var rate = await rateLimit.checkRateLimit(event);
+  if (!rate.ok) {
+    return json(429, { ok: false, error: "rate_limited" });
+  }
+
   var body;
   try {
     body = JSON.parse(event.body || "{}");
@@ -54,11 +63,6 @@ exports.handler = async function (event) {
     return json(400, { ok: false, error: "empty_code" });
   }
 
-  var subtotal = Number(body.subtotal);
-  if (!isFinite(subtotal) || subtotal < 0) {
-    return json(400, { ok: false, error: "invalid_subtotal" });
-  }
-
   var shipping = Number(body.shipping);
   if (!isFinite(shipping) || shipping < 0) {
     shipping = 0;
@@ -68,23 +72,34 @@ exports.handler = async function (event) {
     return json(503, { ok: false, error: "discount_service_unconfigured" });
   }
 
-  var subtotalCents = Math.round(subtotal * 100);
-  var shippingCents = Math.round(shipping * 100);
-
   if (!Array.isArray(body.cart)) {
     return json(400, { ok: false, error: "missing_cart" });
   }
-  var cartSumCents = discountLib.sumCartCents(body.cart);
+
+  var cartNorm = productCatalog.validateAndNormalizeCart(body.cart);
+  if (!cartNorm.ok) {
+    return json(400, { ok: false, error: cartNorm.error || "invalid_cart" });
+  }
+  var cart = cartNorm.cart;
+
+  var cartSumCents = discountLib.sumCartCents(cart);
+  var subtotal = Number(body.subtotal);
+  if (!isFinite(subtotal) || subtotal < 0) {
+    return json(400, { ok: false, error: "invalid_subtotal" });
+  }
+  var subtotalCents = Math.round(subtotal * 100);
   if (Math.abs(cartSumCents - subtotalCents) > 2) {
     return json(400, { ok: false, error: "cart_subtotal_mismatch" });
   }
 
+  var shippingCents = Math.round(shipping * 100);
+
   var resolved = await discountLib.resolveExpectedPromoCents(
     codeRaw,
-    subtotalCents,
+    cartSumCents,
     shippingCents,
     event,
-    body.cart
+    cart
   );
   if (!resolved.ok) {
     var err = resolved.error || "invalid";

@@ -73,13 +73,12 @@ async function fetchDiscountRulesFromGithub() {
 
 /**
  * Hunters HD Gold lines must not receive merchandise discounts or surcharges.
- * Matches cart rows from site.js: shippingClass "glasses" or product URL containing hhdg-.
+ * URL (hhdg- product page) is authoritative — do not trust client shippingClass alone
+ * (after product-catalog normalize, url + shippingClass are rewritten from the catalog).
  */
 function isHuntersHdGoldCartLine(item) {
   if (!item || typeof item !== "object") return false;
-  if (String(item.shippingClass || "").toLowerCase() === "glasses") return true;
-  if (/hhdg-/i.test(String(item.url || ""))) return true;
-  return false;
+  return /hhdg-/i.test(String(item.url || ""));
 }
 
 function sumCartLineCents(item) {

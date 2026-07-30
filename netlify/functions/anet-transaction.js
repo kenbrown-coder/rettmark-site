@@ -22,6 +22,8 @@
  *   When TURNSTILE_SECRET_KEY is set, turnstileToken is required (Cloudflare siteverify).
  *   When those breakdown fields are present (even 0), amount must equal
  *   subtotal − merchandise discount + surcharge + (shipping − shipping credit) + tax (dollars, 2 decimals).
+ *   Server overwrites cart prices from the build-time product catalog, recomputes shipping and tax,
+ *   and ignores client shipping/tax amounts (client values are rewritten for the invoice).
  *   Omit all three for legacy behavior: amount must equal sum of cart line totals only.
  *
  * Private discount rules (GitHub): GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER,
@@ -37,6 +39,9 @@
 var discountLib = require("./lib/discount-rules-from-github.js");
 var corsAllowlist = require("./lib/cors-allowlist.js");
 var turnstileVerify = require("./lib/turnstile-verify.js");
+var productCatalog = require("./lib/product-catalog.js");
+var shippingRules = require("./lib/shipping-rules.js");
+var salesTax = require("./lib/sales-tax.js");
 
 function sumCartCents(cart) {
   if (!Array.isArray(cart)) return 0;
@@ -384,7 +389,19 @@ exports.handler = async function (event) {
     return json(400, { error: "Invalid amount" });
   }
 
-  var cart = body.cart;
+  var cartNorm = productCatalog.validateAndNormalizeCart(body.cart);
+  if (!cartNorm.ok) {
+    var cartErr =
+      cartNorm.error === "unknown_product"
+        ? "One or more cart items are invalid or no longer available"
+        : cartNorm.error === "empty_cart"
+          ? "Cart is empty"
+          : "Invalid cart";
+    return json(400, { error: cartErr });
+  }
+  var cart = cartNorm.cart;
+  body.cart = cart;
+
   var amountCents = Math.round(amountNum * 100);
   var subtotalCents = sumCartCents(cart);
 
@@ -411,6 +428,12 @@ exports.handler = async function (event) {
     if (isNaN(surchargeCents)) {
       return json(400, { error: "Invalid surcharge amount" });
     }
+
+    var shipAddr = body.shipTo && typeof body.shipTo === "object" ? body.shipTo : body.billTo || {};
+    var serverShip = shippingRules.computeShipping(cart, { country: shipAddr.country });
+    var shippingGrossCents2 = serverShip.amountCents;
+    body.shippingAmount = serverShip.amount;
+
     var codeTrim = String(body.discountCode || "").trim();
     var wantsPromo =
       discountCents > 0 || shipCreditCents > 0 || surchargeCents > 0 || codeTrim.length > 0;
@@ -422,16 +445,12 @@ exports.handler = async function (event) {
         if (!discountLib.githubEnvConfigured()) {
           return json(503, { error: "Discount validation is not configured" });
         }
-        var shippingGrossCents = Math.max(0, dollarsToCents(body.shippingAmount || 0));
-        if (isNaN(shippingGrossCents)) {
-          return json(400, { error: "Invalid shipping amount" });
-        }
         var resolvedPromo = await discountLib.resolveExpectedPromoCents(
           codeTrim,
           subtotalCents,
-          shippingGrossCents,
+          shippingGrossCents2,
           event,
-          Array.isArray(cart) ? cart : []
+          cart
         );
         if (!resolvedPromo.ok) {
           if (resolvedPromo.error === "invalid_discount_code") {
@@ -454,19 +473,23 @@ exports.handler = async function (event) {
         }
       }
     }
-    var shippingGrossCents2 = Math.max(0, dollarsToCents(body.shippingAmount || 0));
-    var taxCents = Math.max(0, dollarsToCents(body.taxAmount || 0));
-    if (isNaN(shippingGrossCents2) || isNaN(taxCents)) {
-      return json(400, { error: "Invalid shipping or tax amount" });
-    }
     if (shipCreditCents > shippingGrossCents2) {
       return json(400, { error: "Shipping credit cannot exceed shipping cost" });
     }
     var merchNetCents = subtotalCents - discountCents + surchargeCents;
-    var shipPayCents = shippingGrossCents2 - shipCreditCents;
     if (merchNetCents < 0) {
       return json(400, { error: "Invalid order total" });
     }
+    var taxableDollars = merchNetCents / 100;
+    var serverTax = salesTax.computeStateSalesTax(
+      shipAddr.country,
+      shipAddr.state,
+      taxableDollars
+    );
+    var taxCents = serverTax.amountCents;
+    body.taxAmount = serverTax.amount;
+
+    var shipPayCents = shippingGrossCents2 - shipCreditCents;
     expectedCents = merchNetCents + shipPayCents + taxCents;
     if (expectedCents < 0) {
       return json(400, { error: "Invalid order total" });

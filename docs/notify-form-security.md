@@ -6,7 +6,7 @@ Spam hitting the contact “Email updates” list was able to POST straight to t
 
 1. **Browser** ([contact.html](../contact.html) + [js/site.js](../js/site.js)): form posts JSON to `/.netlify/functions/notify-subscribe` after Turnstile; honeypot still present; submit is blocked if `TURNSTILE_SITE_KEY` was not injected at build.
 2. **Netlify** ([notify-subscribe.js](../netlify/functions/notify-subscribe.js)): honeypot, **server** Turnstile `siteverify`, soft IP rate limit (Blobs), then forward to Apps Script with a shared webhook secret.
-3. **Apps Script** ([notify-with-turnstile.gs](../google-apps-script/notify-with-turnstile.gs)): accepts Netlify’s `webhookSecret`; rejects anonymous posts unless legacy Turnstile is configured. **Do not put the `/exec` URL in HTML.**
+3. **Apps Script** ([notify-with-turnstile.gs](../google-apps-script/notify-with-turnstile.gs)): accepts Netlify’s `webhookSecret`; rejects anonymous posts. Unsubscribe links include an HMAC `sig` (uses `UNSUBSCRIBE_HMAC_SECRET` or falls back to `NOTIFY_WEBHOOK_SECRET`). **Do not put the `/exec` URL in HTML.**
 
 ## Required Netlify env (Functions scope or All)
 
@@ -28,10 +28,12 @@ Generate a secret (PowerShell):
 
 1. Open the Google Sheet / Apps Script bound to your signup list.
 2. Replace `doPost` with the logic in [notify-with-turnstile.gs](../google-apps-script/notify-with-turnstile.gs). Merge your existing sheet/email notification into `handleSignup_` (do not lose MailApp alerts if you use them).
-3. **Project settings → Script properties** → add `NOTIFY_WEBHOOK_SECRET` (same as Netlify).
+3. **Project settings → Script properties** → add `NOTIFY_WEBHOOK_SECRET` (same as Netlify). Optional: `UNSUBSCRIBE_HMAC_SECRET` (otherwise unsubscribe signing uses the webhook secret).
 4. **Deploy → Manage deployments → New deployment** (Web app: execute as you, access Anyone). Copy the **new** `/exec` URL.
 5. Put that URL in Netlify `NOTIFY_GOOGLE_SCRIPT_URL`, set `NOTIFY_WEBHOOK_SECRET` and ensure `TURNSTILE_SECRET_KEY` / `TURNSTILE_SITE_KEY` are set, then **redeploy** the site.
 6. **Archive or delete older web-app deployments** so the scraped URL in the old HTML stops accepting signups.
+
+After updating Apps Script to the signed-unsubscribe version, **Deploy → Manage deployments → Edit → New version** so welcome emails get `?email=&sig=` links. Unsigned `?email=` alone will no longer unsubscribe.
 
 Until steps 4–6 are done, bots can still hit the old public URL even after the site code ships.
 

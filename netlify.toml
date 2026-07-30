@@ -33,6 +33,8 @@
 #   In this repo, data/discount-codes.local.txt is the exact mirror (plain text for easy copy-paste); contents must be valid JSON for the private .json file on GitHub.
 #   POST /.netlify/functions/discount-validate — checkout preview; anet-transaction validates on charge.
 #   Optional maxUses per code: usage counts in Netlify Blobs (store rettmark-discount-usage); requires @netlify/blobs in package.json.
+#   Build runs scripts/generate-product-catalog.cjs → netlify/functions/lib/generated-product-catalog.json
+#   (server rewrites cart prices / shipping class; recomputes shipping + tax on charge).
 
 [functions]
   directory = "netlify/functions"

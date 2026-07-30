@@ -5,6 +5,8 @@ Reference for what is already implemented and which environment variables harden
 ## Already implemented (do not duplicate)
 
 - **Card data:** Accept.js tokenizes the card in the browser; only **opaqueData** is sent to [anet-transaction](../netlify/functions/anet-transaction.js). **ANET_TRANSACTION_KEY** stays server-side (Netlify env).
+- **Prices / shipping / tax:** Charge and discount-validate rewrite cart line prices from the build-time [product catalog](../netlify/functions/lib/generated-product-catalog.json) (HTML + HHDG frames). Shipping and state tax are recomputed on the server; client amounts are not trusted. Hunters HD Gold promo exclusion uses `hhdg-` product URLs only (not client `shippingClass`).
+- **Discount preview:** [discount-validate](../netlify/functions/discount-validate.js) soft-rate-limits by IP (Blobs). Set **CHECKOUT_ALLOWED_ORIGINS** in production so CORS is not `*`.
 - **Tampering:** Order `amount` and breakdown fields are validated against the cart and private GitHub discount rules (including Hunters HD Gold exclusions).
 - **Secrets:** Authorize.Net, Resend, and GitHub discount tokens are env-only; see comments in [netlify.toml](../netlify.toml).
 - **HTTP headers:** Site-wide **HSTS**, **CSP** (Turnstile + Authorize.Net hosts), **X-Frame-Options** in [netlify.toml](../netlify.toml).

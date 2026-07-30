@@ -1,0 +1,271 @@
+{
+  "generatedAt": "2026-07-30T23:18:14.537677Z",
+  "urlCount": 53,
+  "byUrl": {
+    "bag-kinetic-2-pistol-bag.html": {
+      "priceCents": 8999,
+      "shippingClass": "casebag",
+      "source": "bag-kinetic-2-pistol-bag.html"
+    },
+    "case-075-pre-cut-foam.html": {
+      "priceCents": 9999,
+      "shippingClass": "casebag",
+      "source": "case-075-pre-cut-foam.html"
+    },
+    "case-1229-empty-case.html": {
+      "priceCents": 24999,
+      "shippingClass": "casebag",
+      "source": "case-1229-empty-case.html"
+    },
+    "case-1229-pluckable-foam.html": {
+      "priceCents": 29999,
+      "shippingClass": "casebag",
+      "source": "case-1229-pluckable-foam.html"
+    },
+    "case-1229-pre-cut-foam.html": {
+      "priceCents": 29999,
+      "shippingClass": "casebag",
+      "source": "case-1229-pre-cut-foam.html"
+    },
+    "case-1258-pre-cut-foam.html": {
+      "priceCents": 44999,
+      "shippingClass": "casebag",
+      "source": "case-1258-pre-cut-foam.html"
+    },
+    "case-179-2-slot-and-8-mag.html": {
+      "priceCents": 11999,
+      "shippingClass": "casebag",
+      "source": "case-179-2-slot-and-8-mag.html"
+    },
+    "case-179-3-slot-and-6-mag.html": {
+      "priceCents": 11999,
+      "shippingClass": "casebag",
+      "source": "case-179-3-slot-and-6-mag.html"
+    },
+    "case-179-4-slot-and-12-mag.html": {
+      "priceCents": 11999,
+      "shippingClass": "casebag",
+      "source": "case-179-4-slot-and-12-mag.html"
+    },
+    "case-179-pre-cut-w-lid-organizer.html": {
+      "priceCents": 15499,
+      "shippingClass": "casebag",
+      "source": "case-179-pre-cut-w-lid-organizer.html"
+    },
+    "case-184-pre-cut-foam.html": {
+      "priceCents": 6999,
+      "shippingClass": "casebag",
+      "source": "case-184-pre-cut-foam.html"
+    },
+    "case-2106-empty-case.html": {
+      "priceCents": 31999,
+      "shippingClass": "casebag",
+      "source": "case-2106-empty-case.html"
+    },
+    "case-2106-pluckable-foam.html": {
+      "priceCents": 39999,
+      "shippingClass": "casebag",
+      "source": "case-2106-pluckable-foam.html"
+    },
+    "case-2106-pre-cut-foam.html": {
+      "priceCents": 49999,
+      "shippingClass": "casebag",
+      "source": "case-2106-pre-cut-foam.html"
+    },
+    "case-2191-pre-cut-foam.html": {
+      "priceCents": 59999,
+      "shippingClass": "casebag",
+      "source": "case-2191-pre-cut-foam.html"
+    },
+    "case-227-pre-cut-foam.html": {
+      "priceCents": 15999,
+      "shippingClass": "casebag",
+      "source": "case-227-pre-cut-foam.html"
+    },
+    "case-227-pre-cut-w-lid-organizer.html": {
+      "priceCents": 22999,
+      "shippingClass": "casebag",
+      "source": "case-227-pre-cut-w-lid-organizer.html"
+    },
+    "case-2300-pre-cut-foam.html": {
+      "priceCents": 13999,
+      "shippingClass": "casebag",
+      "source": "case-2300-pre-cut-foam.html"
+    },
+    "case-2300-standard-foam-straps-and-pouches.html": {
+      "priceCents": 14999,
+      "shippingClass": "casebag",
+      "source": "case-2300-standard-foam-straps-and-pouches.html"
+    },
+    "case-2300-standard-foam.html": {
+      "priceCents": 9999,
+      "shippingClass": "casebag",
+      "source": "case-2300-standard-foam.html"
+    },
+    "case-2332-empty-case.html": {
+      "priceCents": 26999,
+      "shippingClass": "casebag",
+      "source": "case-2332-empty-case.html"
+    },
+    "case-2332-pluckable-foam.html": {
+      "priceCents": 31999,
+      "shippingClass": "casebag",
+      "source": "case-2332-pluckable-foam.html"
+    },
+    "case-288-pre-cut-foam.html": {
+      "priceCents": 28999,
+      "shippingClass": "casebag",
+      "source": "case-288-pre-cut-foam.html"
+    },
+    "case-300-4-slot-and-8-mag.html": {
+      "priceCents": 25999,
+      "shippingClass": "casebag",
+      "source": "case-300-4-slot-and-8-mag.html"
+    },
+    "case-300-4-slot-w-lid-organizer.html": {
+      "priceCents": 29999,
+      "shippingClass": "casebag",
+      "source": "case-300-4-slot-w-lid-organizer.html"
+    },
+    "case-305-6-slot-and-8-mag.html": {
+      "priceCents": 35999,
+      "shippingClass": "casebag",
+      "source": "case-305-6-slot-and-8-mag.html"
+    },
+    "case-305-6-slot-w-lid-organizer.html": {
+      "priceCents": 40999,
+      "shippingClass": "casebag",
+      "source": "case-305-6-slot-w-lid-organizer.html"
+    },
+    "case-310-pre-cut-foam.html": {
+      "priceCents": 16999,
+      "shippingClass": "casebag",
+      "source": "case-310-pre-cut-foam.html"
+    },
+    "case-310-pre-cut-w-lid-organizer.html": {
+      "priceCents": 20999,
+      "shippingClass": "casebag",
+      "source": "case-310-pre-cut-w-lid-organizer.html"
+    },
+    "case-801-pre-cut-foam.html": {
+      "priceCents": 14999,
+      "shippingClass": "casebag",
+      "source": "case-801-pre-cut-foam.html"
+    },
+    "case-818-empty-case.html": {
+      "priceCents": 27999,
+      "shippingClass": "casebag",
+      "source": "case-818-empty-case.html"
+    },
+    "case-818-pluckable-foam.html": {
+      "priceCents": 31999,
+      "shippingClass": "casebag",
+      "source": "case-818-pluckable-foam.html"
+    },
+    "case-818-pre-cut-foam.html": {
+      "priceCents": 39999,
+      "shippingClass": "casebag",
+      "source": "case-818-pre-cut-foam.html"
+    },
+    "case-997-pre-cut-foam-lid-organizer.html": {
+      "priceCents": 22999,
+      "shippingClass": "casebag",
+      "source": "case-997-pre-cut-foam-lid-organizer.html"
+    },
+    "case-997-pre-cut-foam.html": {
+      "priceCents": 17999,
+      "shippingClass": "casebag",
+      "source": "case-997-pre-cut-foam.html"
+    },
+    "hhdg-aircrew-bayonet-temples.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-aircrew-cable-temples.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-aircrew-skull-temples.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-archer.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-aviator.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-b-raze.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-gauge.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-magnum.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-marksman.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-modern-bespin.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-modern-dago.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-modern-geo.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-modern-jakku.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-modern-naboo.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-signature-series.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-slingshot.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-vector-by-walker-s.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    },
+    "hhdg-velocity.html": {
+      "priceCents": 29999,
+      "shippingClass": "glasses",
+      "source": "hhdg-frames.json"
+    }
+  }
+}

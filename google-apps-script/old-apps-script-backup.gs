@@ -1,10 +1,3 @@
-/**
- * Rettmark Subscriber Automation — secured for Netlify notify-subscribe.
- * Netlify verifies Turnstile, then POSTs here with webhookSecret.
- * Unsubscribe via doGet requires HMAC sig (Script property UNSUBSCRIBE_HMAC_SECRET,
- * or falls back to NOTIFY_WEBHOOK_SECRET).
- */
-
 const CONFIG = {
   subscribersSheetName: 'Subscribers',
   unsubscribeLogSheetName: 'Unsubscribe Log',
@@ -20,42 +13,58 @@ function doPost(e) {
     lock.waitLock(30000);
 
     const payload = parseIncomingData_(e);
-
-    if (String(payload['bot-field'] || payload.botField || '').trim()) {
-      return jsonResponse_({ ok: true, skipped: true });
-    }
-
     const email = normalizeEmail_(payload.email);
-    if (!isValidEmail_(email)) {
-      return jsonResponse_({ ok: false, error: 'invalid_email' });
+
+    if (!email) {
+      return HtmlService.createHtmlOutput('<h2>Missing email address.</h2>');
     }
 
-    const expectedSecret = PropertiesService.getScriptProperties().getProperty('NOTIFY_WEBHOOK_SECRET');
-    const gotSecret = String(payload.webhookSecret || '');
-    if (!expectedSecret || gotSecret !== expectedSecret) {
-      return jsonResponse_({ ok: false, error: 'unauthorized' });
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const subscribersSheet = ss.getSheetByName(CONFIG.subscribersSheetName);
+
+    if (!subscribersSheet) {
+      return HtmlService.createHtmlOutput('<h2>Subscribers sheet not found.</h2>');
     }
 
-    const source = String(payload.source || CONFIG.sourceLabel).slice(0, 40);
-    upsertSubscriber_(email, source);
+    const existingRow = findSubscriberRow_(subscribersSheet, email);
+    const now = new Date();
 
-    return jsonResponse_({ ok: true });
+    if (existingRow > 0) {
+      const currentStatus = subscribersSheet.getRange(existingRow, 4).getValue();
+
+      if (String(currentStatus).toLowerCase() === 'unsubscribed') {
+        subscribersSheet.getRange(existingRow, 2).setValue(now);
+        subscribersSheet.getRange(existingRow, 3).setValue(CONFIG.sourceLabel);
+        subscribersSheet.getRange(existingRow, 4).setValue('Subscribed');
+        subscribersSheet.getRange(existingRow, 5).clearContent();
+        sendThankYouEmail_(email);
+      }
+    } else {
+      subscribersSheet.appendRow([
+        email,
+        now,
+        CONFIG.sourceLabel,
+        'Subscribed',
+        ''
+      ]);
+
+      sendThankYouEmail_(email);
+    }
+
+    return HtmlService.createHtmlOutput(
+      '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=https://rettmarkfirearms.com/success.html"></head><body></body></html>'
+    );
   } catch (err) {
-    return jsonResponse_({ ok: false, error: 'server_error' });
+    return HtmlService.createHtmlOutput('<h2>Error: ' + err.message + '</h2>');
   }
 }
 
 function doGet(e) {
   try {
     const email = normalizeEmail_(e.parameter.email);
-    const sig = String(e.parameter.sig || '').trim().toLowerCase();
 
-    if (!isValidEmail_(email) || !sig) {
-      return HtmlService.createHtmlOutput('<h2>Invalid unsubscribe link.</h2>');
-    }
-
-    if (!verifyUnsubscribeSig_(email, sig)) {
-      return HtmlService.createHtmlOutput('<h2>Invalid or expired unsubscribe link.</h2>');
+    if (!email) {
+      return HtmlService.createHtmlOutput('<h2>Missing email address.</h2>');
     }
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -63,7 +72,7 @@ function doGet(e) {
     const unsubscribeLogSheet = ss.getSheetByName(CONFIG.unsubscribeLogSheetName);
 
     if (!subscribersSheet || !unsubscribeLogSheet) {
-      return HtmlService.createHtmlOutput('<h2>Unable to process unsubscribe right now.</h2>');
+      return HtmlService.createHtmlOutput('<h2>Required sheet not found.</h2>');
     }
 
     const row = findSubscriberRow_(subscribersSheet, email);
@@ -72,65 +81,29 @@ function doGet(e) {
     if (row > 0) {
       subscribersSheet.getRange(row, 4).setValue('Unsubscribed');
       subscribersSheet.getRange(row, 5).setValue(now);
-      unsubscribeLogSheet.appendRow([
-        email,
-        now,
-        'One-click link',
-        ''
-      ]);
     }
+
+    unsubscribeLogSheet.appendRow([
+      email,
+      now,
+      'One-click link',
+      ''
+    ]);
 
     return HtmlService.createHtmlOutput(
       '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=https://rettmarkfirearms.com/unsubscribe.html"></head><body></body></html>'
     );
   } catch (err) {
-    return HtmlService.createHtmlOutput('<h2>Unable to process unsubscribe right now.</h2>');
+    return HtmlService.createHtmlOutput('<h2>Error: ' + err.message + '</h2>');
   }
-}
-
-function upsertSubscriber_(email, source) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const subscribersSheet = ss.getSheetByName(CONFIG.subscribersSheetName);
-
-  if (!subscribersSheet) {
-    throw new Error('Subscribers sheet not found.');
-  }
-
-  const existingRow = findSubscriberRow_(subscribersSheet, email);
-  const now = new Date();
-  const sourceLabel = source || CONFIG.sourceLabel;
-
-  if (existingRow > 0) {
-    const currentStatus = subscribersSheet.getRange(existingRow, 4).getValue();
-
-    if (String(currentStatus).toLowerCase() === 'unsubscribed') {
-      subscribersSheet.getRange(existingRow, 2).setValue(now);
-      subscribersSheet.getRange(existingRow, 3).setValue(sourceLabel);
-      subscribersSheet.getRange(existingRow, 4).setValue('Subscribed');
-      subscribersSheet.getRange(existingRow, 5).clearContent();
-      sendThankYouEmail_(email);
-    }
-    return;
-  }
-
-  subscribersSheet.appendRow([
-    email,
-    now,
-    sourceLabel,
-    'Subscribed',
-    ''
-  ]);
-
-  sendThankYouEmail_(email);
 }
 
 function sendThankYouEmail_(email) {
   const subject = 'Welcome to Rettmark Firearms';
 
-  const baseUrl = ScriptApp.getService().getUrl();
-  const sig = signUnsubscribe_(email);
   const unsubscribeUrl =
-    baseUrl + '?email=' + encodeURIComponent(email) + '&sig=' + encodeURIComponent(sig);
+    'https://script.google.com/macros/s/REDACTED_OLD_DEPLOYMENT/exec?email=' +
+    encodeURIComponent(email);
 
   const htmlBody =
     '<div style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.6; color: #111111;">' +
@@ -182,46 +155,6 @@ function sendThankYouEmail_(email) {
   );
 }
 
-function unsubscribeSecret_() {
-  const props = PropertiesService.getScriptProperties();
-  return (
-    props.getProperty('UNSUBSCRIBE_HMAC_SECRET') ||
-    props.getProperty('NOTIFY_WEBHOOK_SECRET') ||
-    ''
-  );
-}
-
-function hmacHex_(message, secret) {
-  const raw = Utilities.computeHmacSha256Signature(String(message), String(secret));
-  return raw
-    .map(function (b) {
-      const v = (b < 0 ? b + 256 : b).toString(16);
-      return v.length === 1 ? '0' + v : v;
-    })
-    .join('');
-}
-
-function signUnsubscribe_(email) {
-  const secret = unsubscribeSecret_();
-  if (!secret) {
-    throw new Error('Unsubscribe signing secret is not configured.');
-  }
-  return hmacHex_('unsub:' + normalizeEmail_(email), secret);
-}
-
-function verifyUnsubscribeSig_(email, sig) {
-  const secret = unsubscribeSecret_();
-  if (!secret || !sig) return false;
-  const expected = hmacHex_('unsub:' + normalizeEmail_(email), secret);
-  if (expected.length !== sig.length) return false;
-  // Constant-time-ish compare for Apps Script
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) {
-    diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
-  }
-  return diff === 0;
-}
-
 function parseIncomingData_(e) {
   if (!e) return {};
 
@@ -252,12 +185,6 @@ function parseFormEncoded_(contents) {
 
 function normalizeEmail_(email) {
   return String(email || '').trim().toLowerCase();
-}
-
-function isValidEmail_(email) {
-  if (!email || email.length > 320) return false;
-  // Practical address check (not full RFC)
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function findSubscriberRow_(sheet, email) {
