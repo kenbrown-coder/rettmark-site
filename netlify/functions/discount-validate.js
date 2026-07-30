@@ -81,7 +81,7 @@ exports.handler = async function (event) {
     shipping = 0;
   }
 
-  if (!discountLib.githubEnvConfigured()) {
+  if (!discountLib.githubEnvConfigured() && !discountLib.bundledRulesAvailable()) {
     return json(503, { ok: false, error: "discount_service_unconfigured" });
   }
 

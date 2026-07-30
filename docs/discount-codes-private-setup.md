@@ -33,6 +33,7 @@ See [security-checkout.md](security-checkout.md) for checkout hardening (CORS, T
 - **Recommended:** Edit **`data/discount-codes.local.txt`** in the **site** repo first, then paste its full contents into **`discount-codes.json`** (or your configured path) in the **private** repo → commit → push. That keeps your working copy and GitHub in lockstep.
 - Alternatively, edit the private file directly—then copy back into `discount-codes.local.txt` here so the site repo stays the single offline mirror.
 - No Netlify **site** redeploy is required for content-only JSON changes (functions read GitHub at runtime).
+- **Fallback:** each site deploy also bundles `data/discount-codes.local.txt` into the functions package. If the private GitHub fetch fails, checkout uses that bundle so promo preview/charge are not bricked. Update the local mirror and redeploy when you want the fallback to match.
 
 **Implemented names** (use these in Netlify):
 

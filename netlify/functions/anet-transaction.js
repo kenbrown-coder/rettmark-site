@@ -442,7 +442,7 @@ exports.handler = async function (event) {
         return json(400, { error: "Promo requires a valid code" });
       }
       if (codeTrim) {
-        if (!discountLib.githubEnvConfigured()) {
+        if (!discountLib.githubEnvConfigured() && !discountLib.bundledRulesAvailable()) {
           return json(503, { error: "Discount validation is not configured" });
         }
         var resolvedPromo = await discountLib.resolveExpectedPromoCents(

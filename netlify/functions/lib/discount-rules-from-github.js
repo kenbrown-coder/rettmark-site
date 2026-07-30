@@ -2,6 +2,9 @@
  * Load discount rules JSON from a private GitHub repo (Contents API).
  * Env: GITHUB_DISCOUNT_TOKEN, GITHUB_DISCOUNT_OWNER, GITHUB_DISCOUNT_REPO,
  *      GITHUB_DISCOUNT_PATH, optional GITHUB_DISCOUNT_REF (default main).
+ *
+ * If GitHub is unreachable or misconfigured, falls back to
+ * generated-discount-rules.json (built from data/discount-codes.local.txt).
  */
 
 function roundMoney(n) {
@@ -16,8 +19,47 @@ function githubEnvConfigured() {
   return Boolean(token && owner && repo && path);
 }
 
+function parseRulesJson(jsonStr, label) {
+  var parsed;
+  try {
+    parsed = JSON.parse(String(jsonStr || ""));
+  } catch (e) {
+    return { ok: false, rules: null, error: "json_parse:" + String(label || "rules") };
+  }
+  if (Array.isArray(parsed)) {
+    return { ok: true, rules: parsed, error: null };
+  }
+  if (parsed && typeof parsed === "object" && Array.isArray(parsed.rules)) {
+    return { ok: true, rules: parsed.rules, error: null };
+  }
+  return { ok: false, rules: null, error: "json_not_array" };
+}
+
+function loadBundledDiscountRules() {
+  try {
+    var bundled = require("./generated-discount-rules.json");
+    if (bundled && Array.isArray(bundled.rules)) {
+      return { ok: true, rules: bundled.rules, error: null, source: "bundle" };
+    }
+    if (Array.isArray(bundled)) {
+      return { ok: true, rules: bundled, error: null, source: "bundle" };
+    }
+    return { ok: false, rules: null, error: "bundle_bad_shape" };
+  } catch (e) {
+    return {
+      ok: false,
+      rules: null,
+      error: "bundle_missing:" + (e && e.message ? e.message : String(e))
+    };
+  }
+}
+
+function bundledRulesAvailable() {
+  return loadBundledDiscountRules().ok === true;
+}
+
 /**
- * @returns {Promise<{ ok: boolean, rules: object[]|null, error: string|null }>}
+ * @returns {Promise<{ ok: boolean, rules: object[]|null, error: string|null, source?: string }>}
  */
 async function fetchDiscountRulesFromGithub() {
   var token = String(process.env.GITHUB_DISCOUNT_TOKEN || "").trim();
@@ -44,31 +86,93 @@ async function fetchDiscountRulesFromGithub() {
     encPath +
     "?ref=" +
     encodeURIComponent(ref);
-  var ghOpts = {
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: "Bearer " + token,
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "rettmark-netlify-discount"
+
+  try {
+    var ghOpts = {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: "Bearer " + token,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "rettmark-netlify-discount"
+      }
+    };
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      ghOpts.signal = AbortSignal.timeout(10000);
     }
+    var res = await fetch(url, ghOpts);
+    if (!res.ok) {
+      var errBody = "";
+      try {
+        errBody = (await res.text()).slice(0, 200);
+      } catch (eRead) {}
+      console.warn("[rettmark] GitHub discount fetch HTTP", res.status, errBody);
+      return { ok: false, rules: null, error: "github_" + res.status };
+    }
+    var data = await res.json();
+    var jsonStr = "";
+    if (data && data.encoding === "base64" && data.content) {
+      jsonStr = Buffer.from(String(data.content).replace(/\s/g, ""), "base64").toString("utf8");
+    } else if (data && data.download_url) {
+      var rawOpts = {
+        headers: {
+          Authorization: "Bearer " + token,
+          "User-Agent": "rettmark-netlify-discount",
+          Accept: "application/vnd.github.raw"
+        }
+      };
+      if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+        rawOpts.signal = AbortSignal.timeout(10000);
+      }
+      var rawRes = await fetch(String(data.download_url), rawOpts);
+      if (!rawRes.ok) {
+        console.warn("[rettmark] GitHub discount raw fetch HTTP", rawRes.status);
+        return { ok: false, rules: null, error: "github_raw_" + rawRes.status };
+      }
+      jsonStr = await rawRes.text();
+    } else {
+      console.warn("[rettmark] GitHub discount bad payload shape");
+      return { ok: false, rules: null, error: "github_bad_payload" };
+    }
+    var parsed = parseRulesJson(jsonStr, "github");
+    if (!parsed.ok) {
+      console.warn("[rettmark] GitHub discount JSON parse failed", parsed.error);
+    }
+    if (parsed.ok) parsed.source = "github";
+    return parsed;
+  } catch (e) {
+    console.warn(
+      "[rettmark] GitHub discount fetch error",
+      e && e.message ? e.message : String(e)
+    );
+    return { ok: false, rules: null, error: "github_exception" };
+  }
+}
+
+/**
+ * Prefer private GitHub; fall back to build-time mirror so checkout is not bricked.
+ * @returns {Promise<{ ok: boolean, rules: object[]|null, error: string|null, source?: string }>}
+ */
+async function loadDiscountRules() {
+  if (githubEnvConfigured()) {
+    var fromGh = await fetchDiscountRulesFromGithub();
+    if (fromGh.ok && fromGh.rules) {
+      return fromGh;
+    }
+    console.warn(
+      "[rettmark] discount rules GitHub unavailable (",
+      fromGh.error || "unknown",
+      "); using build fallback"
+    );
+  }
+  var bundled = loadBundledDiscountRules();
+  if (bundled.ok) {
+    return bundled;
+  }
+  return {
+    ok: false,
+    rules: null,
+    error: githubEnvConfigured() ? "github_and_bundle_failed" : "missing_env"
   };
-  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
-    ghOpts.signal = AbortSignal.timeout(10000);
-  }
-  var res = await fetch(url, ghOpts);
-  if (!res.ok) {
-    return { ok: false, rules: null, error: "github_" + res.status };
-  }
-  var data = await res.json();
-  if (!data || data.type !== "file" || !data.content || data.encoding !== "base64") {
-    return { ok: false, rules: null, error: "github_bad_payload" };
-  }
-  var jsonStr = Buffer.from(String(data.content).replace(/\s/g, ""), "base64").toString("utf8");
-  var arr = JSON.parse(jsonStr);
-  if (!Array.isArray(arr)) {
-    return { ok: false, rules: null, error: "json_not_array" };
-  }
-  return { ok: true, rules: arr, error: null };
 }
 
 /**
@@ -254,7 +358,7 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
   if (!codeTrim) {
     return { ok: true, merchDiscCents: 0, shipCreditCents: 0, surchargeCents: 0 };
   }
-  if (!githubEnvConfigured()) {
+  if (!githubEnvConfigured() && !bundledRulesAvailable()) {
     return {
       ok: false,
       merchDiscCents: 0,
@@ -263,8 +367,9 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
       error: "discount_validation_unconfigured"
     };
   }
-  var loaded = await fetchDiscountRulesFromGithub();
+  var loaded = await loadDiscountRules();
   if (!loaded.ok || !loaded.rules) {
+    console.warn("[rettmark] discount rules load failed", loaded.error || "unknown");
     return {
       ok: false,
       merchDiscCents: 0,
@@ -337,7 +442,10 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
 
 module.exports = {
   githubEnvConfigured,
+  bundledRulesAvailable,
   fetchDiscountRulesFromGithub,
+  loadDiscountRules,
+  loadBundledDiscountRules,
   findRuleForCode,
   computeDiscountDollars,
   computePromoPartsCents,

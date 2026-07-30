@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-07-30T23:35:13.024995Z",
+  "source": "data/discount-codes.local.txt",
+  "ruleCount": 3,
+  "rules": [
+    {
+      "code": "RELOADING",
+      "kind": "fixed",
+      "value": 19.99,
+      "applyTo": "shipping",
+      "active": true
+    },
+    {
+      "code": "SHIP10",
+      "kind": "percent",
+      "value": 10,
+      "applyTo": "merchandise",
+      "active": true
+    },
+    {
+      "code": "SHIP20",
+      "kind": "percent",
+      "value": 20,
+      "applyTo": "merchandise",
+      "expiresAt": "2026-04-16T05:00:00.000Z",
+      "active": true
+    }
+  ]
+}
