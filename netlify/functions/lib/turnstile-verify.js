@@ -91,5 +91,7 @@ function clientIpFromEvent(event) {
 
 module.exports = {
   verifyTurnstileForCharge,
+  /** Alias for non-charge endpoints (same siteverify rules). */
+  verifyTurnstileToken: verifyTurnstileForCharge,
   clientIpFromEvent
 };

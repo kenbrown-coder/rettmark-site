@@ -18,6 +18,7 @@ var discountLib = require("./lib/discount-rules-from-github.js");
 var corsAllowlist = require("./lib/cors-allowlist.js");
 var productCatalog = require("./lib/product-catalog.js");
 var rateLimit = require("./lib/discount-validate-rate.js");
+var turnstileVerify = require("./lib/turnstile-verify.js");
 
 exports.handler = async function (event) {
   var corsResult = corsAllowlist.corsForRequest(event, "POST, OPTIONS");
@@ -56,6 +57,18 @@ exports.handler = async function (event) {
     body = JSON.parse(event.body || "{}");
   } catch (e) {
     return json(400, { ok: false, error: "invalid_json" });
+  }
+
+  var ts = await turnstileVerify.verifyTurnstileToken(
+    body.turnstileToken,
+    turnstileVerify.clientIpFromEvent(event)
+  );
+  if (!ts.ok) {
+    return json(ts.status || 400, {
+      ok: false,
+      error: ts.error || "turnstile_failed",
+      message: ts.userMessage || "Security verification failed."
+    });
   }
 
   var codeRaw = String(body.code || "").trim();

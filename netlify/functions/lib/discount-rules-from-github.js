@@ -284,7 +284,9 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
     };
   }
   var maxUsesNum = Number(rule.maxUses);
+  var limitedMaxUses = null;
   if (isFinite(maxUsesNum) && maxUsesNum > 0) {
+    limitedMaxUses = Math.floor(maxUsesNum);
     var usage = require("./discount-usage-blobs.js");
     var used = await usage.getUseCount(lambdaEvent, codeTrim);
     if (used === null) {
@@ -296,7 +298,7 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
         error: "discount_usage_unavailable"
       };
     }
-    if (used >= Math.floor(maxUsesNum)) {
+    if (used >= limitedMaxUses) {
       return {
         ok: false,
         merchDiscCents: 0,
@@ -312,7 +314,8 @@ async function resolveExpectedPromoCents(codeTrim, subtotalCents, shippingCents,
     ok: true,
     merchDiscCents: parts.merchDiscCents,
     shipCreditCents: sc,
-    surchargeCents: Math.max(0, parts.surchargeCents)
+    surchargeCents: Math.max(0, parts.surchargeCents),
+    maxUses: limitedMaxUses
   };
   var applyToR = String(rule.applyTo || "merchandise").toLowerCase();
   if (applyToR === "shipping" && rule.kind === "fixed") {

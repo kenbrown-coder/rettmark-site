@@ -13,8 +13,109 @@
     return new URL("/.netlify/functions/discount-validate", window.location.origin).href;
   }
 
+  var reviewTsWidgetId = null;
+  var reviewTsReady = false;
+  var reviewTsAfterToken = null;
+  var reviewTsWaitId = null;
+
+  function clearReviewTsWait() {
+    if (reviewTsWaitId) {
+      clearTimeout(reviewTsWaitId);
+      reviewTsWaitId = null;
+    }
+  }
+
+  function ensureReviewTurnstile() {
+    var siteKey = String(window.RETTMARK_TURNSTILE_SITE_KEY || "").trim();
+    if (!siteKey) {
+      reviewTsReady = true;
+      return Promise.resolve();
+    }
+    return new Promise(function (resolve) {
+      function mount() {
+        var el = document.getElementById("checkout-review-turnstile");
+        if (!el || !window.turnstile || reviewTsWidgetId != null) {
+          reviewTsReady = true;
+          resolve();
+          return;
+        }
+        reviewTsWidgetId = window.turnstile.render(el, {
+          sitekey: siteKey,
+          size: "invisible",
+          callback: function (token) {
+            clearReviewTsWait();
+            if (typeof reviewTsAfterToken === "function") {
+              var fn = reviewTsAfterToken;
+              reviewTsAfterToken = null;
+              fn(token);
+            }
+          },
+          "error-callback": function () {
+            clearReviewTsWait();
+            if (typeof reviewTsAfterToken === "function") {
+              var fnErr = reviewTsAfterToken;
+              reviewTsAfterToken = null;
+              fnErr("");
+            }
+          },
+          "expired-callback": function () {
+            reviewTsAfterToken = null;
+          }
+        });
+        reviewTsReady = true;
+        resolve();
+      }
+      if (window.turnstile) {
+        mount();
+        return;
+      }
+      var existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+      if (existing) {
+        existing.addEventListener("load", mount);
+        setTimeout(mount, 50);
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      s.async = true;
+      s.onload = mount;
+      s.onerror = function () {
+        reviewTsReady = true;
+        resolve();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  /** Obtain a Turnstile token when the site key is configured; otherwise "". */
+  function withReviewTurnstileToken(thenFn) {
+    var siteKey = String(window.RETTMARK_TURNSTILE_SITE_KEY || "").trim();
+    if (!siteKey || reviewTsWidgetId == null || !window.turnstile) {
+      thenFn("");
+      return;
+    }
+    clearReviewTsWait();
+    reviewTsAfterToken = thenFn;
+    reviewTsWaitId = setTimeout(function () {
+      reviewTsWaitId = null;
+      if (typeof reviewTsAfterToken === "function") {
+        var fn = reviewTsAfterToken;
+        reviewTsAfterToken = null;
+        fn("");
+      }
+    }, 12000);
+    try {
+      window.turnstile.reset(reviewTsWidgetId);
+      window.turnstile.execute(reviewTsWidgetId);
+    } catch (e) {
+      clearReviewTsWait();
+      reviewTsAfterToken = null;
+      thenFn("");
+    }
+  }
+
   /** @returns {Promise<{ data: object, httpOk: boolean, status: number }>} */
-  function validateDiscountRemote(code, subtotal, shippingDollars, cart) {
+  function validateDiscountRemote(code, subtotal, shippingDollars, cart, turnstileToken) {
     return fetch(discountValidateUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -22,7 +123,8 @@
         code: String(code || "").trim(),
         subtotal: Number(subtotal) || 0,
         shipping: Number(shippingDollars) || 0,
-        cart: Array.isArray(cart) ? cart : []
+        cart: Array.isArray(cart) ? cart : [],
+        turnstileToken: turnstileToken || ""
       })
     })
       .then(function (res) {
@@ -33,6 +135,14 @@
       .catch(function () {
         return { httpOk: false, status: 0, data: { ok: false, error: "network" } };
       });
+  }
+
+  function validateDiscountWithTurnstile(code, subtotal, shippingDollars, cart) {
+    return new Promise(function (resolve) {
+      withReviewTurnstileToken(function (token) {
+        validateDiscountRemote(code, subtotal, shippingDollars, cart, token).then(resolve);
+      });
+    });
   }
 
   function cartSignature(cart) {
@@ -419,6 +529,8 @@
   }
 
   function init() {
+    ensureReviewTurnstile();
+
     var cart = readCart();
     if (!cart.length) {
       go("cart.html");
@@ -500,7 +612,7 @@
     applyComputedSalesTax(shipAddr);
 
     if (state.appliedCode) {
-      validateDiscountRemote(state.appliedCode, state.subtotal, state.shippingAmount, state.cart).then(
+      validateDiscountWithTurnstile(state.appliedCode, state.subtotal, state.shippingAmount, state.cart).then(
         function (result) {
           var d = result.data;
           if (d && d.ok === true) {
@@ -541,7 +653,13 @@
                   ? "That code has reached its maximum number of uses."
                   : d && d.error === "forbidden"
                     ? "This page can’t reach the discount service from here. Open the shop from the live site or contact us."
-                    : "Could not verify discount. Re-enter a code or continue without one.",
+                    : d &&
+                        (d.error === "turnstile_required" ||
+                          d.error === "turnstile_failed" ||
+                          d.error === "turnstile_unreachable" ||
+                          d.error === "turnstile_not_configured")
+                      ? d.message || "Security check failed. Refresh and try the code again."
+                      : "Could not verify discount. Re-enter a code or continue without one.",
               true
             );
             recalcShippingOnly();
@@ -580,7 +698,7 @@
         ensureShippingQuoted(shipAddr, state.cart);
         recalcShippingOnly();
         showCodeHint("Checking code…", false);
-        validateDiscountRemote(code, state.subtotal, state.shippingAmount, state.cart).then(function (result) {
+        validateDiscountWithTurnstile(code, state.subtotal, state.shippingAmount, state.cart).then(function (result) {
           var d = result.data;
           if (d && d.ok === true) {
             state.appliedCode = code;
@@ -622,6 +740,14 @@
               "This page can’t reach the discount service from here. Open the shop from the live site or contact us.",
               true
             );
+          } else if (
+            d &&
+            (d.error === "turnstile_required" ||
+              d.error === "turnstile_failed" ||
+              d.error === "turnstile_unreachable" ||
+              d.error === "turnstile_not_configured")
+          ) {
+            showCodeHint(d.message || "Security check failed. Refresh and try again.", true);
           } else if ((d && d.error === "network") || result.status === 0) {
             showCodeHint("Could not reach the server. Check your connection and try again.", true);
           } else {

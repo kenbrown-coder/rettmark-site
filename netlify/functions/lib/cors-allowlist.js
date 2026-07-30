@@ -167,6 +167,21 @@ function corsForRequest(event, allowMethods) {
   };
 
   if (!list) {
+    var ctx = String(process.env.CONTEXT || "").toLowerCase();
+    var requireAllow =
+      String(process.env.CHECKOUT_REQUIRE_ORIGIN_ALLOWLIST || "")
+        .trim()
+        .toLowerCase() === "1" ||
+      String(process.env.CHECKOUT_REQUIRE_ORIGIN_ALLOWLIST || "")
+        .trim()
+        .toLowerCase() === "true";
+    /* Netlify production deploys set CONTEXT=production. Fail closed unless allowlist is set. */
+    if (ctx === "production" || requireAllow) {
+      console.error(
+        "[rettmark] CHECKOUT_ALLOWED_ORIGINS is required in production (CORS deny)"
+      );
+      return { ok: false, headers: base };
+    }
     return {
       ok: true,
       headers: Object.assign({ "Access-Control-Allow-Origin": "*" }, base)
@@ -175,10 +190,8 @@ function corsForRequest(event, allowMethods) {
 
   var allowedNorm = buildNormalizedAllowSet(list);
   if (isEmptyKeySet(allowedNorm)) {
-    return {
-      ok: true,
-      headers: Object.assign({ "Access-Control-Allow-Origin": "*" }, base)
-    };
+    console.error("[rettmark] CHECKOUT_ALLOWED_ORIGINS parsed empty (CORS deny)");
+    return { ok: false, headers: base };
   }
 
   var originHeader = getRequestOrigin(event);

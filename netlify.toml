@@ -14,7 +14,8 @@
 # Notify form: NOTIFY_GOOGLE_SCRIPT_URL + NOTIFY_WEBHOOK_SECRET (docs/notify-form-security.md).
 #
 # Checkout API CORS: CHECKOUT_ALLOWED_ORIGINS — comma-separated exact origins (e.g. https://rettmarkfirearms.com).
-# If unset, functions allow * (legacy). Set in production.
+# Required on production deploys (CONTEXT=production); unset allowlist → CORS deny. Preview/branch may still use *.
+# Optional: CHECKOUT_REQUIRE_ORIGIN_ALLOWLIST=1 to require the allowlist on all contexts.
 #
 # Authorize.Net checkout (env vars only — not baked into js/* for Netlify secret scan):
 #   ANET_PUBLIC_CLIENT_KEY, ANET_API_LOGIN_ID → GET /.netlify/functions/anet-public-config

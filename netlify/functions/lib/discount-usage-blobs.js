@@ -1,6 +1,6 @@
 /**
  * Persist discount redemption counts in Netlify Blobs (site-scoped).
- * Requires @netlify/blobs. Increments only after successful payment in anet-transaction.
+ * Limited-use codes: tryReserveUse (CAS) before Authorize.Net charge; releaseUse if declined.
  *
  * Lambda compatibility: call connectLambda(event) before getStore (see Netlify Blobs docs).
  */
@@ -9,6 +9,7 @@ var STORE_NAME = "rettmark-discount-usage";
 
 /** Netlify Blobs has no built-in deadline; a stuck store call would block checkout until the function limit. */
 var BLOBS_DEADLINE_MS = 8000;
+var CAS_ATTEMPTS = 8;
 
 function withBlobsDeadline(promise, label) {
   return Promise.race([
@@ -26,12 +27,23 @@ function normalizeCode(code) {
   return String(code || "").trim().toUpperCase();
 }
 
+function usageKey(code) {
+  return "uses/" + normalizeCode(code);
+}
+
 async function getStoreConnected(lambdaEvent) {
   var blobs = require("@netlify/blobs");
   if (lambdaEvent && typeof blobs.connectLambda === "function") {
     blobs.connectLambda(lambdaEvent);
   }
   return blobs.getStore(STORE_NAME);
+}
+
+function readCount(entry) {
+  if (entry && typeof entry.count === "number" && isFinite(entry.count)) {
+    return Math.max(0, Math.floor(entry.count));
+  }
+  return 0;
 }
 
 /**
@@ -44,11 +56,8 @@ async function getUseCount(lambdaEvent, code) {
     return await withBlobsDeadline(
       (async function () {
         var store = await getStoreConnected(lambdaEvent);
-        var entry = await store.get("uses/" + key, { type: "json" });
-        if (entry && typeof entry.count === "number" && isFinite(entry.count)) {
-          return Math.max(0, Math.floor(entry.count));
-        }
-        return 0;
+        var entry = await store.get(usageKey(key), { type: "json", consistency: "strong" });
+        return readCount(entry);
       })(),
       "getUseCount:" + key
     );
@@ -64,7 +73,104 @@ async function getUseCount(lambdaEvent, code) {
 }
 
 /**
- * Call after payment succeeds when a code was applied.
+ * Atomically increment usage if under maxUses (ETag / onlyIfNew CAS).
+ * Call immediately before charging; call releaseUse if the charge is not approved.
+ * @returns {Promise<{ ok: boolean, error?: string, count?: number }>}
+ */
+async function tryReserveUse(lambdaEvent, code, maxUses) {
+  var key = normalizeCode(code);
+  var max = Math.floor(Number(maxUses) || 0);
+  if (!key || !(max > 0)) {
+    return { ok: true, skipped: true };
+  }
+
+  try {
+    return await withBlobsDeadline(
+      (async function () {
+        var store = await getStoreConnected(lambdaEvent);
+        for (var attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+          var got = await store.getWithMetadata(usageKey(key), {
+            type: "json",
+            consistency: "strong"
+          });
+          var data = got && got.data;
+          var etag = got && got.etag;
+          var n = readCount(data);
+
+          if (n >= max) {
+            return { ok: false, error: "exhausted", count: n };
+          }
+
+          var next = { count: n + 1 };
+          var writeOpts = etag ? { onlyIfMatch: etag } : { onlyIfNew: true };
+          var written = await store.setJSON(usageKey(key), next, writeOpts);
+          if (written && written.modified) {
+            return { ok: true, count: next.count };
+          }
+        }
+        return { ok: false, error: "unavailable" };
+      })(),
+      "tryReserveUse:" + key
+    );
+  } catch (e) {
+    var msg = e && e.message ? String(e.message) : String(e);
+    if (msg.indexOf("blobs_deadline:") === 0) {
+      console.error("[rettmark] discount tryReserveUse timed out", key);
+    } else {
+      console.error("[rettmark] discount tryReserveUse failed", msg);
+    }
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+/**
+ * Decrement after a failed/declined charge that had reserved a limited-use slot.
+ */
+async function releaseUse(lambdaEvent, code) {
+  var key = normalizeCode(code);
+  if (!key) return;
+
+  try {
+    await withBlobsDeadline(
+      (async function () {
+        var store = await getStoreConnected(lambdaEvent);
+        for (var attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+          var got = await store.getWithMetadata(usageKey(key), {
+            type: "json",
+            consistency: "strong"
+          });
+          var data = got && got.data;
+          var etag = got && got.etag;
+          if (!data && !etag) {
+            return;
+          }
+          var n = readCount(data);
+          if (n <= 0) {
+            return;
+          }
+          var next = { count: n - 1 };
+          var written = await store.setJSON(usageKey(key), next, { onlyIfMatch: etag });
+          if (written && written.modified) {
+            return;
+          }
+        }
+        console.error("[rettmark] discount releaseUse CAS exhausted", key);
+      })(),
+      "releaseUse:" + key
+    );
+  } catch (e) {
+    var msg = e && e.message ? String(e.message) : String(e);
+    if (msg.indexOf("blobs_deadline:") === 0) {
+      console.error("[rettmark] discount releaseUse timed out", key);
+    } else {
+      console.error("[rettmark] discount releaseUse failed", msg);
+    }
+  }
+}
+
+/**
+ * Legacy post-success increment (prefer tryReserveUse before charge).
+ * Kept for callers that still need a best-effort bump without CAS.
  */
 async function incrementUseCount(lambdaEvent, code) {
   var key = normalizeCode(code);
@@ -73,12 +179,9 @@ async function incrementUseCount(lambdaEvent, code) {
     await withBlobsDeadline(
       (async function () {
         var store = await getStoreConnected(lambdaEvent);
-        var entry = await store.get("uses/" + key, { type: "json" });
-        var n = 0;
-        if (entry && typeof entry.count === "number" && isFinite(entry.count)) {
-          n = Math.max(0, Math.floor(entry.count));
-        }
-        await store.setJSON("uses/" + key, { count: n + 1 });
+        var entry = await store.get(usageKey(key), { type: "json", consistency: "strong" });
+        var n = readCount(entry);
+        await store.setJSON(usageKey(key), { count: n + 1 });
       })(),
       "incrementUseCount:" + key
     );
@@ -94,6 +197,8 @@ async function incrementUseCount(lambdaEvent, code) {
 
 module.exports = {
   getUseCount,
+  tryReserveUse,
+  releaseUse,
   incrementUseCount,
   normalizeCode
 };

@@ -471,6 +471,11 @@ exports.handler = async function (event) {
         ) {
           return json(400, { error: "Promo amounts do not match code" });
         }
+        /* Capture limited-use max for CAS reserve immediately before gateway. */
+        body._rettmarkPromoMaxUses =
+          resolvedPromo.maxUses != null && isFinite(resolvedPromo.maxUses)
+            ? resolvedPromo.maxUses
+            : null;
       }
     }
     if (shipCreditCents > shippingGrossCents2) {
@@ -593,6 +598,51 @@ exports.handler = async function (event) {
     }
   };
 
+  var usageMod = require("./lib/discount-usage-blobs.js");
+  var usageReserved = false;
+  var usageReserveCode = "";
+  var codeForUsage = String(body.discountCode || "").trim();
+  var paidDiscCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
+  var paidShipCred = Math.max(0, dollarsToCents(body.shippingCreditAmount || 0));
+  var paidSur = Math.max(0, dollarsToCents(body.surchargeAmount || 0));
+  var promoMaxUses =
+    body._rettmarkPromoMaxUses != null && isFinite(body._rettmarkPromoMaxUses)
+      ? Number(body._rettmarkPromoMaxUses)
+      : null;
+  delete body._rettmarkPromoMaxUses;
+
+  if (
+    codeForUsage &&
+    promoMaxUses != null &&
+    promoMaxUses > 0 &&
+    (paidDiscCents > 0 || paidShipCred > 0 || paidSur > 0)
+  ) {
+    var reserved = await usageMod.tryReserveUse(event, codeForUsage, promoMaxUses);
+    if (!reserved.ok) {
+      if (reserved.error === "exhausted") {
+        return json(400, { error: "This discount code has reached its usage limit" });
+      }
+      return json(503, { error: "Could not verify discount usage; try again shortly" });
+    }
+    if (!reserved.skipped) {
+      usageReserved = true;
+      usageReserveCode = codeForUsage;
+    }
+  }
+
+  async function releaseReservedUsage() {
+    if (!usageReserved || !usageReserveCode) return;
+    try {
+      await usageMod.releaseUse(event, usageReserveCode);
+    } catch (relErr) {
+      console.error(
+        "[rettmark] discount releaseUse",
+        relErr && relErr.message ? relErr.message : String(relErr)
+      );
+    }
+    usageReserved = false;
+  }
+
   try {
     var gatewayOpts = {
       method: "POST",
@@ -617,6 +667,7 @@ exports.handler = async function (event) {
     try {
       data = await res.json();
     } catch (parseErr) {
+      await releaseReservedUsage();
       return json(502, { error: "Payment gateway returned an invalid response." });
     }
     var tx = data && data.transactionResponse;
@@ -629,23 +680,8 @@ exports.handler = async function (event) {
         tx.responseCode === 1);
 
     if (resultCode === "ok" && txApproved) {
-      /* Email before Blobs usage: a stuck discount counter should not block the HTTP response or receipt send. */
+      /* Usage already reserved via CAS before charge when maxUses applies. */
       var emailDelivery = await sendInvoiceEmails(body, amountStr);
-      var codeForUsage = String(body.discountCode || "").trim();
-      var paidDiscCents = Math.max(0, dollarsToCents(body.discountAmount || 0));
-      var paidShipCred = Math.max(0, dollarsToCents(body.shippingCreditAmount || 0));
-      var paidSur = Math.max(0, dollarsToCents(body.surchargeAmount || 0));
-      if (codeForUsage && (paidDiscCents > 0 || paidShipCred > 0 || paidSur > 0)) {
-        try {
-          var usageMod = require("./lib/discount-usage-blobs.js");
-          await usageMod.incrementUseCount(event, codeForUsage);
-        } catch (usageErr) {
-          console.error(
-            "[rettmark] discount usage increment",
-            usageErr && usageErr.message ? usageErr.message : String(usageErr)
-          );
-        }
-      }
       var successBody = {
         ok: true,
         transactionId: tx.transId,
@@ -657,6 +693,8 @@ exports.handler = async function (event) {
       }
       return json(200, successBody);
     }
+
+    await releaseReservedUsage();
 
     var errText = "Transaction declined";
     if (tx && tx.errors && tx.errors.length) {
@@ -674,6 +712,7 @@ exports.handler = async function (event) {
 
     return json(402, { ok: false, error: errText });
   } catch (e) {
+    await releaseReservedUsage();
     return json(502, { error: "Payment gateway request failed" });
   }
 };
