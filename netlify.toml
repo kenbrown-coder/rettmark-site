@@ -1,4 +1,6 @@
-# Static site — forms POST to Google Apps Script (not Netlify Forms).
+# Static site — email-updates form POSTs to /.netlify/functions/notify-subscribe
+# (Turnstile + honeypot + rate limit), which forwards to Google Apps Script.
+# Set NOTIFY_GOOGLE_SCRIPT_URL + NOTIFY_WEBHOOK_SECRET (see docs/notify-form-security.md).
 # Redirects keep legacy double-extension thank-you URLs working if your script
 # still points at success.html.html / unsubscribe.html.html.
 #
@@ -7,8 +9,9 @@
 #
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
-# Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges (see docs/security-checkout.md).
+# Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges and notify signups.
 # Optional: REQUIRE_TURNSTILE_ON_CHARGE=1 — 503 if secret missing (production safety).
+# Notify form: NOTIFY_GOOGLE_SCRIPT_URL + NOTIFY_WEBHOOK_SECRET (docs/notify-form-security.md).
 #
 # Checkout API CORS: CHECKOUT_ALLOWED_ORIGINS — comma-separated exact origins (e.g. https://rettmarkfirearms.com).
 # If unset, functions allow * (legacy). Set in production.
@@ -137,7 +140,7 @@
   to = "/unsubscribe.html"
   status = 200
 
-# Security headers (CSP allows Google Fonts, Turnstile, and Apps Script form POST).
+# Security headers (CSP allows Google Fonts, Turnstile, Authorize.Net; notify form is same-origin only).
 [[headers]]
   for = "/*"
   [headers.values]
@@ -148,4 +151,4 @@
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
     # script-src has no 'unsafe-inline' — HHDG product logic must live in js/*.js (e.g. js/hhdg-product-page.js), not inline <script>.
     # Accept.js POSTs card tokenization to https://api2.authorize.net/xml/v1/request.api (prod) or apitest (sandbox)—not api.authorize.net.
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com https://js.authorize.net https://jstest.authorize.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://api.authorize.net https://api2.authorize.net https://apitest.authorize.net https://js.authorize.net https://jstest.authorize.net; form-action 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com https://js.authorize.net https://jstest.authorize.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://api.authorize.net https://api2.authorize.net https://apitest.authorize.net https://js.authorize.net https://jstest.authorize.net; form-action 'self'; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests"

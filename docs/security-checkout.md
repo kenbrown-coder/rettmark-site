@@ -8,7 +8,7 @@ Reference for what is already implemented and which environment variables harden
 - **Tampering:** Order `amount` and breakdown fields are validated against the cart and private GitHub discount rules (including Hunters HD Gold exclusions).
 - **Secrets:** Authorize.Net, Resend, and GitHub discount tokens are env-only; see comments in [netlify.toml](../netlify.toml).
 - **HTTP headers:** Site-wide **HSTS**, **CSP** (Turnstile + Authorize.Net hosts), **X-Frame-Options** in [netlify.toml](../netlify.toml).
-- **Turnstile (contact):** [contact.html](../contact.html) uses Turnstile on the notify form; site key is injected at build from `TURNSTILE_SITE_KEY`.
+- **Turnstile (contact / email updates):** [contact.html](../contact.html) uses Turnstile; submissions go through [notify-subscribe](../netlify/functions/notify-subscribe.js) (server `siteverify`, honeypot, rate limit) before Google Apps Script. See [notify-form-security.md](notify-form-security.md). Do not put the Apps Script `/exec` URL in HTML.
 
 ## Template file for Netlify
 
@@ -19,8 +19,10 @@ Fill [`.env`](../.env) in the repo root, then import with Netlify CLI (`netlify 
 | Variable | Scope | Purpose |
 |----------|--------|---------|
 | `CHECKOUT_ALLOWED_ORIGINS` | Functions | Comma-separated **exact** origins allowed to call checkout APIs (e.g. `https://rettmarkfirearms.com,https://www.rettmarkfirearms.com`). If **unset**, functions keep legacy `Access-Control-Allow-Origin: *` (set this in production). |
-| `TURNSTILE_SECRET_KEY` | Functions | Cloudflare Turnstile **secret** for server-side `siteverify` on charges. If set, `anet-transaction` requires a valid `turnstileToken` from the client. |
+| `TURNSTILE_SECRET_KEY` | Functions | Cloudflare Turnstile **secret** for server-side `siteverify` on charges and notify signups. If set, `anet-transaction` requires a valid `turnstileToken`. Notify always requires this secret (503 if missing). |
 | `REQUIRE_TURNSTILE_ON_CHARGE` | Functions | If `1` and `TURNSTILE_SECRET_KEY` is missing, charges return **503** (catches misconfiguration). |
+| `NOTIFY_GOOGLE_SCRIPT_URL` | Functions | Apps Script web-app `/exec` URL for email-updates forwarder (keep private). |
+| `NOTIFY_WEBHOOK_SECRET` | Functions | Shared secret with Apps Script property `NOTIFY_WEBHOOK_SECRET`. |
 | `ANET_VERIFY_KEYS_ENABLED` | Functions | If `1`, [anet-verify-keys](../netlify/functions/anet-verify-keys.js) is exposed; otherwise it returns **404** (default for production). |
 
 ## Logging (audit)

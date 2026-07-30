@@ -38,7 +38,7 @@
         <article class="section-card" id="notify">
           <h2>Email updates</h2>
           <p>Product news, restocks, and announcements.</p>
-          <form class="notify-form" method="POST" action="https://script.google.com/macros/s/AKfycbwh8Kya6vpPonz_I2l9nSrKqS9wjRg4UABRiXA_hmigceUkxDeLM0YnHB3MGEw1gGNomw/exec">
+          <form class="notify-form" method="POST" action="/.netlify/functions/notify-subscribe" novalidate>
             <input type="text" name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
             <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
             <input class="input" type="email" name="email" placeholder="Enter your email address" aria-label="Email address" autocomplete="email" required />

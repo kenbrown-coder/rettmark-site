@@ -684,19 +684,122 @@
       el.setAttribute("hidden", "");
     }
 
+    function notifyEndpoint(form) {
+      try {
+        return new URL(
+          form.getAttribute("action") || "/.netlify/functions/notify-subscribe",
+          window.location.origin
+        ).href;
+      } catch (e) {
+        return "/.netlify/functions/notify-subscribe";
+      }
+    }
+
+    function setSubmitting(form, busy) {
+      var btn = form.querySelector(".submit");
+      if (!btn) return;
+      if (busy) {
+        btn.disabled = true;
+        btn.dataset.notifyLabel = btn.textContent || "Submit";
+        btn.textContent = "Submitting…";
+      } else {
+        btn.textContent = btn.dataset.notifyLabel || "Submit";
+        btn.disabled = !siteKey;
+      }
+    }
+
     forms.forEach(function (form) {
       form.addEventListener("submit", function (ev) {
-        if (!siteKey) return;
-        var tokenEl = form.querySelector('textarea[name="cf-turnstile-response"], input[name="cf-turnstile-response"]');
+        ev.preventDefault();
+        clearFormError(form);
+
+        if (!siteKey) {
+          showFormError(
+            form,
+            "Sign-up security is not configured on this site. Please email us instead."
+          );
+          return;
+        }
+
+        var honeypot = form.querySelector('input[name="bot-field"]');
+        if (honeypot && String(honeypot.value || "").trim()) {
+          window.location.href = "success.html";
+          return;
+        }
+
+        var emailEl = form.querySelector('input[name="email"]');
+        var email = emailEl && String(emailEl.value || "").trim();
+        if (!email) {
+          showFormError(form, "Please enter a valid email address.");
+          return;
+        }
+
+        var tokenEl = form.querySelector(
+          'textarea[name="cf-turnstile-response"], input[name="cf-turnstile-response"]'
+        );
         var token = tokenEl && tokenEl.value;
         if (!token) {
-          ev.preventDefault();
           showFormError(form, "Please complete the security check before submitting.");
+          return;
         }
+
+        setSubmitting(form, true);
+        fetch(notifyEndpoint(form), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            email: email,
+            "bot-field": honeypot ? String(honeypot.value || "") : "",
+            turnstileToken: token
+          })
+        })
+          .then(function (res) {
+            return res.json().then(
+              function (data) {
+                return { res: res, data: data || {} };
+              },
+              function () {
+                return { res: res, data: {} };
+              }
+            );
+          })
+          .then(function (pack) {
+            if (pack.res.ok && pack.data.ok) {
+              window.location.href = "success.html";
+              return;
+            }
+            setSubmitting(form, false);
+            showFormError(
+              form,
+              pack.data.userMessage ||
+                "Could not submit right now. Please try again or email us."
+            );
+            if (
+              window.turnstile &&
+              typeof window.turnstile.reset === "function" &&
+              form._rettmarkTurnstileWidgetId != null
+            ) {
+              window.turnstile.reset(form._rettmarkTurnstileWidgetId);
+            }
+          })
+          .catch(function () {
+            setSubmitting(form, false);
+            showFormError(form, "Could not submit right now. Please try again or email us.");
+          });
       });
     });
 
-    if (!siteKey) return;
+    if (!siteKey) {
+      forms.forEach(function (form) {
+        var btn = form.querySelector(".submit");
+        if (btn) btn.disabled = true;
+        showFormError(
+          form,
+          "Sign-up security is not configured on this site. Please email us instead."
+        );
+      });
+      return;
+    }
 
     function loadTurnstileScript(onload) {
       if (window.turnstile) {
@@ -727,7 +830,7 @@
         var btn = form.querySelector(".submit");
         if (!mount || !btn) return;
         btn.disabled = true;
-        window.turnstile.render(mount, {
+        form._rettmarkTurnstileWidgetId = window.turnstile.render(mount, {
           sitekey: siteKey,
           theme: "dark",
           callback: function () {
