@@ -139,46 +139,6 @@
       "manufacturerListPrice": "$375.00"
     },
     {
-      "id": "298571404",
-      "title": "HHDG Signature Series",
-      "href": "https://huntershdgold.com/store/HHDG-Signature-Series-p298571404",
-      "imageRemote": "https://d2j6dbq0eux0bg.cloudfront.net/images/44452154/5501222975.jpg",
-      "price": "$375.00",
-      "subtitle": "",
-      "retailPriceDisplay": "$299.99",
-      "retailPriceNum": "299.99",
-      "imageLocal": "assets/hhdg/298571404.jpg",
-      "localPage": "hhdg-signature-series.html",
-      "galleryLocal": [
-        "assets/hhdg/298571404_g0.jpg",
-        "assets/hhdg/298571404_g1.png",
-        "assets/hhdg/298571404_g2.png",
-        "assets/hhdg/298571404_g3.png",
-        "assets/hhdg/298571404_g4.png"
-      ],
-      "optionGroups": [
-        {
-          "title": "Color",
-          "choices": [
-            "HHDG Signature Series Black"
-          ]
-        },
-        {
-          "title": "Lens",
-          "choices": [
-            "Hunters HD Gold™",
-            "Hunters HD Ruby™",
-            "AktiveBlu™"
-          ]
-        }
-      ],
-      "frameChoiceImages": {
-        "HHDG Signature Series Black": "assets/hhdg/298571404_g4.png"
-      },
-      "manufacturerSku": "HDGSignature",
-      "manufacturerListPrice": "$375.00"
-    },
-    {
       "id": "430242062",
       "title": "HHDG Marksman",
       "href": "https://huntershdgold.com/store/HHDG-Marksman-p430242062",

@@ -143,6 +143,17 @@
   to = "/unsubscribe.html"
   status = 200
 
+# Discontinued HHDG frames
+[[redirects]]
+  from = "/hhdg-signature-series.html"
+  to = "/shooting-glasses.html"
+  status = 301
+
+[[redirects]]
+  from = "/hhdg-signature-series"
+  to = "/shooting-glasses.html"
+  status = 301
+
 # Security headers (CSP allows Google Fonts, Turnstile, Authorize.Net; notify form is same-origin only).
 [[headers]]
   for = "/*"
