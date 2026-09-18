@@ -8,6 +8,127 @@
     window.NodeList.prototype.forEach = Array.prototype.forEach;
   }
 
+  var AGE_GATE_KEY = "rettmark_age_ok_v1";
+  var AGE_GATE_VALUE = "18";
+
+  function readAgeConfirmed() {
+    try {
+      return localStorage.getItem(AGE_GATE_KEY) === AGE_GATE_VALUE;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function writeAgeConfirmed() {
+    try {
+      localStorage.setItem(AGE_GATE_KEY, AGE_GATE_VALUE);
+    } catch (e) {}
+  }
+
+  function ageGateIsBlocking() {
+    return document.documentElement.classList.contains("age-gate-pending");
+  }
+
+  function openAgeDialog(dlg) {
+    if (typeof dlg.showModal === "function") {
+      dlg.showModal();
+    } else {
+      dlg.setAttribute("open", "");
+      dlg.classList.add("is-fallback-open");
+    }
+    if (typeof dlg.focus === "function") {
+      try {
+        dlg.focus();
+      } catch (e) {}
+    }
+  }
+
+  function closeAgeDialog(dlg) {
+    if (typeof dlg.close === "function" && dlg.open) {
+      dlg.close();
+    } else {
+      dlg.removeAttribute("open");
+      dlg.classList.remove("is-fallback-open");
+    }
+  }
+
+  function showAgeDenied(dlg) {
+    dlg.innerHTML =
+      '<p class="age-gate__kicker">Access declined</p>' +
+      '<h2 id="age-gate-title" class="age-gate__title">This catalog is for adults</h2>' +
+      '<p id="age-gate-desc" class="age-gate__denied-note">' +
+        "Then this is not your store. Come back at 18. The welcome mat is very patient. Politicians keep buying more of them." +
+      "</p>";
+    dlg.setAttribute("aria-describedby", "age-gate-desc");
+    if (typeof dlg.focus === "function") {
+      try {
+        dlg.focus();
+      } catch (e) {}
+    }
+  }
+
+  function initAgeGate() {
+    if (readAgeConfirmed()) {
+      document.documentElement.classList.remove("age-gate-pending");
+      return;
+    }
+
+    document.documentElement.classList.add("age-gate-pending");
+
+    var dlg = document.createElement("dialog");
+    dlg.id = "age-gate";
+    dlg.className = "age-gate";
+    dlg.setAttribute("aria-labelledby", "age-gate-title");
+    dlg.setAttribute("aria-describedby", "age-gate-desc");
+    dlg.setAttribute("aria-modal", "true");
+    dlg.setAttribute("tabindex", "-1");
+    dlg.innerHTML =
+      '<p class="age-gate__kicker">Age confirmation</p>' +
+      '<h2 id="age-gate-title" class="age-gate__title">Politicians would like a word</h2>' +
+      '<div id="age-gate-desc">' +
+        '<div class="age-gate__body">' +
+          "<p>We are an FFL. Firearms are the primary business, and the law already requires age confirmation to buy them — paperwork, consequences, the whole production. Politicians would also like you to confirm you are a grown-up before you look at a website. That is this button.</p>" +
+          "<p>It has never carded a soul. It has the investigative talent of a welcome mat and the self-importance of a press conference. If you are <strong>18 or older</strong>, come in. If you are not, this is not your store.</p>" +
+        "</div>" +
+        '<p class="age-gate__legal">By choosing <strong>I am 18 or older</strong>, you confirm that you are at least 18 years of age. We store that confirmation in this browser so we do not ask again. Purchasing a firearm is still subject to all federal, state, and local age and eligibility laws.</p>' +
+      "</div>" +
+      '<div class="age-gate__actions">' +
+        '<button type="button" class="btn-secondary age-gate__yes">I am 18 or older</button>' +
+        '<button type="button" class="age-gate__no">I am under 18</button>' +
+      "</div>";
+
+    document.body.appendChild(dlg);
+
+    dlg.addEventListener("cancel", function (ev) {
+      ev.preventDefault();
+    });
+
+    var yesBtn = dlg.querySelector(".age-gate__yes");
+    var noBtn = dlg.querySelector(".age-gate__no");
+
+    if (yesBtn) {
+      yesBtn.addEventListener("click", function () {
+        writeAgeConfirmed();
+        document.documentElement.classList.remove("age-gate-pending");
+        closeAgeDialog(dlg);
+        if (dlg.parentNode) dlg.parentNode.removeChild(dlg);
+        try {
+          window.dispatchEvent(new Event("rettmark-age-ok"));
+        } catch (e) {}
+      });
+    }
+
+    if (noBtn) {
+      noBtn.addEventListener("click", function () {
+        showAgeDenied(dlg);
+      });
+    }
+
+    openAgeDialog(dlg);
+  }
+
+  initAgeGate();
+
   function syncHeaderOffset() {
     var header = document.querySelector(".site-header");
     if (!header) return;
@@ -657,6 +778,13 @@
   function initSupplyNotice() {
     var dlg = document.getElementById("supply-notice");
     if (!dlg || typeof dlg.showModal !== "function") return;
+    if (ageGateIsBlocking()) {
+      window.addEventListener("rettmark-age-ok", function showSupplyAfterAge() {
+        window.removeEventListener("rettmark-age-ok", showSupplyAfterAge);
+        dlg.showModal();
+      });
+      return;
+    }
     dlg.showModal();
   }
 
