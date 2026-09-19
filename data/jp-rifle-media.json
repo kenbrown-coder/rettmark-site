@@ -1,0 +1,83 @@
+{
+  "credit": "Photos and product copy from JP Enterprises, jprifles.com.",
+  "families": {
+    "asf-20": {
+      "model": "ASF-20",
+      "image": "assets/jp/asf-20.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.1_ASF_20.php",
+      "description": "The ASF-20 ambidextrous lower gives right- and left-handed shooters the same control on a JP rifle. JP pairs it with a mil-spec-pattern upper for 3-Gun, hunting, or a duty and defense rifle that more than one shooter will run."
+    },
+    "ctr-02": {
+      "model": "CTR-02",
+      "image": "assets/jp/ctr-02.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.1_CTR02.php",
+      "description": "The CTR-02 Competition Tactical Rifle set the standard for high-end ARs in action shooting and still shows up in winners' circles. Today's CTR-02 is JP's signature 7075-T6 billet receiver set: a lightweight competition rifle with an exaggerated magazine well for fast reloads. The CTI-23 semi-monolithic upper option stiffens the barrel-to-receiver joint for a more repeatable setup."
+    },
+    "jp-15": {
+      "model": "JP-15",
+      "image": "assets/jp/jp-15.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.2_JP15.php",
+      "description": "The JP-15 puts the performance features of JP's billet rifles into a 7075 mil-spec forged receiver set. JP builds it as a general-purpose rifle for recreation, varmint, competition, or duty, with a JP Supermatch barrel, high-efficiency compensator, adjustable gas system, Thermo-Fit barrel installation, and JP fire control."
+    },
+    "jp-15-duty": {
+      "model": "JP-15 Ready Rifle",
+      "image": "assets/jp/jp-15-duty.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.3_JP15ORRC.php",
+      "description": "JP's duty-ready JP-15 rifles keep the parts and build quality the platform is known for, without the cosmetic extras most patrol and duty users skip. Leaving off the barrel/comp blend and Thermo-Fit installation still yields MOA or better performance at a lower price. Ready Rifle configurations are a set spec so they can move faster than a fully custom order."
+    },
+    "scr-11": {
+      "model": "SCR-11",
+      "image": "assets/jp/scr-11.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.1_SCR_11.php",
+      "description": "The SCR-11 brings the LRP-07 side-charging system to a .223-class competition rifle. JP describes it as a scaled-down LRP-07 with the same barrel, hand guard, finish, and stock options as the CTR-02, plus a beveled magazine well for faster reloads."
+    },
+    "psc-21": {
+      "model": "PSC-21",
+      "image": "assets/jp/psc-21.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.1_PSC_21.php",
+      "description": "The PSC-21 dual-charge upper keeps both a top charging handle and a side charging handle on the same receiver. That backup charging method is the point of the design, without giving up JP's competition architecture."
+    },
+    "lrp-07": {
+      "model": "LRP-07 Series",
+      "image": "assets/jp/lrp-07.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.5_LRP07Series.php",
+      "description": "LRP-07 Series rifles are JP's large-frame precision gas guns for long-range competition and duty. The LRI-20 side-charge and LTI-23 top-charge uppers use an integral hand guard nut to stiffen the barrel-to-receiver joint. The platform is meant to handle like an AR-15 while shooting .308 and 6.5 Creedmoor class cartridges."
+    },
+    "mr-19": {
+      "model": "MR-19",
+      "image": "assets/jp/mr-19.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.6_MR19.php",
+      "description": "The MR-19 is JP's manual precision rifle: an Ultimatum Precision Deadline short action mounted in JP's APAC chassis, with a cryogenically treated JP Supermatch barrel. It is built for long-range competition or duty where a bolt gun is the right tool."
+    },
+    "jp-5": {
+      "model": "JP-5",
+      "image": "assets/jp/jp-5.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.18_JP-5.php",
+      "description": "The JP-5 is JP's roller-delayed 9mm carbine. The delayed system is meant to shoot softer and get the sights back on target faster than a typical blowback PCC, in a lighter carbine than the GMR-15 lineage it builds on."
+    },
+    "gmr-15": {
+      "model": "GMR-15",
+      "image": "assets/jp/gmr-15.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.13_GMR-15.php",
+      "description": "The GMR-15 is JP's 9mm carbine with last-round lock back, an improved magazine release, and a flared magazine well. Complete rifles are offered with a forged JP-15 upper or a PSC-17 dual-charge upper, built around JP's 9mm Silent Captured Spring."
+    },
+    "jp-22r": {
+      "model": "JP-22R",
+      "image": "assets/jp/jp-22r.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.15_22LR.php",
+      "description": "The JP-22R is JP's rimfire AR action for action .22 competition or as a less expensive trainer for 3-Gun and other rifle sports. It uses JP's proprietary rimfire bolt in small-frame receivers."
+    },
+    "ctr-22lr": {
+      "model": "CTR-02 22LR",
+      "image": "assets/jp/ctr-22lr.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.15_22LR.php",
+      "description": "JP's 22LR conversion in the CTR-02 billet receiver: the same competition magwell and top-charge layout as the centerfire CTR, with JP's proprietary rimfire bolt."
+    },
+    "jprfx": {
+      "model": "JPRFX Precision Rimfire",
+      "image": "assets/jp/ctr-22lr.jpg",
+      "sourceUrl": "https://www.jprifles.com/1.2.15_22LRPrecision.php",
+      "description": "JPRFX Precision Rimfire rifles are JP's semi-auto answer to NRL22 and PRS Rimfire, where most of the field still shoots bolt guns. They use JP's dedicated precision rimfire work in an integral-nut small-frame rifle."
+    }
+  }
+}

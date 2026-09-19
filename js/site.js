@@ -127,6 +127,21 @@
     openAgeDialog(dlg);
   }
 
+  try {
+    if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+      var ageParams = new URLSearchParams(location.search);
+      if (ageParams.get("age-reset") === "1") {
+        localStorage.removeItem(AGE_GATE_KEY);
+        ageParams.delete("age-reset");
+        var ageQuery = ageParams.toString();
+        var ageNext = location.pathname + (ageQuery ? "?" + ageQuery : "") + location.hash;
+        if (window.history && typeof window.history.replaceState === "function") {
+          window.history.replaceState(null, "", ageNext);
+        }
+      }
+    }
+  } catch (e) {}
+
   initAgeGate();
 
   function syncHeaderOffset() {
@@ -191,6 +206,31 @@
       el.setAttribute("aria-label", "Shopping cart, " + count + " items");
     });
   }
+
+  function enhanceJpDealerFooter() {
+    var footerBits = document.querySelectorAll(".site-footer > div");
+    footerBits.forEach(function (el) {
+      if (el.id === "inventory-last-updated") return;
+      var html = el.innerHTML;
+      if (!html || html.indexOf("JP Enterprises") !== -1) return;
+      if (
+        html.indexOf("authorized Condition1 dealer") === -1 &&
+        html.indexOf("Authorized Condition1 dealer") === -1
+      ) {
+        return;
+      }
+      el.innerHTML = html
+        .replace(
+          "An authorized Condition1 dealer.",
+          "Official JP Enterprises retailer · An authorized Condition1 dealer."
+        )
+        .replace(
+          "Authorized Condition1 dealer",
+          "Official JP Enterprises retailer · Authorized Condition1 dealer"
+        );
+    });
+  }
+  enhanceJpDealerFooter();
 
   function showToast(message) {
     var el = document.getElementById("site-toast");
@@ -996,71 +1036,83 @@
     return;
   }
 
-  var hold = isMobile ? 400 : 500;
-  var spin = isMobile ? 2200 : 2600;
-  var total = hold + spin;
+  function playCrestIntro() {
+    var hold = isMobile ? 400 : 500;
+    var spin = isMobile ? 2200 : 2600;
+    var total = hold + spin;
 
-  requestAnimationFrame(function () {
-    crest.animate(
-      [
+    requestAnimationFrame(function () {
+      crest.animate(
+        [
+          {
+            offset: 0,
+            opacity: 0,
+            transform: "scale(1) rotateY(0deg)",
+            filter:
+              "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
+          },
+          {
+            offset: 0.08,
+            opacity: 1,
+            transform: "scale(1) rotateY(0deg)",
+            filter:
+              "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
+          },
+          {
+            offset: hold / total,
+            opacity: 1,
+            transform: "scale(1) rotateY(0deg)",
+            filter:
+              "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
+          },
+          {
+            offset: 0.58,
+            opacity: 1,
+            transform: "scale(1.01) rotateY(-126deg)",
+            filter:
+              "drop-shadow(0 16px 26px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(230,0,0,0.06))"
+          },
+          {
+            offset: 0.86,
+            opacity: 1,
+            transform: "scale(1) rotateY(-18deg)",
+            filter: "drop-shadow(0 10px 16px rgba(0,0,0,0.25))"
+          },
+          {
+            offset: 1,
+            opacity: isHome ? 1 : 0.28,
+            transform: isMobile
+              ? isHome
+                ? "scale(1) rotateY(0deg)"
+                : "translateY(-64px) scale(1) rotateY(0deg)"
+              : "scale(1) rotateY(0deg)",
+            filter: isHome
+              ? isMobile
+                ? "drop-shadow(0 20px 36px rgba(0,0,0,0.48)) drop-shadow(0 0 10px rgba(230,0,0,0.1))"
+                : "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
+              : isMobile
+                ? "brightness(1.4) contrast(1.1)"
+                : "brightness(1.15) contrast(1.06)"
+          }
+        ],
         {
-          offset: 0,
-          opacity: 0,
-          transform: "scale(1) rotateY(0deg)",
-          filter:
-            "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
-        },
-        {
-          offset: 0.08,
-          opacity: 1,
-          transform: "scale(1) rotateY(0deg)",
-          filter:
-            "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
-        },
-        {
-          offset: hold / total,
-          opacity: 1,
-          transform: "scale(1) rotateY(0deg)",
-          filter:
-            "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
-        },
-        {
-          offset: 0.58,
-          opacity: 1,
-          transform: "scale(1.01) rotateY(-126deg)",
-          filter:
-            "drop-shadow(0 16px 26px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(230,0,0,0.06))"
-        },
-        {
-          offset: 0.86,
-          opacity: 1,
-          transform: "scale(1) rotateY(-18deg)",
-          filter: "drop-shadow(0 10px 16px rgba(0,0,0,0.25))"
-        },
-        {
-          offset: 1,
-          opacity: isHome ? 1 : 0.28,
-          transform: isMobile
-            ? isHome
-              ? "scale(1) rotateY(0deg)"
-              : "translateY(-64px) scale(1) rotateY(0deg)"
-            : "scale(1) rotateY(0deg)",
-          filter: isHome
-            ? isMobile
-              ? "drop-shadow(0 20px 36px rgba(0,0,0,0.48)) drop-shadow(0 0 10px rgba(230,0,0,0.1))"
-              : "drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(230,0,0,0.12))"
-            : isMobile
-              ? "brightness(1.4) contrast(1.1)"
-              : "brightness(1.15) contrast(1.06)"
+          duration: total,
+          easing: "cubic-bezier(0.2, 0.72, 0.2, 1)",
+          fill: "forwards"
         }
-      ],
-      {
-        duration: total,
-        easing: "cubic-bezier(0.2, 0.72, 0.2, 1)",
-        fill: "forwards"
-      }
-    ).onfinish = function () {
-      crest.classList.add("resting");
-    };
-  });
+      ).onfinish = function () {
+        crest.classList.add("resting");
+      };
+    });
+  }
+
+  if (ageGateIsBlocking()) {
+    window.addEventListener("rettmark-age-ok", function playCrestAfterAge() {
+      window.removeEventListener("rettmark-age-ok", playCrestAfterAge);
+      playCrestIntro();
+    });
+    return;
+  }
+
+  playCrestIntro();
 })();

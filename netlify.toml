@@ -9,9 +9,12 @@
 #
 # Turnstile site key (public): in Netlify → Site configuration → Environment variables,
 # add TURNSTILE_SITE_KEY. Build injects it into js/turnstile-config.js (not stored in git).
-# Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges and notify signups.
+# Turnstile secret (Functions): TURNSTILE_SECRET_KEY — server verifies checkout charges, notify signups,
+# and JP order-request submissions.
 # Optional: REQUIRE_TURNSTILE_ON_CHARGE=1 — 503 if secret missing (production safety).
 # Notify form: NOTIFY_GOOGLE_SCRIPT_URL + NOTIFY_WEBHOOK_SECRET (docs/notify-form-security.md).
+# JP order requests: POST /.netlify/functions/jp-order-request (Turnstile + Resend; not a cart charge).
+#   Staff copy goes to RESEND_ORDERS_EMAIL (default orders@rettmarkfirearms.com). Same RESEND_API_KEY + RESEND_FROM as checkout.
 #
 # Checkout API CORS: CHECKOUT_ALLOWED_ORIGINS — comma-separated exact origins (e.g. https://rettmarkfirearms.com).
 # Required on production deploys (CONTEXT=production); unset allowlist → CORS deny. Preview/branch may still use *.
@@ -45,6 +48,9 @@
 # (Plan limits still apply; if deploy rejects the value, raise the site’s function timeout in Netlify UI.)
 [functions."anet-transaction"]
   timeout = 26
+
+[functions."jp-order-request"]
+  timeout = 20
 
 # Serve this folder as the site root (must include css/, js/, assets/, *.html).
 [build]
@@ -81,6 +87,21 @@
   from = "/firearms"
   to = "/firearms.html"
   status = 200
+
+[[redirects]]
+  from = "/jp"
+  to = "/firearms.html"
+  status = 301
+
+[[redirects]]
+  from = "/jp.html"
+  to = "/firearms.html"
+  status = 301
+
+[[redirects]]
+  from = "/jp-enterprises"
+  to = "/firearms.html"
+  status = 301
 
 [[redirects]]
   from = "/contact"

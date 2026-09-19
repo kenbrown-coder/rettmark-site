@@ -14,6 +14,10 @@ node_modules/
 .env.local
 .env.*.local
 
+# JP photo scratch (not served; family images live in assets/jp/*.jpg)
+assets/jp/_pick/
+assets/jp/_check/
+
 # Editor / OS
 .vscode/preview-url.txt
 # Track shared Cursor rules; keep other .cursor/ local-only

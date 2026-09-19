@@ -4,11 +4,11 @@
   <base href="/" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firearms | Rettmark Firearms</title>
-  <meta name="description" content="Custom firearms from Rettmark Firearms — planned for 2027. Not offered for sale online yet." />
+  <title>JP Rifles | Official JP Enterprises Retailer | Rettmark Firearms</title>
+  <meta name="description" content="Order JP rifles and parts from Rettmark Firearms, an official JP Enterprises retailer. Built rifles take time after the order is confirmed." />
   <link rel="stylesheet" href="css/site.css" />
 </head>
-<body data-shield-anim="off">
+<body data-shield-anim="off" class="page-jp">
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="viewport-bg" role="presentation" aria-hidden="true"></div>
 
@@ -17,7 +17,7 @@
       <img src="assets/logo-rm.png" alt="Rettmark" width="512" height="512" decoding="async" />
     </a>
     <nav class="site-nav" aria-label="Primary">
-      <a href="firearms.html" aria-current="page">Firearms</a>
+      <a href="firearms.html" aria-current="page">Rifles</a>
       <a href="shooting-glasses.html">Hunters HD Gold</a>
       <a href="cases.html">Condition1</a>
       <a href="civilian-medical.html">Civilian Medical</a>
@@ -28,20 +28,89 @@
   <div class="page-shell" id="main">
     <div class="page">
       <header class="page-intro">
-        <h1>Firearms</h1>
+        <p class="tag-dealer">Official JP Enterprises retailer</p>
+        <h1>JP Rifles</h1>
         <p class="lede">
-          Custom firearms are <strong>not available for purchase</strong> on this site today. We are targeting <strong>2027</strong> to launch custom build sales and will post clear ordering steps when we open that line of business.
+          Rettmark Firearms is an <strong>official JP Enterprises retailer</strong>. Choose a rifle from the list below. The selected rifle photo, description, Price, and MSRP will appear after you pick one. Prices are from the 2026 JP list.
+        </p>
+        <p class="lede">
+          This is <strong>not a shopping cart</strong> and nothing here can be added to checkout. Submit a request and we will contact you to confirm availability, configuration, FFL transfer when required, and payment.
         </p>
       </header>
 
+      <section class="panel jp-lead-note" aria-label="Build time and ordering notes">
+        <h2>Before you request</h2>
+        <ul class="jp-notes">
+          <li><strong>Built rifles take time.</strong> Factory-built JP rifles and custom configurations are made to order. After we confirm your request, expect additional lead time before the firearm ships to your FFL.</li>
+          <li><strong>Serialized firearms</strong> ship to a licensed FFL. We will confirm transfer details with you before the order is placed.</li>
+          <li><strong>Build options &amp; upgrades</strong> are typically added to a rifle or upper. Those amounts are the upgrade over JP’s standard configuration, not always a standalone part price.</li>
+          <li>Tax, shipping, and FFL transfer fees are confirmed when we contact you. Limited-inventory items are marked.</li>
+        </ul>
+      </section>
+
+      <section class="panel jp-pick-panel" aria-labelledby="jp-pick-heading">
+        <h2 id="jp-pick-heading">Choose a rifle</h2>
+        <p class="jp-rifle-lead">Price is shown next to each item. After you select one, the Selected rifle panel fills in with the photo and description from JP Enterprises.</p>
+        <div class="jp-request-pick">
+          <label class="jp-tools-label" for="jp-rifle-select">Rifle or pistol</label>
+          <select class="cases-tools-select jp-rifle-select" id="jp-rifle-select">
+            <option value="">Select a rifle or pistol</option>
+          </select>
+        </div>
+        <p class="jp-catalog-status" id="jp-catalog-status" hidden></p>
+      </section>
+
+      <div class="jp-layout">
+        <section class="panel jp-rifle-panel" aria-labelledby="jp-rifle-heading">
+          <h2 id="jp-rifle-heading">Selected rifle</h2>
+          <p class="jp-rifle-empty" id="jp-rifle-empty">Nothing selected yet. Choose a rifle from the list above to see it here.</p>
+          <div class="jp-rifle-detail" id="jp-rifle-detail" hidden></div>
+        </section>
+
+        <aside class="panel jp-request-panel" aria-labelledby="jp-request-heading">
+          <h2 id="jp-request-heading">Order request</h2>
+          <p class="jp-request-intro">Add the selected rifle to this request. We will email or call to confirm before anything is ordered or charged. Mention parts or upgrades in the notes if you need them.</p>
+          <div class="jp-request-empty" id="jp-request-empty">No items yet. Select a rifle above, then use <strong>Add to request</strong> — these lines never go to the cart.</div>
+          <ul class="jp-request-lines" id="jp-request-lines" hidden></ul>
+          <p class="jp-request-total" id="jp-request-total" hidden></p>
+
+          <form class="jp-order-form" id="jp-order-form" method="POST" action="/.netlify/functions/jp-order-request" novalidate>
+            <input type="text" name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
+            <p class="jp-order-success" id="jp-order-success" hidden role="status"></p>
+
+            <label class="checkout-field" for="jp-name">Name
+              <input class="input" id="jp-name" name="name" type="text" autocomplete="name" required maxlength="80" />
+            </label>
+            <label class="checkout-field" for="jp-email">Email
+              <input class="input" id="jp-email" name="email" type="email" autocomplete="email" required maxlength="320" />
+            </label>
+            <label class="checkout-field" for="jp-phone">Phone
+              <input class="input" id="jp-phone" name="phone" type="tel" autocomplete="tel" required maxlength="40" />
+            </label>
+            <label class="checkout-field" for="jp-ffl">Receiving FFL <span class="jp-optional">(optional)</span>
+              <input class="input" id="jp-ffl" name="ffl" type="text" maxlength="200" placeholder="Dealer name and city, if known" />
+            </label>
+            <label class="checkout-field checkout-field--wide" for="jp-notes">Notes <span class="jp-optional">(optional)</span>
+              <textarea class="input jp-notes-input" id="jp-notes" name="notes" maxlength="2000" rows="4" placeholder="Caliber, barrel length, finish, JP parts, or other configuration details"></textarea>
+            </label>
+
+            <div class="notify-form__turnstile" data-turnstile-mount aria-label="Security verification"></div>
+            <button class="submit jp-submit" type="submit">Submit order request</button>
+            <p class="jp-submit-note">You will not be charged from this form. Submitting sends a request only.</p>
+          </form>
+        </aside>
+      </div>
+
       <section class="panel">
+        <h2>Rettmark custom firearms</h2>
         <p>
-          For now, use the <a class="contact-link" href="contact.html" style="margin-top:0">contact page</a> if you have general questions. Hard cases and accessories are on the <a class="contact-link" href="cases.html" style="margin-top:0">Condition1</a> section of the site.
+          Custom firearms from Rettmark Firearms are still in pre-production. We are targeting <strong>2027</strong> to launch custom build sales and will post clear ordering steps when that line opens.
         </p>
       </section>
 
       <footer class="site-footer">
-                <div class="site-footer-brand">
+        <div class="site-footer-brand">
           <a class="site-footer-flank" href="faq/index.html">FAQ</a>
           <a class="site-footer-logo" href="index.html" aria-label="Rettmark Firearms home"><img src="assets/logo-rm.png" alt="" width="512" height="512" decoding="async" /></a>
           <a class="site-footer-flank" href="contact.html">Contact</a>
@@ -50,11 +119,13 @@
         <nav class="site-footer-policies" aria-label="Legal and policies">
           <a href="policies/index.html">Policies</a><span class="site-footer-policies__sep" aria-hidden="true"> · </span><a href="policies/terms-of-sale.html">Terms of Sale</a><span class="site-footer-policies__sep" aria-hidden="true"> · </span><a href="policies/shipping-returns-refunds.html">Shipping &amp; Returns</a><span class="site-footer-policies__sep" aria-hidden="true"> · </span><a href="policies/discount-promotion-policy.html">Discounts</a><span class="site-footer-policies__sep" aria-hidden="true"> · </span><a href="policies/privacy-policy.html">Privacy</a>
         </nav>
-        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · An authorized Condition1 dealer.</div>
+        <div>© <span id="year"></span> Rettmark Firearms · <a class="contact-link" href="https://rettmarkfirearms.com/" style="margin-top:0">rettmarkfirearms.com</a> · Official JP Enterprises retailer · An authorized Condition1 dealer.</div>
       </footer>
     </div>
   </div>
 
+  <script src="js/turnstile-config.js"></script>
   <script src="js/site.js"></script>
+  <script src="js/jp-order.js"></script>
 </body>
 </html>

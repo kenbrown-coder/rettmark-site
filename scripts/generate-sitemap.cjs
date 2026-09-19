@@ -1,5 +1,5 @@
 /**
- * Writes sitemap.xml at repo root from top-level *.html.
+ * Writes sitemap.xml from public HTML (root + faq/ + policies/).
  * Excludes cart, checkout flow, thank-you pages, and 404 (align with robots.txt Disallow).
  * Runs on Netlify via npm run build; locally: node scripts/generate-sitemap.cjs
  */
@@ -20,11 +20,21 @@ var skip = new Set([
   "unsubscribe.html"
 ]);
 
-var files = fs
-  .readdirSync(root)
-  .filter(function (f) {
-    return f.endsWith(".html") && !skip.has(f);
-  })
+function listHtml(dir, prefix) {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter(function (f) {
+      return f.endsWith(".html") && !skip.has(f);
+    })
+    .map(function (f) {
+      return prefix + f;
+    });
+}
+
+var files = listHtml(root, "")
+  .concat(listHtml(path.join(root, "faq"), "faq/"))
+  .concat(listHtml(path.join(root, "policies"), "policies/"))
   .sort(function (a, b) {
     if (a === "index.html") return -1;
     if (b === "index.html") return 1;
@@ -51,11 +61,19 @@ for (var i = 0; i < files.length; i++) {
       ? "1.0"
       : /^(bags|cases|contact|firearms|shooting-glasses)\.html$/.test(f)
         ? "0.9"
-        : "0.8";
+        : f.indexOf("faq/") === 0 || f.indexOf("policies/") === 0
+          ? f === "faq/index.html" || f === "policies/index.html"
+            ? "0.85"
+            : f.indexOf("policies/") === 0
+              ? "0.5"
+              : "0.85"
+          : "0.8";
   xml +=
     "  <url><loc>" +
     esc(loc) +
-    "</loc><changefreq>weekly</changefreq><priority>" +
+    "</loc><changefreq>" +
+    (f.indexOf("policies/") === 0 ? "monthly" : "weekly") +
+    "</changefreq><priority>" +
     pri +
     "</priority></url>\n";
 }
