@@ -21,10 +21,8 @@
   if (!form || !rifleSelectEl) return;
 
   function formatUsd(cents) {
-    var n = Number(cents || 0) / 100;
-    var parts = n.toFixed(2).split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return "$" + parts.join(".");
+    var n = Math.ceil(Number(cents || 0) / 100);
+    return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
   function esc(s) {

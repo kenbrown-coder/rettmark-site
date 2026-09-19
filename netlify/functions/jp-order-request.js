@@ -115,8 +115,8 @@ function esc(s) {
 }
 
 function formatUsd(cents) {
-  var n = Number(cents || 0) / 100;
-  return "$" + n.toFixed(2);
+  var n = Math.ceil(Number(cents || 0) / 100);
+  return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function clip(s, max) {

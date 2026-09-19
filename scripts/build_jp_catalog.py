@@ -162,7 +162,15 @@ ACRONYM_FIX = (
 
 
 def money_to_cents(s: str) -> int:
-    return int(round(float(s.replace("$", "").replace(",", "")) * 100))
+    return ceil_to_dollar(int(round(float(s.replace("$", "").replace(",", "")) * 100)))
+
+
+def ceil_to_dollar(cents: int) -> int:
+    """Round any leftover cents up to the next whole dollar ($1.05 → $2)."""
+    if cents <= 0:
+        return 0
+    rem = cents % 100
+    return cents if rem == 0 else cents + (100 - rem)
 
 
 def looks_like_sku_token(tok: str) -> bool:
