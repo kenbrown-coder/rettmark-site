@@ -2782,6 +2782,17 @@ html.age-gate-pending body::before {
   background: #0a0a0a;
 }
 
+.jp-rifle-photo-note {
+  margin: 0;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--line);
+  background: rgba(8, 8, 8, 0.92);
+  color: #b8b8b8;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .jp-rifle-photo {
   display: block;
   width: 100%;

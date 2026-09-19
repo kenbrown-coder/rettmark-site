@@ -227,17 +227,17 @@
     rifleDetailEl.hidden = false;
     var inReq = lineQty(item.id);
     var img = item.image
-      ? '<div class="jp-rifle-photo-wrap"><img class="jp-rifle-photo" src="' +
+      ? '<figure class="jp-rifle-photo-wrap"><img class="jp-rifle-photo" src="' +
         esc(item.image) +
         '" alt="' +
         esc((item.model || item.name) + " from JP Enterprises") +
-        '" decoding="async" /></div>'
+        '" decoding="async" /><figcaption class="jp-rifle-photo-note">Photo may not represent this exact rifle.</figcaption></figure>'
       : "";
     var badges = "";
     if (item.firearm) badges += '<span class="jp-badge jp-badge--firearm">Built rifle/pistol — extra lead time</span>';
     if (item.limited) badges += '<span class="jp-badge jp-badge--limited">Limited inventory</span>';
     var more = item.sourceUrl
-      ? '<p class="jp-rifle-source">Photo and description from JP Enterprises. <a href="' +
+      ? '<p class="jp-rifle-source">Photo and description from JP Enterprises; the image may not match this configuration. <a href="' +
         esc(item.sourceUrl) +
         '" rel="noopener noreferrer" target="_blank">Read more on jprifles.com</a></p>'
       : "";
