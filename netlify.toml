@@ -84,23 +84,39 @@
   status = 200
 
 [[redirects]]
-  from = "/firearms"
-  to = "/firearms.html"
+  from = "/JP"
+  to = "/jp.html"
   status = 200
 
 [[redirects]]
   from = "/jp"
-  to = "/firearms.html"
-  status = 301
+  to = "/jp.html"
+  status = 200
 
 [[redirects]]
   from = "/jp.html"
-  to = "/firearms.html"
+  to = "/JP"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/firearms"
+  to = "/JP"
+  status = 301
+
+[[redirects]]
+  from = "/Firearms"
+  to = "/JP"
+  status = 301
+
+[[redirects]]
+  from = "/firearms.html"
+  to = "/JP"
   status = 301
 
 [[redirects]]
   from = "/jp-enterprises"
-  to = "/firearms.html"
+  to = "/JP"
   status = 301
 
 [[redirects]]

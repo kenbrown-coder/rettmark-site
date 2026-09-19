@@ -55,11 +55,16 @@ var xml =
 
 for (var i = 0; i < files.length; i++) {
   var f = files[i];
-  var loc = f === "index.html" ? base + "/" : base + "/" + encodeURI(f);
+  var loc =
+    f === "index.html"
+      ? base + "/"
+      : f === "jp.html"
+        ? base + "/JP"
+        : base + "/" + encodeURI(f);
   var pri =
     f === "index.html"
       ? "1.0"
-      : /^(bags|cases|contact|firearms|shooting-glasses)\.html$/.test(f)
+      : /^(bags|cases|contact|jp|shooting-glasses)\.html$/.test(f)
         ? "0.9"
         : f.indexOf("faq/") === 0 || f.indexOf("policies/") === 0
           ? f === "faq/index.html" || f === "policies/index.html"

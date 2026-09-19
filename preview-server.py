@@ -76,6 +76,21 @@ class PreviewHandler(SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), fmt % args))
 
+    PRETTY_PATHS = {
+        "/jp": "/jp.html",
+        "/JP": "/jp.html",
+        "/firearms": "/jp.html",
+        "/Firearms": "/jp.html",
+        "/firearms.html": "/jp.html",
+    }
+
+    def translate_path(self, path):
+        raw = path.split("?", 1)[0].rstrip("/") or "/"
+        alias = self.PRETTY_PATHS.get(raw)
+        if alias:
+            path = alias
+        return super().translate_path(path)
+
 
 def _maybe_open_browser(url):
     if os.environ.get("RETTMARK_OPEN_BROWSER", "").lower() not in ("1", "true", "yes"):
