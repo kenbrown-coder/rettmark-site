@@ -285,11 +285,10 @@
     el.setAttribute("hidden", "");
   }
 
-  function showSuccess(msg) {
-    var el = document.getElementById("jp-order-success");
-    if (!el) return;
-    el.textContent = msg;
-    el.removeAttribute("hidden");
+  function goToThanks() {
+    requestLines = [];
+    writeRequest();
+    window.location.assign("/jp-request-received.html");
   }
 
   rifleSelectEl.addEventListener("change", renderRifleDetail);
@@ -350,11 +349,11 @@
     .catch(function () {
       if (statusEl) {
         statusEl.hidden = false;
-        statusEl.textContent = "Could not load the JP list. Refresh the page or email orders@rettmarkfirearms.com.";
+        statusEl.textContent = "Could not load the JP list. Refresh the page or email info@rettmarkfirearms.com.";
       }
       if (rifleEmptyEl) {
         rifleEmptyEl.hidden = false;
-        rifleEmptyEl.textContent = "Could not load the JP list. Refresh the page or email orders@rettmarkfirearms.com.";
+        rifleEmptyEl.textContent = "Could not load the JP list. Refresh the page or email info@rettmarkfirearms.com.";
       }
     });
 
@@ -380,21 +379,22 @@
     ev.preventDefault();
     clearFormError();
 
+    var selectedId = rifleSelectEl.value;
+    if (selectedId && byId[selectedId] && !lineQty(selectedId)) {
+      addToRequest(selectedId);
+    }
     if (!requestLines.length) {
-      showFormError("Add at least one JP rifle to the request list first.");
+      showFormError("Choose a rifle from the list, then submit your request.");
       return;
     }
     if (!siteKey) {
-      showFormError("Request security is not configured on this site. Please email orders@rettmarkfirearms.com instead.");
+      showFormError("Request security is not configured on this site. Please email info@rettmarkfirearms.com instead.");
       return;
     }
 
     var honeypot = form.querySelector('input[name="bot-field"]');
     if (honeypot && String(honeypot.value || "").trim()) {
-      showSuccess("Request received. We will contact you to confirm.");
-      form.querySelectorAll("input, textarea, button").forEach(function (el) {
-        el.disabled = true;
-      });
+      goToThanks();
       return;
     }
 
@@ -444,22 +444,13 @@
       })
       .then(function (pack) {
         if (pack.res.ok && pack.data.ok) {
-          requestLines = [];
-          writeRequest();
-          renderRequest();
-          renderRifleDetail();
-          showSuccess(
-            "Request received. This is not a charge. We will contact you to confirm the order, FFL details if needed, and payment."
-          );
-          form.querySelectorAll("input:not([name='bot-field']), textarea, button, select").forEach(function (el) {
-            el.disabled = true;
-          });
+          goToThanks();
           return;
         }
         setSubmitting(false);
         showFormError(
           pack.data.userMessage ||
-            "Could not send the request right now. Please try again or email orders@rettmarkfirearms.com."
+            "Could not send the request right now. Please try again or email info@rettmarkfirearms.com."
         );
         if (
           window.turnstile &&
@@ -471,7 +462,7 @@
       })
       .catch(function () {
         setSubmitting(false);
-        showFormError("Could not send the request right now. Please try again or email orders@rettmarkfirearms.com.");
+        showFormError("Could not send the request right now. Please try again or email info@rettmarkfirearms.com.");
       });
   });
 
@@ -481,7 +472,7 @@
     if (!siteKey) {
       if (btn) btn.disabled = true;
       showFormError(
-        "Request security is not configured on this preview. On the live site you can submit here; for now email orders@rettmarkfirearms.com."
+        "Request security is not configured on this preview. On the live site you can submit here; for now email info@rettmarkfirearms.com."
       );
       return;
     }

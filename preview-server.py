@@ -82,6 +82,7 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         "/firearms": "/jp.html",
         "/Firearms": "/jp.html",
         "/firearms.html": "/jp.html",
+        "/jp-request-received": "/jp-request-received.html",
     }
 
     def translate_path(self, path):

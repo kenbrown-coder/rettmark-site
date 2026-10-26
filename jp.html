@@ -70,15 +70,14 @@
 
         <aside class="panel jp-request-panel" aria-labelledby="jp-request-heading">
           <h2 id="jp-request-heading">Order request</h2>
-          <p class="jp-request-intro">Add the selected rifle to this request. We will email or call to confirm before anything is ordered or charged. Mention parts or upgrades in the notes if you need them.</p>
-          <div class="jp-request-empty" id="jp-request-empty">No items yet. Select a rifle above, then use <strong>Add to request</strong> — these lines never go to the cart.</div>
+          <p class="jp-request-intro">Choose a rifle above and enter your information. Submitting includes the rifle selected in the list. Use <strong>Add to request</strong> if you want more than one. We will reach out before anything is ordered or charged. Mention parts or upgrades in the notes if you need them.</p>
+          <div class="jp-request-empty" id="jp-request-empty">No extra items yet. The rifle selected above is included when you submit. Use <strong>Add to request</strong> to include more than one. These lines never go to the cart.</div>
           <ul class="jp-request-lines" id="jp-request-lines" hidden></ul>
           <p class="jp-request-total" id="jp-request-total" hidden></p>
 
           <form class="jp-order-form" id="jp-order-form" method="POST" action="/.netlify/functions/jp-order-request" novalidate>
             <input type="text" name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
             <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
-            <p class="jp-order-success" id="jp-order-success" hidden role="status"></p>
 
             <label class="checkout-field" for="jp-name">Name
               <input class="input" id="jp-name" name="name" type="text" autocomplete="name" required maxlength="80" />

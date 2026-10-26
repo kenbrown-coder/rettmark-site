@@ -6,11 +6,11 @@
  *   2) verifies Cloudflare Turnstile (TURNSTILE_SECRET_KEY)
  *   3) rate-limits by IP (Netlify Blobs when available)
  *   4) rewrites line items from the server MAP catalog (never trusts client prices)
- *   5) emails orders@ and the customer via Resend
+ *   5) emails info@ and a short confirmation to the customer via Resend
  *
  * Env:
  *   TURNSTILE_SECRET_KEY, RESEND_API_KEY, RESEND_FROM
- *   Optional: RESEND_ORDERS_EMAIL (default orders@rettmarkfirearms.com), RESEND_REPLY_TO, CHECKOUT_ALLOWED_ORIGINS
+ *   Optional: JP_REQUEST_EMAIL (default info@rettmarkfirearms.com)
  */
 
 var corsAllowlist = require("./lib/cors-allowlist.js");
@@ -248,8 +248,32 @@ function buildEmail(payload) {
   return { html: html, text: text };
 }
 
-function ordersInbox() {
-  return String(process.env.RESEND_ORDERS_EMAIL || "orders@rettmarkfirearms.com").trim();
+function requestInbox() {
+  return String(process.env.JP_REQUEST_EMAIL || "info@rettmarkfirearms.com").trim();
+}
+
+function buildCustomerEmail(payload) {
+  var lines = payload.items
+    .map(function (it) {
+      return esc(String(it.qty)) + " x " + esc(it.sku) + " — " + esc(it.name);
+    })
+    .join("<br>");
+  var html =
+    "<p style='font-family:sans-serif;font-size:15px'>Thank you for your request.</p>" +
+    "<p style='font-family:sans-serif;font-size:15px'>Someone from Rettmark Firearms will be reaching out shortly for more information. This request is not a charge.</p>" +
+    "<p style='font-family:sans-serif;font-size:14px'><strong>Requested:</strong><br>" +
+    lines +
+    "</p>";
+  var text =
+    "Thank you for your request.\n\n" +
+    "Someone from Rettmark Firearms will be reaching out shortly for more information. This request is not a charge.\n\n" +
+    "Requested:\n" +
+    payload.items
+      .map(function (it) {
+        return it.qty + " x " + it.sku + " — " + it.name;
+      })
+      .join("\n");
+  return { html: html, text: text };
 }
 
 async function sendResendEmail(key, msg) {
@@ -282,13 +306,13 @@ async function sendRequestEmails(payload) {
   if (!from) {
     return { ok: false, skipped: true, reason: "missing_RESEND_FROM" };
   }
-  var ordersTo = ordersInbox();
-  var replyTo = String(process.env.RESEND_REPLY_TO || ordersTo).trim();
+  var inbox = requestInbox();
   var mail = buildEmail(payload);
+  var customerMail = buildCustomerEmail(payload);
 
   var staff = await sendResendEmail(key, {
     from: from,
-    to: [ordersTo],
+    to: [inbox],
     reply_to: [payload.email],
     subject: "JP order request — " + payload.name,
     html: mail.html,
@@ -299,13 +323,13 @@ async function sendRequestEmails(payload) {
   var customer = await sendResendEmail(key, {
     from: from,
     to: [payload.email],
-    reply_to: [replyTo],
+    reply_to: [inbox],
     subject: "JP order request received — Rettmark Firearms",
-    html: mail.html,
-    text: mail.text
+    html: customerMail.html,
+    text: customerMail.text
   });
   if (!customer.ok) {
-    console.error("[rettmark] JP request customer copy failed after orders inbox send");
+    console.error("[rettmark] JP request customer copy failed after staff inbox send");
   }
   return { ok: true };
 }
@@ -393,7 +417,7 @@ exports.handler = async function (event) {
     return json(503, {
       ok: false,
       error: "turnstile_not_configured",
-      userMessage: "Requests are temporarily unavailable. Please email orders@rettmarkfirearms.com."
+      userMessage: "Requests are temporarily unavailable. Please email info@rettmarkfirearms.com."
     });
   }
 
@@ -437,7 +461,7 @@ exports.handler = async function (event) {
       return json(503, {
         ok: false,
         error: "email_unavailable",
-        userMessage: "Could not send the request right now. Please email orders@rettmarkfirearms.com."
+        userMessage: "Could not send the request right now. Please email info@rettmarkfirearms.com."
       });
     }
   } catch (e) {
@@ -448,7 +472,7 @@ exports.handler = async function (event) {
     return json(503, {
       ok: false,
       error: "email_error",
-      userMessage: "Could not send the request right now. Please email orders@rettmarkfirearms.com."
+      userMessage: "Could not send the request right now. Please email info@rettmarkfirearms.com."
     });
   }
 

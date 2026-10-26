@@ -14,7 +14,7 @@
 # Optional: REQUIRE_TURNSTILE_ON_CHARGE=1 — 503 if secret missing (production safety).
 # Notify form: NOTIFY_GOOGLE_SCRIPT_URL + NOTIFY_WEBHOOK_SECRET (docs/notify-form-security.md).
 # JP order requests: POST /.netlify/functions/jp-order-request (Turnstile + Resend; not a cart charge).
-#   Staff copy goes to RESEND_ORDERS_EMAIL (default orders@rettmarkfirearms.com). Same RESEND_API_KEY + RESEND_FROM as checkout.
+#   Staff copy goes to JP_REQUEST_EMAIL (default info@rettmarkfirearms.com). Same RESEND_API_KEY + RESEND_FROM as checkout.
 #
 # Checkout API CORS: CHECKOUT_ALLOWED_ORIGINS — comma-separated exact origins (e.g. https://rettmarkfirearms.com).
 # Required on production deploys (CONTEXT=production); unset allowlist → CORS deny. Preview/branch may still use *.
@@ -168,6 +168,11 @@
 [[redirects]]
   from = "/order-success"
   to = "/order-success.html"
+  status = 200
+
+[[redirects]]
+  from = "/jp-request-received"
+  to = "/jp-request-received.html"
   status = 200
 
 [[redirects]]
