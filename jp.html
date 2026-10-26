@@ -77,8 +77,6 @@
 
           <form class="jp-order-form" id="jp-order-form" method="POST" action="/.netlify/functions/jp-order-request" novalidate>
             <input type="text" name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
-            <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
-
             <label class="checkout-field" for="jp-name">Name
               <input class="input" id="jp-name" name="name" type="text" autocomplete="name" required maxlength="80" />
             </label>
@@ -96,6 +94,7 @@
             </label>
 
             <div class="notify-form__turnstile" data-turnstile-mount aria-label="Security verification"></div>
+            <p class="notify-form__error" hidden role="alert" aria-live="polite"></p>
             <button class="submit jp-submit" type="submit">Submit order request</button>
             <p class="jp-submit-note">You will not be charged from this form. Submitting sends a request only.</p>
           </form>
@@ -126,6 +125,6 @@
 
   <script src="js/turnstile-config.js"></script>
   <script src="js/site.js"></script>
-  <script src="js/jp-order.js"></script>
+  <script src="js/jp-order.js?v=20261026b"></script>
 </body>
 </html>

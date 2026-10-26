@@ -276,6 +276,9 @@
     if (!el) return;
     el.textContent = msg;
     el.removeAttribute("hidden");
+    if (typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ block: "center" });
+    }
   }
 
   function clearFormError() {
@@ -288,7 +291,7 @@
   function goToThanks() {
     requestLines = [];
     writeRequest();
-    window.location.assign("/jp-request-received.html");
+    window.location.href = "/jp-request-received.html";
   }
 
   rifleSelectEl.addEventListener("change", renderRifleDetail);
